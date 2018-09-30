@@ -33,17 +33,17 @@ pysh的特点
 
 examples
 -------
-		[1,2,8,1:5, 10:1:-2]
-		def qsort(lst)
-            if (len(lst) <= 1)
-                return lst
-            end
+    [1,2,8,1:5, 10:1:-2]
+    def qsort(lst)
+         if (len(lst) <= 1)
+             return lst
+         end
 
-            leftpart = filter(lst, _ < lst[0]) | list
-            rightpart = filter(lst, _ > lst[0]) | list
-            eqpart = filter(lst, L(x): x == lst[0]) | list
-            return  qsort(leftpart) + eqpart + qsort(rightpart)
-		end
+         leftpart = filter(lst, _ < lst[0]) | list
+         rightpart = filter(lst, _ > lst[0]) | list
+         eqpart = filter(lst, L(x): x == lst[0]) | list
+         return  qsort(leftpart) + eqpart + qsort(rightpart)
+    end
 		
 重写的shell命令介绍
 --------------------
