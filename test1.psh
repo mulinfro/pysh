@@ -33,7 +33,7 @@ end
 print("####################################")
 
 
-
+_ > lst[0]
 
 print("###-#####-######")
 
@@ -42,28 +42,22 @@ print("###-#####-######")
 print("###-#####-######")
 
 """def qsort(lst)
-        lt = lambda (x,y): x<y
-        gt = lambda (x,y): x>y
-        eq = lambda (x,y): x==y
         if (len(lst) <= 1)
             return lst
         end
         leftpart = list(filter(lt(_, lst[0]), lst))
         rightpart = list(filter(gt(_, lst[0]), lst))
-        eqpart = list(filter(eq(_, lst[0]), lst))
+        eqpart = list(filter(lst, eq(_, lst[0])))
         return  qsort(leftpart) + eqpart + qsort(rightpart)
     end"""
 
 def qsort(lst)
-    lt = lambda (x,y): x<y
-    gt = lambda (x,y): x>y
-    eq = lambda (x,y): x==y
     if (len(lst) <= 1)
         return lst
     end
-    leftpart = list(filter(lt(_, lst[0]), lst))
-    rightpart = list(filter(gt(_, lst[0]), lst))
-    eqpart = list(filter(eq(_, lst[0]), lst))
+    leftpart = filter(lst, _ < lst[0]) | list
+    rightpart = filter(lst, _ > lst[0]) | list
+    eqpart = filter(lst, L(x): x == lst[0]) | list
     return  qsort(leftpart) + eqpart + qsort(rightpart)
 end
 
@@ -74,5 +68,5 @@ qsort(lst)
 
 ls(".") | head
 a = ls(".") 
-filter(lambda (x):len(x) > 3, a)
-ls(".") | filter(lambda (x):len(x) > 3, _) | list
+filter(a, lambda (x):len(x) > 3)
+ls(".") | filter(_, lambda (x):len(x) > 3) | list

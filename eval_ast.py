@@ -342,8 +342,8 @@ def parse_list(node_list):
         else:
             res.append(("ELE", parse_expr(ele)))
 
-    v = []
     def _p_list(env):
+        v = []
         for r in res:
             if r[0] == "COMP": v.extend(r[1](env))
             else:  v.append(r[1](env))
