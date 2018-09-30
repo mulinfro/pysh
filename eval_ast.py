@@ -63,7 +63,7 @@ def parse_simple_expr(node):
     elif node["type"] == "BIEXPR":
         val = parse_binary_expr(node)
     else:
-        val = parse_unary(node)
+        val = parse_unary(node)[1]
     return val
 
 def parse_flow_goto(node):
@@ -178,12 +178,14 @@ def parse_bi_oper(node):
 
 
 def parse_binary_expr(node):
-    g_vals = list(map(parse_unary, node["val"]))
+    g_flag_vals = list(map(parse_unary, node["val"]))
     g_ops  = list(map(parse_bi_oper, node["op"]))
+    g_vals = []
 
     partial_idx  = -1
-    for i in range(len(g_vals)):
-        if g_vals[i] is PARTIAL_FLAG_LAMBDA:
+    for i in range(len(g_flag_vals)):
+        g_vals.append(g_flag_vals[i][1])
+        if g_flag_vals[i][0] is "PARTIAL":
             syntax_cond_assert(partial_idx < 0, "expression partial function can only one argument")
             partial_idx = i
     
@@ -284,21 +286,37 @@ def parse_unary(node):
     if node["type"] != "UNARY": return parse_val_expr(node)
     prefix_ops = [Unary[v] for v in node["prefix"] ]
     prefix_ops.reverse()
-    obj = parse_val_expr(node["obj"])
+    p_flag, obj = parse_val_expr(node["obj"])
     suffix_ops = list(map(parse_suffix_op, node["suffix"]))
     
-    def _unary(env):
-        v = obj(env)
+    def _unary_helper(env, v):
         for sf in suffix_ops: v = sf(env)(v)
         for pf in prefix_ops: v = pf(v)
         return v
-    return _unary
+
+    def _unary(env):
+        v = obj(env)
+        return _unary_helper(env, v)
+
+    def _unary_partial(env):
+        def warpper(v):
+            return _unary_helper(env, v)
+        return warpper    
+
+    if p_flag is "PARTIAL":
+        return ("PARTIAL", _unary_partial)
+
+    for op in node["suffix"]:
+        if op["type"] is "PARTIAL":
+            return ("PARTIAL", _unary)
+
+    return ("UNARY", _unary)
         
 # function call; var; literal value; unary operator
 def parse_val_expr(node):
     t_type = node["type"]
     if t_type is 'VAR':
-        atom = parse_var(node)
+        return parse_var(node)
     elif t_type is 'LIST': 
         atom = parse_list(node["val"])
     elif t_type is 'TUPLE':
@@ -317,7 +335,7 @@ def parse_val_expr(node):
         atom = parse_parn(node)
     else:
         Error("val_expr: " + t_type)
-    return atom
+    return ("VAL", atom)
 
 def parse_list_comp(node):
     interval = lambda env: 1
@@ -449,7 +467,7 @@ def parse_var(node):
         t = env.find(var)
         if t is None: Error(var + " not find")
         return t[var]
-    return PARTIAL_FLAG_LAMBDA if var == "_" else find
+    return ("PARTIAL", PARTIAL_FLAG_LAMBDA) if var == "_" else ("VAL", find)
     
 def parse_block(node):
     exprs = list(map(parse, node))
