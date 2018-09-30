@@ -29,21 +29,20 @@ pysh的特点
 3. 调用shell原生命令的操作符； 如果需要调用原始的shell命令，用这个语法
 4. 偏函数定义; 用"_"表示占位符，f(_, y)(x) == f(x,y); 这个特性结合PIPE很方便
 5. list切片，dict取list里所有对象
+6. 部分shell命令的pythonic实现
 
 examples
 -------
 		[1,2,8,1:5, 10:1:-2]
 		def qsort(lst)
-    		    lt = lambda (x,y): x<y
-    		    gt = lambda (x,y): x>y
-    		    eq = lambda (x,y): x==y
-    		    if (len(lst) <= 1)
-			return lst
-    		    end
-    		    leftpart = list(filter(lt(_, lst[0]), lst))
-    		    rightpart = list(filter(gt(_, lst[0]), lst))
-    		    eqpart = list(filter(eq(_, lst[0]), lst))
-    		    return  qsort(leftpart) + eqpart + qsort(rightpart)
+            if (len(lst) <= 1)
+                return lst
+            end
+
+            leftpart = filter(lst, _ < lst[0]) | list
+            rightpart = filter(lst, _ > lst[0]) | list
+            eqpart = filter(lst, L(x): x == lst[0]) | list
+            return  qsort(leftpart) + eqpart + qsort(rightpart)
 		end
 		
 重写的shell命令介绍
