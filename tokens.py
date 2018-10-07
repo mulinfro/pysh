@@ -149,7 +149,10 @@ class token_list():
     def read_op(self):
         line, col = self.chars.line, self.chars.col
         op = ""
-        while self.chars.peek() in '!=<>|$&:@%+-*/$.':
+        if self.chars.peek() in '+-':
+            op += self.chars.next()
+            return token("OP", operators[op], line, col)
+        while self.chars.peek() in '!=<>|&@%*/.:$':
             op += self.chars.next()
         if op in special_op:
             return token(special_op[op], op, line, col)

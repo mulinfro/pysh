@@ -6,6 +6,10 @@ from tokens import token_list
 from env import get_builtin_env
 import types, re
 
+import readline
+readline.parse_and_bind('tab: complete')
+readline.parse_and_bind('set editing-mode vi')
+
 builtins = locals()["__builtins__"]
 
 def load_history_cmds():
@@ -31,7 +35,8 @@ def REPL():
     cmd = ""
     while True:
         cmd = cmd + input(IN).strip()
-        # in repl every multiline need \
+        if cmd in ['quit', 'exit']: break
+        # in repl every multiline expr need \ 
         if cmd.endswith("\\"):
             cmd = cmd[0:-1]
             continue
@@ -77,5 +82,6 @@ def pysh(psh_file):
         main(*sys.argv[1:])
         
 if __name__ == "__main__":
-    pysh("test1.psh")
+    path = "D:\\github\\pysh\\"
+    pysh(path + "test1.psh")
     REPL()

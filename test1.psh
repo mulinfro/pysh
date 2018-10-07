@@ -70,3 +70,4 @@ ls(".") | head
 a = ls(".") 
 filter(a, lambda (x):len(x) > 3)
 ls(".") | filter(_, lambda (x):len(x) > 3) | list
+[1:-1]

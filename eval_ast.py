@@ -510,5 +510,5 @@ def parse_def(node):
                 return r.value(new_env)
 
         env[node["funcname"]] = proc
-        return "function: " + node["funcname"]
+        #return "function: " + node["funcname"]
     return _def

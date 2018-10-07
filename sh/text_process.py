@@ -1,16 +1,16 @@
 
-import re
+import re, types
 from itertools import chain
 from sh.os_cmd import is_dir, replace_if_star_dir
+from collections.abc import Iterable
 
 
 __all__ = []
 
-
 def pipe_itertool(func):
     def wrapper(*args, **kw):
         assert(len(args) > 0)
-        if type(args[0]) == str:
+        if not isinstance(ans, types.GeneratorType):
             return func(*args, **kw)
         for line in args[0]:
             new_args = (line,) + args[1:]
@@ -21,6 +21,18 @@ def pipe_itertool(func):
 @pipe_itertool
 def grep(line, pat, p=""):
     if pat in line: return line
+
+def gen(iterable):
+    for e in iterable:
+        yield e
+
+@pipe_itertool
+def format(pat):
+    for x in iterable:
+        if isinstance(x, Iterable):
+            yield pat.format(*x)
+        else:
+            yield pat.format(x)
 
 def wc(iterable, p="l"):
     i = 0
@@ -104,6 +116,9 @@ def filter(iterable, func):
     for ele in iterable:
         if func(ele):
             yield ele
+
+def mapValues():
+    pass
 
 def flat(listOfLists):
     return chain.from_iterable(listOfLists)
