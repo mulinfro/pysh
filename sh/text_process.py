@@ -88,9 +88,32 @@ def more(file_name):
             if is_continue not in ["", "y", "Y"]: break
     f.close()
 
-def groupby():
-    pass
+def groupBy(iterable, key = lambda x:x[0]):
+    res = {}
+    for x in iterable:
+        k = key(x)
+        if k not in res: res[k] = []
+        res[k].append(x)
+    return res
 
+def take(iterable, n):
+    i = 0
+    for x in iterable:
+        if i >= n: break
+        i+=1
+        yield x
+
+def takeWhile(iterable, key):
+    for x in iterable:
+        if not key(x): break
+        yield x
+
+def drop(iterable, n):
+    i = 0
+    for x in iterable:
+        if i >= n: yield x
+        i+=1
+            
 def xreduce(iterable):
     pass
 
@@ -100,10 +123,6 @@ def head(iterable, n=10):
         i += 1
         if i > n: break
         yield line
-
-def awk():
-    pass
-
 
 def join():
     pass
@@ -117,14 +136,20 @@ def filter(iterable, func):
         if func(ele):
             yield ele
 
-def mapValues():
-    pass
+def mapValues(dict_obj, key):
+    res = {}
+    for k,v in dict_obj.items():
+        res[k] = key(v)
+    return res
 
 def flat(listOfLists):
     return chain.from_iterable(listOfLists)
 
 def flatMap(f, items):
     return chain.from_iterable(map(items, f))
+
+def awk():
+    pass
 
 def sed():
     pass
