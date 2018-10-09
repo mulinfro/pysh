@@ -38,10 +38,11 @@ op_order = {
     "OR": 3,
     "AND": 4,
     "IS": 5, "IN": 5,
-    "PIPE": 6,
     "LT": 7, "GT": 7, "LE": 7, "GE": 7, "EQUAL": 7, "NEQ": 7,
     "ADD": 10, "MINUS": 10,
-    "MUL": 20, "DIV": 20, "MOD": 20,
+    "MOD": 15,
+    "MUL": 20, "DIV": 20, 
+    "PIPE": 25
 }
 
 # 结合性; 右结合

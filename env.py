@@ -21,11 +21,7 @@ def get_builtin_env(builtins):
     register(text_process, paras, args)
     return Env(parms = paras, args = args)
 
-replaced_python_obj = [ "map", "filter" ]
-
 def register(module, paras, args):
-    for p in dir(module):
-        if p not in paras or p in replaced_python_obj:
-            paras.append(p)
-            args.append(module.__dict__.get(p))
-    return
+    for p in module.__all__:
+        paras.append(p)
+        args.append(module.__dict__.get(p))

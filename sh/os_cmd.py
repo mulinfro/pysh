@@ -3,6 +3,8 @@ import shutil
 import os
 from sh.utils import normal_leven
 
+__all__ =  ['pwd', 'is_file', 'is_dir', 'replace_if_star_dir', 'ls', 'll', 
+            'hispath', 'cd', 'cdb', 'cdn', 'mkdir', 'rm', 'cptree', 'cp', 'mv', 'find']
 
 def pwd():
     return os.getcwd()

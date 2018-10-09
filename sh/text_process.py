@@ -4,14 +4,18 @@ from itertools import chain
 from sh.os_cmd import is_dir, replace_if_star_dir
 from collections.abc import Iterable
 
-
-__all__ = []
+__all__ = ['pipe_itertool', 'wrapper', 'grep', 'gen', 'colSel', 'format', 
+            'wc', 'egrep', 'extract', 'replace', 'cat', 'tojson', 'dumps', 'more', 
+            'groupBy', 'take', 'takeWhile', 'drop', 'xreduce', 'head', 'join', 
+            'map', 'filter', 'mapValues', 'flat', 'flatMap', 'awk', 'sed', 'split', 
+            'findall', 'search', 'xsort', 'uniq']
 
 def pipe_itertool(func):
     def wrapper(*args, **kw):
         assert(len(args) > 0)
-        if not isinstance(ans, types.GeneratorType):
-            return func(*args, **kw)
+        if not isinstance(args[0], types.GeneratorType):
+            ans = func(*args, **kw)
+            if ans is not None: yield ans
         for line in args[0]:
             new_args = (line,) + args[1:]
             ans = func(*new_args, **kw)
@@ -20,11 +24,18 @@ def pipe_itertool(func):
     
 @pipe_itertool
 def grep(line, pat, p=""):
-    if pat in line: return line
+    if pat in line: 
+        return line
 
 def gen(iterable):
     for e in iterable:
         yield e
+
+@pipe_itertool
+def colSel(iterable, idxes):
+    if type(idxes) not in (list, tuple):
+        return iterable[idxes]
+    return [iterable[idx] for idx in idxes]
 
 @pipe_itertool
 def format(pat):
@@ -47,6 +58,12 @@ def egrep(line, pat, p="i"):
     match = pattern.search(line)
     if match:
         return line
+
+@pipe_itertool
+def extract(line, pat):
+    match = re.search(pat, line)
+    if match:
+        return match.groups()
 
 @pipe_itertool
 def replace(line, pat, repl, p="", cnt=0):

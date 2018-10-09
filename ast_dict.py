@@ -44,7 +44,7 @@ class AST():
             self.newlines(self.tokens)
             if self.tokens.eof(): break
             tkn = self.tokens.peek()
-            if tkn.tp is 'DEF':
+            if tkn.tp == 'DEF':
                 val = self.ast_def(self.tokens)
             elif tkn.tp in ["FROM", 'IMPORT']:
                 val = self.ast_import(self.tokens)
@@ -57,7 +57,7 @@ class AST():
 
     def ast_assign_helper(self, stm, tps):
         tkn = stm.peek()
-        if tkn.tp is "VAR" and stm.hasnext() and stm.looknext().tp in tps:
+        if tkn.tp == "VAR" and stm.hasnext() and stm.looknext().tp in tps:
             var = self.ast_pattern_var(stm)
             a_tp = stm.next().tp
             val = self.ast_try_assign(stm)
@@ -128,42 +128,12 @@ class AST():
 
     def ast_control(self, stm):
         tkn = stm.peek()
-        if   tkn.tp is 'IF':
+        if   tkn.tp == 'IF':
             return self.ast_if(stm)
-        elif tkn.tp is 'FOR':
+        elif tkn.tp == 'FOR':
             return self.ast_for(stm)
-        elif tkn.tp is 'WHILE':
+        elif tkn.tp == 'WHILE':
             return self.ast_while(stm)
-
-    """
-    def ast_parn(self, stm):
-        vals = []
-        default_args, default_vals = [], []
-        is_tuple, is_assign, is_partial = False, False, False
-        while not stm.eof():
-            t = self.ast_try_assign(stm )
-            syntax_cond_assert( t["type"] is not "GASSIGN", "syntax error unexpected global assign")
-            if is_assign:
-                syntax_cond_assert( t["type"] is "ASSIGN", "error undefault args follow default args")
-
-            if t["type"] == "VAR" and t["name"] == "_":
-                is_partial = True
-            if t["type"] is "ASSIGN":
-                is_assign = True
-                syntax_cond_assert(t["val"]["type"] != "ASSIGN", "unexpected continue assign")
-                default_args.append(t["var"]["name"])
-                default_vals.append(t["val"])
-            else:
-                vals.append(t)
-        if is_assign or is_partial:
-            tp = "ARGS" if not is_partial else "PARTIAL"
-            return {"type":tp, "val":vals, 
-                 "default_args": default_args, "default_vals":default_vals}
-        elif len(vals) != 1:
-            return {"type":"TUPLE", "val":vals}
-        else:
-            return {"type":"PARN", "val":vals}
-    """
 
     def ast_simple_args(self, stm):
         _vars = []
@@ -182,7 +152,7 @@ class AST():
         for e in eles_iter:
             if e["type"] == "ASSIGN": is_assign = True
             if is_assign:
-                syntax_cond_assert(e["type"] is "ASSIGN", "error undefault args follow default args")
+                syntax_cond_assert(e["type"] == "ASSIGN", "error undefault args follow default args")
                 syntax_cond_assert(e["val"]["type"] != "ASSIGN", "unexpected continue assign")
                 default_args.append(e["var"]["name"])
                 default_vals.append(e["val"])
@@ -209,7 +179,7 @@ class AST():
 
     def ast_expr(self, stm):
         true_part = self.ast_binary_expr(stm)
-        if not stm.eof() and stm.peek().tp is "IF":
+        if not stm.eof() and stm.peek().tp == "IF":
             stm.next()
             cond = self.ast_binary_expr(stm)
             syntax_assert(stm.next(), "ELSE", "need else branch")
@@ -242,7 +212,7 @@ class AST():
     
     def ast_func_body(self, stm):
         tkn = stm.peek()
-        if tkn.tp is 'DEF':
+        if tkn.tp == 'DEF':
             return self.ast_def(stm)
         else:
             return self.ast_block_expr(stm)
@@ -260,7 +230,7 @@ class AST():
         check_eof(cond_stream)
         true_part = self.ast_body(stm, self.ast_block_expr)
         tkn, else_part = stm.peek(), None
-        if tkn.tp is "ELSE":
+        if tkn.tp == "ELSE":
             else_part = self.ast_body(stm, self.ast_block_expr)
         syntax_assert(stm.next(), "END", "missing END")
         return {"type":'IF', "cond":cond, "then":true_part, "else":else_part}
@@ -275,11 +245,11 @@ class AST():
 
     def ast_while(self, stm):
         stm.next(); tkn = stm.next()
-        syntax_assert(tkn.tp, "PARN",  "missing (")
+        syntax_assert(tkn, "PARN",  "missing (")
         cond_stream = stream(tkn.val)
         cond = self.ast_expr(cond_stream)
         check_eof(cond_stream)
-        body = self.ast_body(self, stm, self.ast_block_expr)
+        body = self.ast_body(stm, self.ast_block_expr)
         syntax_assert(stm.next(), "END", "missing END")
         return {"type":"WHILE", "cond":cond, "body":body}
 
@@ -310,7 +280,7 @@ class AST():
                 "obj":obj_val, "suffix":suffix["val"]}
 
     def ast_prefix_op(self, stm):
-        is_valid = lambda tkn: tkn.tp is "OP" and tkn.val in Unary
+        is_valid = lambda tkn: tkn.tp == "OP" and tkn.val in Unary
         tps = self.ast_same_type_seq(stm, is_valid)
         return {"type":"PREFIXOP", "val":tps}
 
@@ -320,7 +290,7 @@ class AST():
             tp = stm.peek().tp 
             if tp in ("LIST", "PARN", "TUPLE" ):
                 tps.append(self.ast_val(stm))
-            elif tp is "DOT":
+            elif tp == "DOT":
                 tps.append(self.ast_dot(stm))
             else:
                 break
@@ -344,21 +314,21 @@ class AST():
 
     def ast_try_op(self, stm):
         tkn = stm.peek()
-        if tkn.tp is "OP" and tkn.val in Binary:
+        if tkn.tp == "OP" and tkn.val in Binary:
             return {"type":tkn.tp, "val":stm.next().val}
         return None
 
     def ast_val(self, stm):
         tkn = stm.next()
-        if tkn.tp is "LAMBDA":
+        if tkn.tp == "LAMBDA":
             val = self.ast_lambda(stm)
-        elif tkn.tp is "LIST":
+        elif tkn.tp == "LIST":
             val = self.ast_list(stream(tkn.val))
-        elif tkn.tp is "PARN":
+        elif tkn.tp == "PARN":
             val = self.ast_parn(stream(tkn.val))
-        elif tkn.tp is "DICT":
+        elif tkn.tp == "DICT":
             val = self.ast_dict(stream(tkn.val))
-        elif tkn.tp is "VAR":
+        elif tkn.tp == "VAR":
             val = {"type":"VAR", "name":tkn.val}
         elif tkn.tp in ('NUM', 'STRING', 'BOOL', "SYSCALL" ,"SYSFUNC", "NONE"):
             val = {"type":tkn.tp, "val":tkn.val}

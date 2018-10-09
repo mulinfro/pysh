@@ -5,18 +5,28 @@ from ast_dict import AST
 from tokens import token_list
 from env import get_builtin_env
 import types, re
+import readline, os, atexit
+import sys
+PSH_DIR = sys.path[0]
+os.chdir(PSH_DIR)
 
-import readline
-readline.parse_and_bind('tab: complete')
-readline.parse_and_bind('set editing-mode vi')
+def repl_readline_helper():
+    readline.parse_and_bind('tab: complete')
+    readline.parse_and_bind('set editing-mode vi')
+    histfile = os.path.join(PSH_DIR, ".pyhist")
+    try:
+        readline.read_history_file(histfile)
+        # default history len is -1 (infinite), which may grow unruly
+        readline.set_history_length(1000)
+    except IOError:
+        pass
+    atexit.register(readline.write_history_file, histfile)
+
 
 builtins = locals()["__builtins__"]
 
-def load_history_cmds():
-    return []
-
 def REPL():
-    history_cmds = load_history_cmds()
+    repl_readline_helper()
     IN = "$> "
     env = get_builtin_env(builtins)
     def is_block(cmd):
@@ -82,6 +92,5 @@ def pysh(psh_file):
         main(*sys.argv[1:])
         
 if __name__ == "__main__":
-    path = "D:\\github\\pysh\\"
-    pysh(path + "test1.psh")
+    pysh("test.psh")
     REPL()

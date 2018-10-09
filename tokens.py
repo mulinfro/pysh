@@ -1,9 +1,9 @@
 from builtin import operators, special_op
 
 keywords = {
-'and': 'AND',
-'or' : 'OR',
-'not': 'NOT',
+'and': ("OP", 'AND'),
+'or' : ("OP", 'OR'),
+'not': ("OP", 'NOT'),
 'def': 'DEF',
 'lambda': 'LAMBDA',
 'L': 'LAMBDA',
@@ -90,7 +90,7 @@ class token_list():
         elif str.isdigit(ch): tkn = self.read_num()
         elif str.isalpha(ch) or ch == '_': tkn = self.read_var()
         elif ch in ',\n':     tkn = self.read_sep()
-        elif ch is '\\':      tkn = self.link()
+        elif ch == '\\':      tkn = self.link()
         else: tkn = self.read_op()   # throw exception
         return tkn
 
@@ -140,7 +140,7 @@ class token_list():
             var += self.chars.next()
         if var in keywords: 
             kw = keywords[var]
-            if var in ("None", "True", "False", "is", "in"): 
+            if var in ("None", "True", "False", "is", "in", "and", "or", "not"): 
                 return token(kw[0], kw[1], line, col)
             else: 
                 return token(kw, var, line, col)

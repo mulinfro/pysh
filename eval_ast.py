@@ -185,7 +185,8 @@ def parse_binary_expr(node):
     partial_idx  = -1
     for i in range(len(g_flag_vals)):
         g_vals.append(g_flag_vals[i][1])
-        if g_flag_vals[i][0] is "PARTIAL":
+        if g_flag_vals[i][0] == "PARTIAL" and \
+            (i==0 or g_ops[i-1]["name"]!="PIPE"):
             syntax_cond_assert(partial_idx < 0, "expression partial function can only one argument")
             partial_idx = i
     
@@ -255,9 +256,9 @@ def parse_suffix_op(op):
     if op["type"] in ("PARN", "TUPLE", "ARGS"):
         snv = parse_args(op)
         return lambda env: lambda f: Unary["CALL"](f, snv(env))
-    elif op["type"] is "PARTIAL":
+    elif op["type"] == "PARTIAL":
         return parse_partial(op)
-    elif op["type"] is "DOT":
+    elif op["type"] == "DOT":
         return lambda env: lambda x: x.__getattribute__(op["attribute"])
     else:
         snv = parse_list(op["val"])
@@ -303,11 +304,11 @@ def parse_unary(node):
             return _unary_helper(env, v)
         return warpper    
 
-    if p_flag is "PARTIAL":
+    if p_flag == "PARTIAL":
         return ("PARTIAL", _unary_partial)
 
     for op in node["suffix"]:
-        if op["type"] is "PARTIAL":
+        if op["type"] == "PARTIAL":
             return ("PARTIAL", _unary)
 
     return ("UNARY", _unary)
@@ -315,23 +316,23 @@ def parse_unary(node):
 # function call; var; literal value; unary operator
 def parse_val_expr(node):
     t_type = node["type"]
-    if t_type is 'VAR':
+    if t_type == 'VAR':
         return parse_var(node)
-    elif t_type is 'LIST': 
+    elif t_type == 'LIST': 
         atom = parse_list(node["val"])
-    elif t_type is 'TUPLE':
+    elif t_type == 'TUPLE':
         atom = parse_tuple(node)
-    elif t_type is 'DICT': 
+    elif t_type == 'DICT': 
         atom = parse_dict(node)
     elif t_type in ("BOOL", 'NUM', 'STRING', "NONE"):
         atom = lambda env : node["val"]
-    elif t_type is 'SYSCALL':
+    elif t_type == 'SYSCALL':
         atom = parse_syscall(node)
-    elif t_type is 'SYSFUNC':
+    elif t_type == 'SYSFUNC':
         atom = parse_sysfunc(node)
-    elif t_type is 'LAMBDA':
+    elif t_type == 'LAMBDA':
         atom = parse_lambda(node)
-    elif t_type is 'PARN':
+    elif t_type == 'PARN':
         atom = parse_parn(node)
     else:
         Error("val_expr: " + t_type)
