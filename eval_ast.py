@@ -99,13 +99,14 @@ def parse_import(node):
         from importlib.machinery import SourceFileLoader
         return SourceFileLoader(_as, path).load_module()
 
-    def user_import_package(path):
-        pass
-
     def user_import_psh(path):
-        pass
+        import os
+        syntax_cond_assert(os.path.is_file(path),  "Error: path %s is not a file"%path)
+        import repl
+        return repl.pysh(path, run=False)
 
-    def user_package_import(path, file_suffix):
+    """  not neccssily
+    def user_import_package(path, file_suffix):
         if file_suffix == ".py":
             return user_import_py(path + file_suffix, _as)
         elif file_suffix == ".psh":
@@ -113,6 +114,7 @@ def parse_import(node):
         else:
             onlyfiles = [ f for f in os.listdir(path) ]
             env[_as] = user_import_package(path)
+    """
 
     _from, _import, _as = node["from"], node["import"], node["as"]
     module = {}
@@ -384,12 +386,16 @@ def parse_dict(node):
     return _dict
         
 def parse_if(node):
-    cond = parse_simple_expr(node["cond"])
-    then_f = parse_block(node["then"])
-    else_f = lambda env: None
-    if node["else"]:
-        else_f = parse_block(node["else"])
-    return lambda env: then_f(env) if cond(env) else else_f(env)
+    else_f = parse_block(node["else"]) if node["else"] else lambda env: None 
+    cond_f = [parse_simple_expr(cond) for cond in node["cond"]] + [lambda env: True]
+    then_f = [parse_block(then) for then in node["then"]]       + [else_f]
+    cond_then_pair = list(zip(cond_f, then_f))
+    def do_switch(env):
+        for cond,then in cond_then_pair:
+            if cond(env):
+                then(env)
+                break
+    return do_switch
 
 def parse_in(node):
     v = parse_expr(node["val"])
@@ -439,7 +445,7 @@ def parse_while(node):
 
 def os_call(sh):
     import subprocess
-    out_bytes = subprocess.check_output(sh)
+    out_bytes = subprocess.check_output(sh, shell=True)
     return out_bytes.decode('utf-8')
 
 def parse_syscall(node):
@@ -478,28 +484,28 @@ def parse_block(node):
     return squence_do
 
 def parse_def(node):
-    args_node = node["args"]["val"]
+    args_node = node["args"]
     args = []
-    for ag in args_node:
+    for ag in args_node["val"]:
         if ag["type"] != "VAR": Error("syntax error in function def arguments")
         args.append(ag["name"])
 
     default_args, default_vals = [], []
-    if "default_args" in args:
-        default_vals = parse_expr(args["default_vals"])
-        default_args = parse_expr(args["default_args"])
+    if "default_args" in args_node:
+        default_vals = [parse_expr(v) for v in args_node["default_vals"]]
+        default_args = args_node["default_args"]
+    body_f = parse_block(node["body"])
 
     def _def(env):
+        new_env = Env(outer = env)
+        r_default_vals = [a(new_env) for a in default_vals]
         def proc(*args_vals, **kwargs):
             if len(args_vals) < len(args) or len(args_vals) > len(args) + len(default_args):
                 Error("%s() unexpected argument number"% node["name"])
             for k,v in kwargs.items():
                 if k not in default_args:
                     Error("%s() not defined argument %s"%(node["name"], k))
-            new_env = Env(outer = env)
-            body_f = parse_block(node["body"])
-            # default args, every call re-eval, update them
-            r_default_vals = [a(new_env) for a in default_vals]
+            # default args
             new_env.update(list(zip(default_args, r_default_vals)))
             av = list(zip(args + default_args, args_vals))
             new_env.update(av)

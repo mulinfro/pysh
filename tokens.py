@@ -9,6 +9,7 @@ keywords = {
 'L': 'LAMBDA',
 'if': 'IF',
 'else': 'ELSE',
+'elif': 'ELIF',
 'True': ("BOOL",True),
 'False': ("BOOL",False),
 'end': 'END',

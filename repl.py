@@ -4,9 +4,8 @@ from eval_ast import parse, Env
 from ast_dict import AST
 from tokens import token_list
 from env import get_builtin_env
-import types, re
-import readline, os, atexit
-import sys
+import readline, atexit ,rlcompleter
+import sys, os, types, re
 PSH_DIR = sys.path[0]
 os.chdir(PSH_DIR)
 
@@ -79,7 +78,7 @@ def parse_and_eval_with_env(script, env):
             print(":> ", ans)
     
 
-def pysh(psh_file):
+def pysh(psh_file, run=True):
     with open(psh_file) as f:
         script = char_stream(f.read())
     env = get_builtin_env(builtins)
@@ -87,9 +86,10 @@ def pysh(psh_file):
     #print(node)
     #print(parse(node)(env))
 
-    if "main" in env:
+    if run and "main" in env:
         import sys
         main(*sys.argv[1:])
+    return env
         
 if __name__ == "__main__":
     pysh("test.psh")

@@ -207,7 +207,7 @@ class AST():
         body = []
         while True:
             self.newlines(stm)
-            if stm.peek().tp in ("ELSE", "END"): return body
+            if stm.peek().tp in ("ELSE", "END", "ELIF"): return body
             body.append(parse_func(stm))
     
     def ast_func_body(self, stm):
@@ -223,17 +223,23 @@ class AST():
         return {"type":"VAR", "name":tkn.val}
 
     def ast_if(self, stm):
-        stm.next(); tkn = stm.next()
-        syntax_assert(tkn, "PARN", "need parn")
-        cond_stream = stream(tkn.val)
-        cond = self.ast_expr(cond_stream)
-        check_eof(cond_stream)
-        true_part = self.ast_body(stm, self.ast_block_expr)
+        condlist, do_list = [], []
+        while stm.peek().tp in ["ELIF", "IF"]:
+            stm.next(); tkn = stm.next()
+            syntax_assert(tkn, "PARN", "need parn")
+            cond_stream = stream(tkn.val)
+            cond = self.ast_expr(cond_stream)
+            check_eof(cond_stream)
+            true_part = self.ast_body(stm, self.ast_block_expr)
+            condlist.append(cond)
+            do_list.append(true_part)
+
         tkn, else_part = stm.peek(), None
         if tkn.tp == "ELSE":
+            stm.next()
             else_part = self.ast_body(stm, self.ast_block_expr)
-        syntax_assert(stm.next(), "END", "missing END")
-        return {"type":'IF', "cond":cond, "then":true_part, "else":else_part}
+        syntax_assert(stm.next(), "END", "'%s' missing END"%tkn.val)
+        return {"type":'IF', "cond":condlist, "then":do_list, "else":else_part}
         
     def ast_for(self, stm):
         stm.next(); tkn = stm.next()

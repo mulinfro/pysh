@@ -66,6 +66,45 @@ fl3(lst[0]-1)
 ">>> IF FOR WHILE"
 True if len(ss) > 1 else False
 
+def branchSel(signal)
+    if(signal==0)
+        return 0
+    else 
+        if(signal == 1)
+            return 1
+        else 
+            if(signal==2)
+                return 2
+            else
+                return 3
+            end
+        end
+    end
+end
+
+branchSel(0) == 0
+branchSel(1) == 1
+branchSel(2) == 2
+branchSel(3) == 3
+
+
+def branchSel2(signal)
+    if(signal==0)
+        return 0
+    elif(signal == 1)
+        return 1
+    elif(signal == 2)
+        return 2
+    else
+        return 3
+    end
+end
+
+branchSel2(0) == 0
+branchSel2(1) == 1
+branchSel2(2) == 2
+branchSel2(3) == 3
+
 for (x in lst)
  	if(x>5)
     	print(x)
@@ -95,8 +134,33 @@ print("###-func-qsort")
 qsort(lst)
 print("###-end")
 
+xxyy = 111
+"closure"
+def test_closure(xy = 1)
+    xxyy = 2*xy
+    def add_one()
+        xxyy = xxyy + 1
+        return xxyy
+    end
+    return add_one
+end
+
+add_one = test_closure()
+(add_one(),add_one(),add_one())
+
+add_one = test_closure(2)
+(add_one(),add_one(),add_one())
+
+print("xxyy:", xxyy)
+
 ">>> PIPE"
 ls(".") | head
 a = ls(".") 
 filter(a, lambda (x):len(x) > 3)
 ls(".") | filter(_, lambda (x):len(x) > 3) | list
+
+
+">>> CALL SHELL COMMANDS"
+$ ls
+$ /sbin/ifconfig|sed -n '/inet addr/s/^[^:]*:\([0-9.]\{7,15\}\) .*/\1/p'
+
