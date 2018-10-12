@@ -1,3 +1,4 @@
+
 1==2 and 2==2 or 1>2
 ">>> NUM"
 +1
@@ -127,7 +128,7 @@ def qsort(lst)
     leftpart = filter(lst, _ < lst[0]) | list
     rightpart = filter(lst, _ > lst[0]) | list
     eqpart = filter(lst, L(x): x == lst[0]) | list
-    return  qsort(leftpart) + eqpart + qsort(rightpart)
+    return qsort(leftpart) + eqpart + qsort(rightpart)
 end
 
 print("###-func-qsort")
@@ -160,7 +161,7 @@ filter(a, lambda (x):len(x) > 3)
 ls(".") | filter(_, lambda (x):len(x) > 3) | list
 
 
-">>> CALL SHELL COMMANDS"
+">>> CALL SHELL COMMANDS" + " fork一个进程通过shell解释shell命令, cd对当前进程不生效"
 $ ls
 $ /sbin/ifconfig|sed -n '/inet addr/s/^[^:]*:\([0-9.]\{7,15\}\) .*/\1/p'
 

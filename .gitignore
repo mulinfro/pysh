@@ -16,6 +16,7 @@ $RECYCLE.BIN/
 *.swp
 __pycache__
 *.bak
+.pyhist
 
 # Windows shortcuts
 *.lnk

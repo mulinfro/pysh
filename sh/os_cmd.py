@@ -8,7 +8,10 @@ __all__ =  ['pwd', 'is_file', 'is_dir', 'replace_if_star_dir', 'ls', 'll',
 
 def pwd():
     return os.getcwd()
-
+    
+def doc(obj):
+    print(obj.__doc__)
+    
 WORK_DIR = pwd()
 PRE_DIR = "~"
 HOME_DIR = os.path.expanduser("~")
@@ -107,11 +110,11 @@ def find(name, dir_path="." , p="r"):
     files = ls(dir_path, p)
     ans = []
     for fn in files:
-        head, tail = os.path.split(dir_path)
+        head, tail = os.path.split(fn)
         dis = normal_leven(tail, name)
         ans.append((dis, fn))
-    sorted(ans)
+    ans.sort()
     ans = ans[0:5]
-    if len(ans) > 0 and ans[0][1] == 0:
+    if len(ans) > 0 and ans[0][0] == 0:
         return [ans[0][1]]
     return list(map(lambda x:x[1], ans))

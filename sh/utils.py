@@ -30,3 +30,13 @@ def normal_leven(str1, str2):
                                           matrix[(j-1)*len_str1+(i-1)] + cost)
           
       return matrix[-1]
+
+
+if __name__ == "__main__":
+    s1 = "123"
+    print(normal_leven(s1,s1 ))
+    s2 = s1 + "45"
+    print(normal_leven(s1,s2 ))
+    print(normal_leven(s2,s1 ))
+    s3 = "132"
+    print(normal_leven(s1,s3 ))

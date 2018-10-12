@@ -4,12 +4,11 @@ from eval_ast import parse, Env
 from ast_dict import AST
 from tokens import token_list
 from env import get_builtin_env
-import readline, atexit ,rlcompleter
-import sys, os, types, re
+import os, types, re, sys
 PSH_DIR = sys.path[0]
-os.chdir(PSH_DIR)
 
 def repl_readline_helper():
+    import readline, atexit ,rlcompleter
     readline.parse_and_bind('tab: complete')
     readline.parse_and_bind('set editing-mode vi')
     histfile = os.path.join(PSH_DIR, ".pyhist")
@@ -21,11 +20,13 @@ def repl_readline_helper():
         pass
     atexit.register(readline.write_history_file, histfile)
 
-
 builtins = locals()["__builtins__"]
 
 def REPL():
-    repl_readline_helper()
+    try:
+        repl_readline_helper()
+    except ImportError:
+        print("readline module is not installed! use raw input")
     IN = "$> "
     env = get_builtin_env(builtins)
     def is_block(cmd):
@@ -73,13 +74,13 @@ def parse_and_eval_with_env(script, env):
         ans = parse(node)(env)
         if ans is None or node["type"] == "ASSIGN": continue
         if isinstance(ans, types.GeneratorType):
-            for e in ans: print(":> ", e)
+            for e in ans: 
+                print(":> ", e)
         else:
             print(":> ", ans)
     
-
 def pysh(psh_file, run=True):
-    with open(psh_file) as f:
+    with open(psh_file, encoding="utf-8") as f:
         script = char_stream(f.read())
     env = get_builtin_env(builtins)
     parse_and_eval_with_env(script, env)
@@ -90,7 +91,11 @@ def pysh(psh_file, run=True):
         import sys
         main(*sys.argv[1:])
     return env
+
+
+def test_psh_file():
+    pysh(os.path.join(PSH_DIR,"test.psh"))
         
 if __name__ == "__main__":
-    pysh("test.psh")
+    #test_psh_file()
     REPL()

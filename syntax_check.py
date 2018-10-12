@@ -18,8 +18,6 @@ def Error(msg, tkn=None):
 def Error(msg, line=None, col=None):
     prefix = "" 
     if line and col: prefix = "In line %d col %d"%(line, col)
-    #import sys
-    #print(msg, file=sys.stderr)
     raise Eval_exception(prefix + ": " + msg)
     
 def syntax_check(tkn, need_tkn, not_ = False):
