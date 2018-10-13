@@ -40,6 +40,14 @@ def chunks(iterable, n=2):
         if len(ans) > 0: yield ans
 
 @pipe_itertool
+def xzip():
+    pass
+
+@pipe_itertool
+def zipWithIndex():
+    pass
+
+@pipe_itertool
 def grep(line, pat, p=""):
     if pat in line: 
         return line
