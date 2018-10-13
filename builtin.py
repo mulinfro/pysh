@@ -9,7 +9,9 @@ operators = {
     '&>>': 'APPEND',
     '+': 'ADD',
     '*': 'MUL',
+    '**': 'POWER',
     '/': 'DIV',
+    '//': 'ZDIV',
     '-': 'MINUS',
     '%': 'MOD',
     '$': 'OSCALL',
@@ -41,7 +43,8 @@ op_order = {
     "LT": 7, "GT": 7, "LE": 7, "GE": 7, "EQUAL": 7, "NEQ": 7,
     "ADD": 10, "MINUS": 10,
     "MOD": 15,
-    "MUL": 20, "DIV": 20, 
+    "MUL": 20, "DIV": 20, "ZDIV": 20,
+    "POWER": 21,
     "PIPE": 25
 }
 
@@ -49,7 +52,6 @@ op_order = {
 op_right = {
     "EQUAL": 2,
 }
-
 
 _add = lambda x,y: x + y
 _minus = lambda x,y: x - y    
@@ -63,6 +65,8 @@ _not = lambda x: not x
 _pipe = lambda x,f: f(x)
 _in  = lambda x,y: x in y
 _is  = lambda x,y: x is y
+_power = lambda x,y: x**y
+_zdiv = lambda x, y: x//y
 
 """
 def _pipe(x,f):
@@ -115,7 +119,9 @@ Binary = {
     'APPEND': _append,
     'ADD':    _add,
     'MUL':    _mul,
+    'POWER':  _power,
     'DIV':    _div,
+    'ZDIV':   _zdiv,
     'MINUS':  _minus,
     'MOD':    _mod,
     'EQUAL':  _equal,

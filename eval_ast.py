@@ -276,10 +276,10 @@ def parse_partial(node):
                 if h is not PARTIAL_FLAG:
                     total_args.append(h)
                 else:
-                    if i >= len(p_args): Error("too many args")
+                    if i >= len(p_args): Error("Too less args")
                     total_args.append(p_args[i])
                     i = i + 1
-            if i < len(p_args): Error("too less args")
+            if i < len(p_args): Error("Too many args")
             return f(*total_args, **default_args)
         return _do
     return lambda env: lambda f: _fdo(env, f)

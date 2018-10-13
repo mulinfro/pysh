@@ -64,7 +64,7 @@ def REPL():
             try:
                 parse_and_eval_with_env(script, env)
             except Exception as e:
-                print(repr(e))
+                print(str(e))
 
 def parse_and_eval_with_env(script, env):
     tokens = token_list(script).tokens

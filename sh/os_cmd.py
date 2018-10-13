@@ -11,7 +11,7 @@ def pwd():
     
 def doc(obj):
     print(obj.__doc__)
-    
+
 WORK_DIR = pwd()
 PRE_DIR = "~"
 HOME_DIR = os.path.expanduser("~")
