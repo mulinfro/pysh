@@ -54,9 +54,10 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 
 ## 关键词和内置函数
 
-1.  支持python的所有内置函数
-2.  关键词列表：def, is, in, if, else, elif, for, while, break, continue, return, lambda, L, True, False, None, _
-3.  操作符列表：and, or, not, +, -, *, **, /, //, %, =, :=, $, |, . , &>, &>>, >, >=, <, <=, !=, ==
+1.  `#`:表示缩进
+2.  支持python的所有内置函数
+3.  关键词列表：def, is, in, if, else, elif, for, while, break, continue, return, lambda, L, True, False, None, _
+4.  操作符列表：and, or, not, +, -, *, **, /, //, %, =, :=, $, |, . , &>, &>>, >, >=, <, <=, !=, ==  
 
 #### 除了python的关键词与操作符外， 额外增加了一些操作符
 
@@ -92,6 +93,13 @@ foo(x,_)    # L(y): foo(x, y)
 #### Examples
 
 ```python
+ # 从每行都是一个json字符串的文件中解析出json data，并选择["color","size"]两个字段，重新写入新的文件
+cat("josn.log") | tojson |  colSel(_, ["color","size"]) | dumps &> "new_json.log"
+ # 统计目录下所有py源文件中的函数定义的数量
+cat("source/*") | egrep(_, "^def\s") | wc 
+ # 输出目录下所有py源文件中的函数名称
+cat("source/*") | egrep(_, "^def\s") | extract(_, "def\((\w+)\)") | list
+ # 
 py_files = ls(".", p='rf') | gen | egrep(_, ".py$") | map(_, cat) 
 ```
 
@@ -131,6 +139,12 @@ import("/home/user/ll/emath.py" ) as mh   # 用法mh.log
          rightpart = filter(lst, _ > lst[0]) | list
          eqpart = filter(lst, L(x): x == lst[0]) | list
          return  qsort(leftpart) + eqpart + qsort(rightpart)
+    end
+    file = "test.txt"
+	# 把test文件去除空行，然后每50行保存到不同的文件下
+    line_chunks = cat(file) | filter(_, L(x): len(x.strip()) >0 ) | chunks(_, 50)
+    for(ck in zipWithIndex(line_chunks))
+        ck[0] &> "%d.txt"%ck[1]
     end
 ```
 

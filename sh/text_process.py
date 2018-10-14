@@ -48,7 +48,7 @@ def zipWithIndex(iterable):
     """ zip iterable with indexes: "abc" => [(0, "a"), (1, "b"), (2, "c")] """
     i = 0
     for x in iterable:
-        yield (i, x)
+        yield (x, i)
         i = i + 1
 
 @pipe_itertool
@@ -131,7 +131,7 @@ def tojson(line):
 def dumps(var):
     """python json dumps"""
     import json
-    return json.dump(var, f)
+    return json.dumps(var)
 
 def more(file_name):
     """shell: more

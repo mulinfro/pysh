@@ -83,6 +83,7 @@ class token_list():
         if self.chars.eof(): return None
         ch = self.chars.peek()
         if ch in ('"', "'"): tkn = self.read_string()
+        elif ch == '#': tkn = self.read_note()
         elif ch == '[': tkn = self.read_list()
         elif ch == '{': tkn = self.read_hashmap()
         elif ch == '(': tkn = self.read_parn()
@@ -94,6 +95,12 @@ class token_list():
         elif ch == '\\':      tkn = self.link()
         else: tkn = self.read_op()   # throw exception
         return tkn
+
+   # 注释
+    def read_note(self):
+        while not self.chars.eof() and self.chars.peek() != "\n":
+            self.chars.next()
+        return self.read_a_token()
 
    # 拼接两行为一行命令; 跟python中一样
     def link(self):
