@@ -1,4 +1,7 @@
+Very old version, it has many errors, but i won't fix or rewrite it.
+
 '''  syntax  '''
+
 
 atom = var | python string | python number | bool
 python string = '"' s* '"' | '"' s* '"' '%' binary_expr

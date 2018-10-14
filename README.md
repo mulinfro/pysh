@@ -1,19 +1,14 @@
-# pysh：融合python和shell的脚本语言
+# pysh
 
-pysh的目的是希望能够像python那样写shell命令, 简洁富有表达力
-项目背景源于本人在学习使用shell的时候感到的一些麻烦：
-- shell命令参数众多，难以记忆
-- shell命令的语法不是太严格，不同命令之间的用法会有差异, 还有挺多恼人的特殊情形
-- shell没有数据结构，管道连接的是文本， 这使得shell很难处理复杂一点的任务
+pysh可以看作是兼具`shell`和`python`特点的解释器。主要目的是为了在交互模式下, 能同时使用到shell的方便和python的强大表达能力。
+在其中，我又加入了一些函数式编程的特性，使得pysh表达能力更强，能写出比python简短多的代码。 
+依本人的实践经验，10到20行的python文本处理脚本，pysh常常只需要一行pipeline就能解决
 
-在日常处理数据中，常常需要写一些简单的python脚本，虽然不复杂，但python终究没有shell命令来的灵活和直接；
-由此我尝试把这两种语言的特点结合起来，在实现这个想法的过程中，我又加入了函数式编程中的特性，使得pysh表达能力更强。 
-本人的实践体验：10到20行的python脚本，pysh常常只需要一行pipeline就能解决
+** 如果你在开发过程中有大量的文本处理需求，花半小时了解下，你会发现pysh是一把利器！**
 
-> 如果你在开发过程中有大量的文本处理需求，花半小时了解下，你会发现pysh是一把利器！
+> requirements: python 3,  readline[optional]
 
-
-## 数据结构：
+## 数据结构
 
 #### 与python基本一致
 
@@ -45,11 +40,11 @@ add_one = fl(_, 1)  # 偏函数
 2/2 + 2/3.0 -(5.2 + 2 * add_one(2) + fl2(2, -+-3))  # -15.5333333
 ```
 
-#### 不同之处：
+#### 不同之处
 
 - tuple语法上不支持 `(1,)` 这种长度为1的tuple，想用可以用`tuple([1])`替代
 - list支持 start:stop:[, step] => range(start, stop, step)
-- 支持多选， 比如：
+- 支持一次取多值， 比如：
 ```python
 lst = [0:100]          # [1,2,3,..,99]
 lst[1,3,5] == [1,3,5]  #True
@@ -57,7 +52,7 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 ```
 
 
-## 关键词和内置函数：
+## 关键词和内置函数
 
 1.  支持python的所有内置函数
 2.  关键词列表：def, is, in, if, else, elif, for, while, break, continue, return, lambda, L, True, False, None, _
@@ -66,7 +61,7 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 #### 除了python的关键词与操作符外， 额外增加了一些操作符
 
 - `$`: 代表执行原生的shell命令；比如 `$ls; $cat file | grep xxx`  注意**$** 会fork一个新的子进程运行命令; 所以像$cd这样的命令在当前进程不会生效
-- `:`: 代表赋值给全局变量; 功能上替换了python的global关键字
+- `:=`: 代表赋值给全局变量; 功能上替换了python的global关键字
 - `&`, `&>>`:  IO重定向，功能上与shell的 ">, >>" 一样， 方便快速输出到文件
 - `|`: pipe功能,前面的值当作后面函数的输入， `a | b | c | d = d(c(b(a)))`
 - `L`: 等价于lambda关键字，主要为了少打点字， 注： 与python不同的是lambda后面的参数必须用小括号包起来
@@ -85,21 +80,22 @@ foo(x,_)    # L(y): foo(x, y)
 - exec用 **$** 代替; global赋值用 **:=** 代替, 还是避免全局变量与本地变量名称一致
 
 
-## shell & FP：
+## Shell & FP
 
-#### 新增函数主要来自于：1.shell命令的python函数形式；2. Functional Programe的一些函数
+新增函数主要来自于：1.shell命令的python函数形式；2. Functional Program的一些函数
 
-- shell命令列表： ls, pwd, rm, cp, mv, mkdir, rm find, grep, egrep, wc, cat, more, uniq, head, xsort
-- FP函数列表： map, filter, take, takeWhile, flat, flatMap, drop, groupBy, join, mapValues, xzip, zipWithIndex, chunks
-- 其他一些有用函数：, format, extract, replace, split, tojson, dumps, gen
+- shell命令列表： ls, pwd, rm, cp, mv, mkdir, rm, find, grep, egrep, wc, cat, more, uniq, head, xsort
+- FP函数列表： map, filter, take, takeWhile, flat, flatMap, drop, groupBy, join, mapValues, zip2, zipWithIndex, chunks
+- 其他一些有用函数：format, extract, replace, split, tojson, dumps, gen, help
+想了解每个函数的用法，可以使用help函数，比如: `help(ls)`
 
-#### Examples：  
+#### Examples
 
 ```python
 py_files = ls(".", p='rf') | gen | egrep(_, ".py$") | map(_, cat) 
 ```
 
-## 一些与python不一样的地方：
+## 与python不一样的地方
 
 #### 取消了python的缩进，这样在命令行模式下更加灵活
 
@@ -108,9 +104,9 @@ py_files = ls(".", p='rf') | gen | egrep(_, ".py$") | map(_, cat)
 - lambda, L 的参数必须用小括号包起来
 - if, for, while, def后面的冒号去掉;  eg. if(a > b) pass end;  经常忘打冒号，干脆去掉 
 
-## import机制：
+## import机制
 
-1.  支持python的package管理机制，用法跟python的import用法一样；
+1.  支持python的package管理机制，用法跟python的import用法一样
 2.  python源文件，必须是.py格式
 3.  pysh源文件， 必须是.psh格式
 
@@ -139,3 +135,6 @@ import("/home/user/ll/emath.py" ) as mh   # 用法mh.log
 ```
 
 ## TODO
+1. 补充文档注释
+2. import机制的完成测试
+

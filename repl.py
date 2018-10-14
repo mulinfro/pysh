@@ -64,7 +64,7 @@ def REPL():
             try:
                 parse_and_eval_with_env(script, env)
             except Exception as e:
-                print(str(e))
+                print(repr(e))
 
 def parse_and_eval_with_env(script, env):
     tokens = token_list(script).tokens
@@ -84,8 +84,6 @@ def pysh(psh_file, run=True):
         script = char_stream(f.read())
     env = get_builtin_env(builtins)
     parse_and_eval_with_env(script, env)
-    #print(node)
-    #print(parse(node)(env))
 
     if run and "main" in env:
         import sys
@@ -97,5 +95,5 @@ def test_psh_file():
     pysh(os.path.join(PSH_DIR,"test.psh"))
         
 if __name__ == "__main__":
-    #test_psh_file()
+    test_psh_file()
     REPL()

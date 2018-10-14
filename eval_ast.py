@@ -140,14 +140,35 @@ def parse_import(node):
 
 def parse_assign(node):
     val = parse_expr(node["val"])
-    var = node["var"]["name"]
-    def _assign(env):
+    var_idx_val = None
+    def _assign_var(env):
         v = val(env)
         if node["type"] == "GASSIGN":
             env = env.globals
         env[var] = v
         return v
-    return _assign
+    
+    def _assign_expr_val(env):
+        right_val = val(env)
+        left_val = var_val(env)
+        left_idx =  var_idx_val(env)
+        left_val[left_idx] = right_val
+        return right_val
+
+    if node["var"]["type"] == "VAR":
+        var = node["var"]["name"] 
+        return _assign_var
+    else:
+        var = node["var"]
+        syntax_cond_assert(len(var["suffix"]) > 0, "assign: left value is invalid")
+        var_idx = var["suffix"][-1]
+        var["suffix"] = var["suffix"][0:-1]
+        cond_condition = var["type"] == "UNARY" and var_idx["type"] == "LIST"
+        syntax_cond_assert(cond_condition, "assign: left value is invalid")
+        syntax_cond_assert(len(var_idx["val"]) == 1, "assign: left value is invalid")
+        var_idx_val = parse_expr(var_idx["val"][0])
+        var_val = parse_expr(var)
+        return _assign_expr_val
 
 def lst_combine(var, v):
     syntax_cond_assert(len(var) <= len(v), "syntax error: to many variables")
@@ -253,7 +274,6 @@ def parse_parn(node):
     parn_node = parse_expr(node["val"][0])
     return lambda env: parn_node(env)
     
-
 def parse_suffix_op(op):
     if op["type"] in ("PARN", "TUPLE", "ARGS"):
         snv = parse_args(op)

@@ -7,7 +7,7 @@ __all__ = ['pipe_itertool', 'grep', 'gen', 'colSel', 'format',
             'wc', 'egrep', 'extract', 'replace', 'cat', 'tojson', 'dumps', 'more', 
             'groupBy', 'take', 'takeWhile', 'drop', 'xreduce', 'head', 'join', 
             'map', 'filter', 'mapValues', 'flat', 'flatMap', 'awk', 'sed', 'split', 
-            'findall', 'search', 'xsort', 'uniq', 'chunks']
+            'findall', 'search', 'xsort', 'uniq', 'chunks', 'zip2', 'zipWithIndex']
 
 
 def pipe_itertool(func):
@@ -39,13 +39,17 @@ def chunks(iterable, n=2):
                 ans = list()
         if len(ans) > 0: yield ans
 
-@pipe_itertool
-def xzip():
-    pass
+def zip2(l1, l2):
+    """ zip two iterables, python zip return zip object, while zip2 return a generator """
+    for x in zip(l1, l2):
+        yield x
 
-@pipe_itertool
-def zipWithIndex():
-    pass
+def zipWithIndex(iterable):
+    """ zip iterable with indexes: "abc" => [(0, "a"), (1, "b"), (2, "c")] """
+    i = 0
+    for x in iterable:
+        yield (i, x)
+        i = i + 1
 
 @pipe_itertool
 def grep(line, pat, p=""):
@@ -91,14 +95,22 @@ def extract(line, pat):
         return match.groups()
 
 @pipe_itertool
-def replace(line, pat, repl, p="", cnt=0):
+def replace(line, pat, repl, cnt=-1, p=""):
+    """string replace
+       parms: line, pattern, replace_str, cnt=inf
+       p = [v] v: using python module re.sub
+    """
     if "v" not in p:
-        return line.replace(pat, repl)
+        return line.replace(pat, repl, cnt)
     else:
-        return re.replace(pat, repl, line, cnt)
+        if cnt < 0: cnt = 0
+        return re.sub(pat, repl, line, cnt)
 
 
 def cat(iterable):
+    """ shell: cat
+        input: a single path or a list of pathes
+    """
     if type(iterable) == str: iterable = [iterable]
     for path in iterable:
         pathes = replace_if_star_dir(path)
@@ -111,15 +123,21 @@ def cat(iterable):
 
 @pipe_itertool
 def tojson(line):
+    """python json loads"""
     import json
     return json.loads(line.strip())
 
 @pipe_itertool
 def dumps(var):
+    """python json dumps"""
     import json
     return json.dump(var, f)
 
 def more(file_name):
+    """shell: more
+       y, Y, Enter: continue 
+       others: break 
+    """
     f = open(file_name, "r")
     i = 0
     for line in f:
@@ -131,6 +149,10 @@ def more(file_name):
     f.close()
 
 def groupBy(iterable, key = lambda x:x[0]):
+    """ iterable groupBy key function
+        key: a function; for each element generate group identity
+        default key = lambda x:x[0]
+    """
     res = {}
     for x in iterable:
         k = key(x)
@@ -139,6 +161,7 @@ def groupBy(iterable, key = lambda x:x[0]):
     return res
 
 def take(iterable, n):
+    """ iterable take first n elements """
     i = 0
     for x in iterable:
         if i >= n: break
@@ -146,11 +169,13 @@ def take(iterable, n):
         yield x
 
 def takeWhile(iterable, key):
+    """ iterable take while condition is statisfied """
     for x in iterable:
         if not key(x): break
         yield x
 
 def drop(iterable, n):
+    """ iterable drop first n elements """
     i = 0
     for x in iterable:
         if i >= n: yield x
@@ -160,6 +185,7 @@ def xreduce(iterable):
     pass
 
 def head(iterable, n=10):
+    """ shell: head """
     i = 0
     for line in iterable:
         i += 1

@@ -51,31 +51,20 @@ class AST():
             elif tkn.tp in ['IF', 'FOR', 'WHILE']:
                 val = self.ast_control(self.tokens)
             else:
-                val = self.ast_try_pattern_assign(self.tokens)
+                val = self.ast_try_assign(self.tokens)
 
             self.ast.append(val)
 
-    def ast_assign_helper(self, stm, tps):
-        tkn = stm.peek()
-        if tkn.tp == "VAR" and stm.hasnext() and stm.looknext().tp in tps:
-            var = self.ast_pattern_var(stm)
-            a_tp = stm.next().tp
-            val = self.ast_try_assign(stm)
-            return {"type":a_tp, "var":var, "val":val}
-        return None
-
-    # 模式匹配赋值 example  x,y,_ = [1,2,3]  => x=1, y=2, _ = [3]
-    def ast_try_pattern_assign(self, stm):
-        t = self.ast_assign_helper(stm, ("PASSIGN", ))
-        return self.ast_try_assign(stm) if t is None else t
-
     # 赋值；可连续赋值 x=y=z=1+1
     def ast_try_assign(self, stm):
-        t = self.ast_assign_helper(stm, ("ASSIGN", "GASSIGN"))
-        if t is None:
-            t = self.ast_expr(stm)
+        left = self.ast_expr(stm)
+        if not stm.eof() and stm.peek().tp in ("ASSIGN", "GASSIGN"):
+            tkn = stm.next()
+            right = self.ast_try_assign(stm)
+            return {"type":tkn.tp, "var":left, "val":right}
+        else:
             check_expr_end(stm)
-        return t
+            return left
         
     # python的import语法; 
     # pysh的import:  import(file_path) as name
@@ -113,7 +102,7 @@ class AST():
         elif stm.peek().tp == "RETURN":
             return self.ast_return(stm)
         else:
-            return self.ast_try_pattern_assign(stm)
+            return self.ast_try_assign(stm)
 
     def ast_bc(self, stm):
         tp = stm.next().tp
@@ -154,6 +143,7 @@ class AST():
             if is_assign:
                 syntax_cond_assert(e["type"] == "ASSIGN", "error undefault args follow default args")
                 syntax_cond_assert(e["val"]["type"] != "ASSIGN", "unexpected continue assign")
+                syntax_cond_assert(e["var"]["type"] == "VAR", "unexpected expression")
                 default_args.append(e["var"]["name"])
                 default_vals.append(e["val"])
             else:
