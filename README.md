@@ -143,7 +143,7 @@ import("/home/user/ll/emath.py" ) as mh   # 用法mh.log
     end
 ```
 
-## requirements:
+## Requirements:
 - python 3
 - readline[optional]
 

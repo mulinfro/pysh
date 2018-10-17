@@ -74,11 +74,12 @@ class AST():
             stm.next()
             while not stm.eof() and stm.peek().tp != "IMPORT":
                 _from.append(stm.next().val)
-        syntax_assert(stm.next(), "IMPORT") 
+        syntax_assert(stm.next(), "IMPORT", "Expected import") 
         while not stm.eof() and stm.peek().tp != "AS":
             _import.append(stm.next())
         
-        if stm.peek().tp == "AS":
+        if not stm.eof():
+            syntax_assert(stm.next(), "AS", "Expected as") 
             while not stm.eof():
                 _as.append(stm.next())
         return {"type":"IMPORT", "from":"".join(_from), "import":_import, "as":_as}
