@@ -6,7 +6,6 @@ pysh可以看作是兼具`shell`和`python`特点的解释器。主要目的是�
 
  **如果你在开发过程中有大量的文本处理需求，花半小时了解下，你会发现pysh是一把利器！**
 
-> requirements: python 3,  readline[optional]
 
 ## 数据结构
 
@@ -143,6 +142,10 @@ import("/home/user/ll/emath.py" ) as mh   # 用法mh.log
         ck[0] &> "%d.txt"%ck[1]
     end
 ```
+
+## requirements:
+- python 3
+- readline[optional]
 
 ## Usage
 
