@@ -51,7 +51,7 @@ class AST():
             elif tkn.tp in ['IF', 'FOR', 'WHILE']:
                 val = self.ast_control(self.tokens)
             else:
-                val = self.ast_try_assign(self.tokens)
+                val = self.ast_assign_or_assert(self.tokens)
 
             self.ast.append(val)
 
@@ -99,8 +99,8 @@ class AST():
             return self.ast_control(stm)
         elif stm.peek().tp in ["BREAK", "CONTINUE"]:
             return self.ast_bc(stm)
-        elif stm.peek().tp == "RETURN":
-            return self.ast_return(stm)
+        elif stm.peek().tp in ["RETURN", "ASSERT"]:
+            return self.ast_return_assert(stm, stm.peek().tp)
         else:
             return self.ast_try_assign(stm)
 
@@ -109,11 +109,16 @@ class AST():
         check_newline(stm)
         return {"type": tp}
 
-    def ast_return(self, stm):
+    def ast_return_assert(self, stm, tp):
         stm.next()
         expr = self.ast_expr(stm)
+        msg = None
+        if not stm.eof() and syntax_check(stm.peek(), ("SEP", "COMMA")):
+            stm.next()
+            msg = self.ast_expr(stm)
         check_newline(stm)
-        return {"type": "RETURN", "rval": expr}
+        syntax_cond_assert(tp == "ASSERT" or msg==None, "syntax error: return")
+        return {"type": tp, "rval": expr, "msg":msg}
 
     def ast_control(self, stm):
         tkn = stm.peek()
@@ -166,6 +171,12 @@ class AST():
             t = self.ast_try_assign(stm)
             eles.append(t)
         return eles
+
+    def ast_assign_or_assert(self, stm):
+        if stm.peek().tp == "ASSERT":
+            return self.ast_return_assert(stm, "ASSERT")
+        else:
+            return self.ast_try_assign(stm)
 
     def ast_expr(self, stm):
         true_part = self.ast_binary_expr(stm)

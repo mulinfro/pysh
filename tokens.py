@@ -24,6 +24,7 @@ keywords = {
 "continue" : "CONTINUE",
 "import":  "IMPORT",
 "from" :  "FROM",
+"assert" :  "ASSERT",
 }
 
 # 字符转义表， 字符串解析中使用

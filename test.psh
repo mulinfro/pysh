@@ -1,5 +1,13 @@
 
   # pysh PYSH
+">>> import"
+import sys
+print(sys.argv[0])
+
+">>> assert"
+assert True
+assert 1==1, "1 equals 1"
+#assert 1==2, "1 not equals 2"
 
 ">>> NUM"
 +1

@@ -4,13 +4,22 @@ from eval_ast import parse, Env
 from ast_dict import AST
 from tokens import token_list
 from env import get_builtin_env
-import os, types, re, sys
+import os, types, re, sys, glob
 PSH_DIR = sys.path[0]
 
+def pathCompleter(self,text,state):
+        """ 
+        This is the tab completer for systems paths.
+        Only tested on *nix systems
+        """
+        line   = readline.get_line_buffer().split()
+        return [x for x in glob.glob(text+'*')][state]
+
 def repl_readline_helper():
-    import readline, atexit ,rlcompleter
+    import readline, atexit #,rlcompleter
     readline.parse_and_bind('tab: complete')
     readline.parse_and_bind('set editing-mode vi')
+    #readline.set_completer(pathCompleter)
     histfile = os.path.join(PSH_DIR, ".pyhist")
     try:
         readline.read_history_file(histfile)
@@ -44,7 +53,10 @@ def REPL():
     cmdlines, block_num, = [], 0
     cmd = ""
     while True:
-        cmd = cmd + input(IN).strip()
+        try:
+            cmd = cmd + input(IN).strip()
+        except KeyboardInterrupt:
+            print(" CTRL-C")
         if cmd in ['quit', 'exit']: break
         # in repl every multiline expr need \ 
         if cmd.endswith("\\"):
@@ -65,6 +77,8 @@ def REPL():
                 parse_and_eval_with_env(script, env)
             except Exception as e:
                 print(repr(e))
+            except KeyboardInterrupt:
+                print("KeyboardInterrupt")
 
 def parse_and_eval_with_env(script, env):
     tokens = token_list(script).tokens
@@ -86,8 +100,8 @@ def pysh(psh_file, run=True):
     parse_and_eval_with_env(script, env)
 
     if run and "main" in env:
-        import sys
-        main(*sys.argv[1:])
+        return env["main"](*sys.argv[2:])
+
     return env
 
 
@@ -95,5 +109,9 @@ def test_psh_file():
     pysh(os.path.join(PSH_DIR,"test.psh"))
         
 if __name__ == "__main__":
+    print(sys.argv)
     test_psh_file()
-    REPL()
+    if len(sys.argv) > 1:
+        pysh(sys.argv[1])
+    else:
+        REPL()

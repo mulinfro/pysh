@@ -7,7 +7,7 @@ __all__ = ['pipe_itertool', 'grep', 'gen', 'colSel', 'format',
             'wc', 'egrep', 'extract', 'replace', 'cat', 'tojson', 'dumps', 'more', 
             'groupBy', 'take', 'takeWhile', 'drop', 'xreduce', 'head', 'join', 
             'map', 'filter', 'mapValues', 'flat', 'flatMap', 'awk', 'sed', 'split', 
-            'findall', 'search', 'xsort', 'uniq', 'chunks', 'zip2', 'zipWithIndex']
+            'findall', 'search', 'xsort', 'uniq', 'chunks', 'zip2','zip3' 'zipWithIndex']
 
 
 def pipe_itertool(func):
@@ -42,6 +42,11 @@ def chunks(iterable, n=2):
 def zip2(l1, l2):
     """ zip two iterables, python zip return zip object, while zip2 return a generator """
     for x in zip(l1, l2):
+        yield x
+
+def zip3(l1, l2, l3):
+    """ zip three iterables, python zip return zip object, while zip3 return a generator """
+    for x in zip(l1, l2, l3):
         yield x
 
 def zipWithIndex(iterable):
@@ -138,15 +143,19 @@ def more(file_name):
        y, Y, Enter: continue 
        others: break 
     """
-    f = open(file_name, "r")
     i = 0
-    for line in f:
-        yield line.rstrip()
+    if type(file_name) == str:
+        iterable = cat(file_name)
+    else:
+        iterable = file_name
+    for line in iterable:
+        yield line
         i += 1
         if i % 10 ==0:
-            is_continue = input("more? ")
-            if is_continue not in ["", "y", "Y"]: break
-    f.close()
+            try:
+                if input("more? ").strip() not in ["", "y", "Y"]: break
+            except KeyboardInterrupt:
+                break
 
 def groupBy(iterable, key = lambda x:x[0]):
     """ iterable groupBy key function

@@ -3,7 +3,7 @@ import copy,sys
 from env import Env
 from syntax_check import Error, syntax_cond_assert
 
-PARTIAL_FLAG = lambda : None
+PARTIAL_FLAG = lambda f: f  
 PARTIAL_FLAG_LAMBDA = lambda env: PARTIAL_FLAG
 
 # 使用异常来实现控制流跳转
@@ -11,7 +11,14 @@ class Return_exception(Exception):
     def __init__(self, value):
         self.value = value
     def __str__(self):
-        return repr(self.value)
+        return "return"
+
+class Assert_exception(Exception):
+    def __init__(self, value, msg):
+        self.value = value
+        self.msg = msg
+    def __str__(self):
+        return "assert"
 
 class Continue_exception(Exception):
     def __init__(self):
@@ -24,7 +31,6 @@ class Break_exception(Exception):
         self.value = "break"
     def __str__(self):
         return repr(self.value)
-
 
 def parse(node):
     if  node["type"] == 'DEF': 
@@ -44,6 +50,8 @@ def parse_block_expr(node):
         val = parse_for(node)
     elif node["type"] in ["BREAK", "CONTINUE", "RETURN"]:
         val = parse_flow_goto(node)
+    elif node["type"] == "ASSERT":
+        val = parse_assert(node)
     else:
         val = parse_expr(node)
     return val
@@ -66,6 +74,18 @@ def parse_simple_expr(node):
         val = parse_unary(node)[1]
     return val
 
+
+def parse_assert(node):
+    rval = parse_expr(node["rval"])
+    msg = parse_expr(node["msg"]) if node["msg"] else None
+
+    def _assert_condition(env):
+        cond = rval(env)
+        if not cond:
+            raise Assert_exception(cond, msg(env))
+
+    return _assert_condition
+
 def parse_flow_goto(node):
     if node["type"] == "RETURN":
         rval = parse_expr(node["rval"])
@@ -77,6 +97,7 @@ def parse_flow_goto(node):
 
     def _raise_error(val):
         raise val
+
     return lambda env: _raise_error(val)
 
 def parse_import(node):
@@ -244,7 +265,7 @@ def parse_binary_expr(node):
     def partial_warpper(env):
         def warpper(v):
             vals, ops = copy.copy(g_vals), copy.copy(g_ops)
-            vals[partial_idx] = lambda env: v
+            vals[partial_idx] = lambda env: g_vals[partial_idx](env)(v)
             return compute_expr(env, vals, ops)
         return warpper
 
@@ -465,8 +486,8 @@ def parse_while(node):
 
 def os_call(sh):
     import subprocess
-    out_bytes = subprocess.check_output(sh, shell=True)
-    return out_bytes.decode('utf-8')
+    out_bytes = subprocess.run(sh, shell=True, stderr=subprocess.STDOUT)
+    return out_bytes.stdout
 
 def parse_syscall(node):
     return lambda env:os_call(node["val"])
@@ -535,6 +556,8 @@ def parse_def(node):
                 body_f(new_env)
             except Return_exception as r:
                 return r.value(new_env)
+            except Assert_exception as r:
+                assert r.value, r.msg + "error on here"
 
         env[node["funcname"]] = proc
         #return "function: " + node["funcname"]

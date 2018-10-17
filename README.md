@@ -4,7 +4,7 @@ pysh可以看作是兼具`shell`和`python`特点的解释器。主要目的是�
 在其中，我又加入了一些函数式编程的特性，使得pysh表达能力更强，能写出比python简短多的代码。 
 依本人的实践经验，10到20行的python文本处理脚本，pysh常常只需要一行pipeline就能解决
 
-** 如果你在开发过程中有大量的文本处理需求，花半小时了解下，你会发现pysh是一把利器！**
+ **如果你在开发过程中有大量的文本处理需求，花半小时了解下，你会发现pysh是一把利器！**
 
 > requirements: python 3,  readline[optional]
 
@@ -12,28 +12,24 @@ pysh可以看作是兼具`shell`和`python`特点的解释器。主要目的是�
 
 #### 与python基本一致
 
-**String**： 
 ```python
+"String" 
 "hello world!" 
 'joes\'s apple' 
 """ multiline "line" ... line """
-```
-**Tuple**:   
-```python
+
+"Tuple"   
 (1,2,3) 
 (1+2, len("scala"))
-```
-**List**:    
-```python
+
+"List"    
 [1, lambda(x): x+1, [2,3,4]] 
 [0, 2:100:2, 100] == [0] + list(range(0, 100, 2)) + [100] 
-```
-**Dict**:
-```python
+
+"Dict"
 {1:'a', 'c':3}
-```
-**Expression**:
-```python
+
+"Expression"
 fl = L(x,y,z): x+y    # L == lambda
 fl2 = lambda (x,y): x * y  # 匿名函数
 add_one = fl(_, 1)  # 偏函数
@@ -147,6 +143,14 @@ import("/home/user/ll/emath.py" ) as mh   # 用法mh.log
         ck[0] &> "%d.txt"%ck[1]
     end
 ```
+
+## Usage
+
+```sh
+python3 repl.py      # open a interactive console
+python3 repl.py test.psh params  # run a psh file, main function is entry point
+```
+
 
 ## TODO
 1. 补充文档注释
