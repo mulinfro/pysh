@@ -7,7 +7,8 @@ __all__ = ['pipe_itertool', 'grep', 'gen', 'colSel', 'format',
             'wc', 'egrep', 'extract', 'replace', 'cat', 'tojson', 'dumps', 'more', 
             'groupBy', 'take', 'takeWhile', 'drop', 'xreduce', 'head', 'join', 
             'map', 'filter', 'mapValues', 'flat', 'flatMap', 'awk', 'sed', 'split', 
-            'findall', 'search', 'xsort', 'uniq', 'chunks', 'zip2','zip3' 'zipWithIndex']
+            'findall', 'search', 'xsort', 'uniq', 'chunks', 'zip2','zip3', 'zipWithIndex', 
+            'sample', 'shuf']
 
 
 def pipe_itertool(func):
@@ -38,6 +39,17 @@ def chunks(iterable, n=2):
                 yield ans
                 ans = list()
         if len(ans) > 0: yield ans
+
+def sample(iterables, sample_rate):
+    import random
+    for x in iterables:
+        if random.uniform(0,1) < sample_rate:
+            yield x
+
+def shuf(iterables):
+    import random
+    random.shuffle(iterables)
+    return iterables
 
 def zip2(l1, l2):
     """ zip two iterables, python zip return zip object, while zip2 return a generator """

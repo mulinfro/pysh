@@ -4,7 +4,7 @@ import os
 from sh.utils import normal_leven
 
 __all__ =  ['pwd', 'is_file', 'is_dir', 'replace_if_star_dir', 'ls', 'll', 
-            'cd', 'cdb', 'cdn', 'mkdir', 'rm', 'cp', 'mv', 'find']
+            'cd', 'cdb', 'cdn', 'mkdir', 'rm', 'cp', 'mv', 'find', 'doc']
 
 def pwd():
     """Current work directory"""

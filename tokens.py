@@ -25,6 +25,7 @@ keywords = {
 "import":  "IMPORT",
 "from" :  "FROM",
 "assert" :  "ASSERT",
+"del" :  "DEL",
 }
 
 # 字符转义表， 字符串解析中使用

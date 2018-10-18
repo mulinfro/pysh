@@ -6,29 +6,34 @@ pysh可以看作是兼具`shell`和`python`特点的解释器。主要目的是�
 
  **如果你在开发过程中有大量的文本处理需求，花半小时了解下，你会发现pysh是一把利器！**
 
+> requirements: python 3,  readline[optional]
 
 ## 数据结构
 
 #### 与python基本一致
 
+**String**： 
 ```python
-"String" 
 "hello world!" 
 'joes\'s apple' 
 """ multiline "line" ... line """
-
-"Tuple"   
+```
+**Tuple**:   
+```python
 (1,2,3) 
 (1+2, len("scala"))
-
-"List"    
+```
+**List**:    
+```python
 [1, lambda(x): x+1, [2,3,4]] 
 [0, 2:100:2, 100] == [0] + list(range(0, 100, 2)) + [100] 
-
-"Dict"
+```
+**Dict**:
+```python
 {1:'a', 'c':3}
-
-"Expression"
+```
+**Expression**:
+```python
 fl = L(x,y,z): x+y    # L == lambda
 fl2 = lambda (x,y): x * y  # 匿名函数
 add_one = fl(_, 1)  # 偏函数
@@ -51,7 +56,7 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 
 1.  `#`:表示缩进
 2.  支持python的所有内置函数
-3.  关键词列表：def, is, in, if, else, elif, for, while, break, continue, return, lambda, L, True, False, None, _
+3.  关键词列表：def, is, in, if, else, elif, for, while, break, continue, return, lambda, L, True, False, None, _, assert, del
 4.  操作符列表：and, or, not, +, -, *, **, /, //, %, =, :=, $, |, . , &>, &>>, >, >=, <, <=, !=, ==  
 
 #### 除了python的关键词与操作符外， 额外增加了一些操作符
@@ -143,15 +148,11 @@ import("/home/user/ll/emath.py" ) as mh   # 用法mh.log
     end
 ```
 
-## Requirements:
-- python 3
-- readline[optional]
-
 ## Usage
 
 ```sh
 python3 repl.py      # open a interactive console
-python3 repl.py test.psh params  # run a psh file, main function is entry point
+python3 repl.py test.psh params  # run a psh file, def main in programe
 ```
 
 

@@ -1,8 +1,8 @@
 
   # pysh PYSH
 ">>> import"
-import sys
-print(sys.argv[0])
+#import sys
+#print(sys.argv[0])
 
 ">>> assert"
 assert True

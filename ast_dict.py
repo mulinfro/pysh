@@ -51,7 +51,7 @@ class AST():
             elif tkn.tp in ['IF', 'FOR', 'WHILE']:
                 val = self.ast_control(self.tokens)
             else:
-                val = self.ast_assign_or_assert(self.tokens)
+                val = self.ast_assign_or_command(self.tokens)
 
             self.ast.append(val)
 
@@ -74,12 +74,11 @@ class AST():
             stm.next()
             while not stm.eof() and stm.peek().tp != "IMPORT":
                 _from.append(stm.next().val)
-        syntax_assert(stm.next(), "IMPORT", "Expected import") 
+        syntax_assert(stm.next(), "IMPORT") 
         while not stm.eof() and stm.peek().tp != "AS":
             _import.append(stm.next())
         
-        if not stm.eof():
-            syntax_assert(stm.next(), "AS", "Expected as") 
+        if stm.peek().tp == "AS":
             while not stm.eof():
                 _as.append(stm.next())
         return {"type":"IMPORT", "from":"".join(_from), "import":_import, "as":_as}
@@ -100,10 +99,10 @@ class AST():
             return self.ast_control(stm)
         elif stm.peek().tp in ["BREAK", "CONTINUE"]:
             return self.ast_bc(stm)
-        elif stm.peek().tp in ["RETURN", "ASSERT"]:
+        elif stm.peek().tp == "RETURN":
             return self.ast_return_assert(stm, stm.peek().tp)
         else:
-            return self.ast_try_assign(stm)
+            return self.ast_assign_or_command(stm)
 
     def ast_bc(self, stm):
         tp = stm.next().tp
@@ -120,6 +119,13 @@ class AST():
         check_newline(stm)
         syntax_cond_assert(tp == "ASSERT" or msg==None, "syntax error: return")
         return {"type": tp, "rval": expr, "msg":msg}
+
+    def ast_del(self, stm):
+        stm.next()
+        syntax_assert(stm.peek(), "VAR", "Usage: del var")
+        var = self.ast_a_var(stm)
+        check_newline(stm)
+        return {"type": "DEL", "var": var["name"] }
 
     def ast_control(self, stm):
         tkn = stm.peek()
@@ -173,9 +179,11 @@ class AST():
             eles.append(t)
         return eles
 
-    def ast_assign_or_assert(self, stm):
+    def ast_assign_or_command(self, stm):
         if stm.peek().tp == "ASSERT":
             return self.ast_return_assert(stm, "ASSERT")
+        elif stm.peek().tp == "DEL":
+            return self.ast_del(stm)
         else:
             return self.ast_try_assign(stm)
 

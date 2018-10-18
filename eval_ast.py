@@ -41,6 +41,14 @@ def parse(node):
         val = parse_block_expr(node)
     return val
 
+def parse_del(node):
+    name = node["var"]
+    def _del(env):
+        t = env.find(name)
+        if t is not None:
+            del t[name]
+    return _del
+
 def parse_block_expr(node):
     if node["type"] == 'IF':
         val = parse_if(node)
@@ -50,8 +58,15 @@ def parse_block_expr(node):
         val = parse_for(node)
     elif node["type"] in ["BREAK", "CONTINUE", "RETURN"]:
         val = parse_flow_goto(node)
-    elif node["type"] == "ASSERT":
+    else:
+        val = parse_expr_or_command(node)
+    return val
+
+def parse_expr_or_command(node):
+    if node["type"] == "ASSERT":
         val = parse_assert(node)
+    elif node["type"] == "DEL":
+        val = parse_del(node)
     else:
         val = parse_expr(node)
     return val
