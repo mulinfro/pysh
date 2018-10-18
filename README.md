@@ -52,7 +52,7 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 
 1.  `#`:表示缩进
 2.  支持python的所有内置函数
-3.  关键词列表：def, is, in, if, else, elif, for, while, break, continue, return, lambda, L, True, False, None, _
+3.  关键词列表：def, is, in, if, else, elif, for, while, break, continue, return, lambda, L, True, False, None, _, assert, del 
 4.  操作符列表：and, or, not, +, -, *, **, /, //, %, =, :=, $, |, . , &>, &>>, >, >=, <, <=, !=, ==  
 
 #### 除了python的关键词与操作符外， 额外增加了一些操作符
@@ -82,8 +82,8 @@ foo(x,_)    # L(y): foo(x, y)
 新增函数主要来自于：1.shell命令的python函数形式；2. Functional Program的一些函数
 
 - shell命令列表： ls, pwd, rm, cp, mv, mkdir, rm, find, grep, egrep, wc, cat, more, uniq, head, xsort
-- FP函数列表： map, filter, take, takeWhile, flat, flatMap, drop, groupBy, join, mapValues, zip2, zipWithIndex, chunks
-- 其他一些有用函数：format, extract, replace, split, tojson, dumps, gen, help
+- FP函数列表： map, filter, take, takeWhile, flat, flatMap, drop, groupBy, join, mapValues, zip2, zip3, zipWithIndex, chunks
+- 其他一些有用函数：format, extract, replace, split, tojson, dumps, gen, help, doc, pbar, sample, shuf
 想了解每个函数的用法，可以使用help函数，比如: `help(ls)`
 
 #### Examples
