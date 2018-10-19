@@ -3,7 +3,7 @@ from itertools import chain
 from sh.os_cmd import is_dir, replace_if_star_dir
 from collections.abc import Iterable
 
-__all__ = ['pipe_itertool', 'grep', 'gen', 'colSel', 'format', 
+__all__ = ['pipe_itertool', 'grep', 'gen', 'colSel', 'format', 'pbar',
             'wc', 'egrep', 'extract', 'replace', 'cat', 'tojson', 'dumps', 'more', 
             'groupBy', 'take', 'takeWhile', 'drop', 'xreduce', 'head', 'join', 
             'map', 'filter', 'mapValues', 'flat', 'flatMap', 'awk', 'sed', 'split', 
@@ -24,6 +24,19 @@ def pipe_itertool(func):
                 if ans is not None: yield ans
     return wrapper
     
+def pbar(n=5000):
+    """ each N step: display progress in pipe """
+    def _pbar(iterable):
+        i = 0
+        for x in iterable:
+            i = i + 1
+            if i % n == 0:
+                print("Done: %d items"%i)
+            yield x
+        print("Done All: %d items"%i)
+    return _pbar
+    
+
 def chunks(iterable, n=2):
     """Yield successive n-sized chunks from l."""
     if not isinstance(iterable, types.GeneratorType):
@@ -40,16 +53,16 @@ def chunks(iterable, n=2):
                 ans = list()
         if len(ans) > 0: yield ans
 
-def sample(iterables, sample_rate):
+def sample(iterable, sample_rate):
     import random
-    for x in iterables:
+    for x in iterable:
         if random.uniform(0,1) < sample_rate:
             yield x
 
-def shuf(iterables):
+def shuf(iterable):
     import random
-    random.shuffle(iterables)
-    return iterables
+    random.shuffle(iterable)
+    return iterable
 
 def zip2(l1, l2):
     """ zip two iterables, python zip return zip object, while zip2 return a generator """
@@ -61,9 +74,9 @@ def zip3(l1, l2, l3):
     for x in zip(l1, l2, l3):
         yield x
 
-def zipWithIndex(iterable):
+def zipWithIndex(iterable, start=0):
     """ zip iterable with indexes: "abc" => [(0, "a"), (1, "b"), (2, "c")] """
-    i = 0
+    i = start
     for x in iterable:
         yield (x, i)
         i = i + 1
@@ -90,6 +103,10 @@ def colSel(iterable, idxes):
     if type(idxes) not in (list, tuple):
         return iterable[idxes]
     return [iterable[idx] for idx in idxes]
+
+@pipe_itertool
+def list_format(x, pat, sep=" "):
+    return sep.join( [pat.format(ele) for ele in x] )
 
 @pipe_itertool
 def format(x, pat):
