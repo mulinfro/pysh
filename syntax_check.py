@@ -31,5 +31,5 @@ def syntax_assert(tkn, need_tkn,  errstr = "", not_ = False):
     return True
 
 def syntax_cond_assert(cond,  errstr = "", not_ = False):
-    if not cond: Error(error_msg)
+    if not cond: Error(errstr)
     return True

@@ -1,5 +1,7 @@
 
+
   # pysh PYSH
+
 ">>> import"
 #import sys
 #print(sys.argv[0])
@@ -170,12 +172,22 @@ add_one = test_closure(2)
 
 print("xxyy:", xxyy)
 
+">>> PARTIAL FUNCTION"
+def foo(a,b,t, c=0)
+    return a+b+t+c
+end
+t = foo(_,_,1)
+t(1,1,c=1)
+addone = _ + 1
+strip = _.strip()
+addone(1) == 2
+strip("\t abc  \n") == "abc"
+
 ">>> PIPE"
 ls(".") | head
 a = ls(".") 
 filter(a, lambda (x):len(x) > 3)
 ls(".") | filter(_, lambda (x):len(x) > 3) | list
-
 
 ">>> CALL SHELL COMMANDS" + " fork一个进程通过shell解释shell命令, cd对当前进程不生效"
 $ ls

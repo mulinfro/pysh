@@ -293,6 +293,11 @@ def parse_args(node):
     if "default_vals" in node:
         default_vals = list(map(parse_expr, node["default_vals"]))
 
+    partial_idx = []
+    for i,t in enumerate(arg_vals):
+        if t is PARTIAL_FLAG_LAMBDA:
+            partial_idx.append(i)
+
     def _args(env):
         r_default = {}
         if "default_args" in node:
@@ -301,7 +306,7 @@ def parse_args(node):
         r_arg_vals = [f(env) for f in arg_vals]
         return (r_arg_vals, r_default)
 
-    return _args
+    return _args, tuple(partial_idx)
 
 
 # 返回第一个值
@@ -312,7 +317,7 @@ def parse_parn(node):
     
 def parse_suffix_op(op):
     if op["type"] in ("PARN", "TUPLE", "ARGS"):
-        snv = parse_args(op)
+        snv, _ = parse_args(op)
         return lambda env: lambda f: Unary["CALL"](f, snv(env))
     elif op["type"] == "PARTIAL":
         return parse_partial(op)
@@ -323,20 +328,16 @@ def parse_suffix_op(op):
         return lambda env: lambda v: Unary["GET"](v, snv(env))
 
 def parse_partial(node):
-    h_args = parse_args(node)
+    h_args, p_args_idx = parse_args(node)
+    p_args_num = len(p_args_idx)
     def _fdo(env, f):
         args, default_args = h_args(env)
-        def _do(*p_args):
-            total_args, i = [], 0
-            for h in args:
-                if h is not PARTIAL_FLAG:
-                    total_args.append(h)
-                else:
-                    if i >= len(p_args): Error("Too less args")
-                    total_args.append(p_args[i])
-                    i = i + 1
-            if i < len(p_args): Error("Too many args")
-            return f(*total_args, **default_args)
+        def _do(*p_args, **key_args):
+            if p_args_num != len(p_args): Error("Expect %d args given %d"%(p_args_num, len(p_args)))
+            default_args.update(key_args)
+            for i, k in enumerate(p_args_idx):
+                args[k] = p_args[i]
+            return f(*args, **default_args)
         return _do
     return lambda env: lambda f: _fdo(env, f)
 

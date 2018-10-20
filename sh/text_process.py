@@ -5,7 +5,7 @@ from functools import reduce
 from sh.os_cmd import is_dir, replace_if_star_dir
 from collections.abc import Iterable
 
-__all__ = ['pipe_itertool', 'grep', 'gen', 'colSel', 'format', 'pbar',
+__all__ = [ 'grep', 'gen', 'colSel', 'format', 'pbar',
             'wc', 'egrep', 'extract', 'replace', 'cat', 'tojson', 'dumps', 'more', 
             'groupBy', 'take', 'takeWhile', 'drop', 'xreduce', 'head', 'join', 
             'map', 'filter', 'mapValues', 'flat', 'flatMap', 'awk', 'sed', 'split', 
@@ -13,7 +13,7 @@ __all__ = ['pipe_itertool', 'grep', 'gen', 'colSel', 'format', 'pbar',
             'sample', 'shuf', 'FM', 'MF', 'foldl']
 
 
-def pipe_itertool(func):
+def pipe_gen_itertool(func):
     def wrapper(*args, **kw):
         assert(len(args) > 0)
         if not isinstance(args[0], GeneratorType):
@@ -25,7 +25,22 @@ def pipe_itertool(func):
                 ans = func(*new_args, **kw)
                 if ans is not None: yield ans
     return wrapper
-    
+
+
+def pipe_text_itertool(func):
+    def wrapper(*args, **kw):
+        assert(len(args) > 0)
+        if type(args[0]) == str:
+            ans = func(*args, **kw)
+            if ans is not None: yield ans
+        else:
+            for line in args[0]:
+                new_args = (line,) + args[1:]
+                ans = func(*new_args, **kw)
+                if ans is not None: yield ans
+    return wrapper
+
+
 def pbar(n=5000):
     """ each N step: display progress in pipe """
     def _pbar(iterable):
@@ -83,12 +98,12 @@ def zipWithIndex(iterable, start=0):
         yield (x, i)
         i = i + 1
 
-@pipe_itertool
+@pipe_text_itertool
 def grep(line, pat, p=""):
     if pat in line: 
         return line
 
-@pipe_itertool
+@pipe_text_itertool
 def egrep(line, pat, p="i"):
     if "i" in p: pattern = re.compile(pat, re.I)
     else:        pattern = re.compile(pat)
@@ -100,17 +115,17 @@ def gen(iterable):
     for e in iterable:
         yield e
 
-@pipe_itertool
+@pipe_gen_itertool
 def colSel(iterable, idxes):
     if type(idxes) not in (list, tuple):
         return iterable[idxes]
     return [iterable[idx] for idx in idxes]
 
-@pipe_itertool
+@pipe_gen_itertool
 def list_format(x, pat, sep=" "):
     return sep.join( [pat.format(ele) for ele in x] )
 
-@pipe_itertool
+@pipe_gen_itertool
 def format(x, pat):
     if isinstance(x, Iterable):
         return pat.format(*x)
@@ -124,13 +139,13 @@ def wc(iterable, p="l"):
     return i
 
 
-@pipe_itertool
+@pipe_text_itertool
 def extract(line, pat):
     match = re.search(pat, line)
     if match:
         return match.groups()
 
-@pipe_itertool
+@pipe_text_itertool
 def replace(line, pat, repl, cnt=-1, p=""):
     """string replace
        parms: line, pattern, replace_str, cnt=inf
@@ -152,18 +167,18 @@ def cat(iterable):
         pathes = replace_if_star_dir(path)
         for file_name in pathes:
             if is_dir(file_name): continue
-            f = open(file_name, "r")
+            f = open(file_name, "r", encoding="utf-8")
             for line in f:
                 yield line.rstrip("\n")
             f.close()
 
-@pipe_itertool
+@pipe_gen_itertool
 def tojson(line):
     """python json loads"""
     import json
     return json.loads(line.strip())
 
-@pipe_itertool
+@pipe_gen_itertool
 def dumps(var):
     """python json dumps"""
     import json
@@ -256,7 +271,7 @@ def MF(iterable, mfunc, ffunc):
 def FM(iterable, mfunc, ffunc):
     for ele in iterable:
         if ffunc(ele):
-            yield mfunc(ele):
+            yield mfunc(ele)
 
 def mapValues(dict_obj, key):
     res = {}
@@ -276,7 +291,7 @@ def awk():
 def sed():
     pass
 
-@pipe_itertool
+@pipe_text_itertool
 def split(string, sep=None, cnt=-1, p=""):
     if "v" in p:
         if cnt < 0: cnt = 0

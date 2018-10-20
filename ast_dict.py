@@ -32,6 +32,9 @@ def check_comma(stm):
 def check_eof(stm):
     syntax_cond_assert(stm.eof(), "syntax error")
 
+def line_eof(stm):
+    return stm.eof() or syntax_check(stm.peek(),  ("SEP", "NEWLINE"))
+
 class AST():
     
     def __init__(self, tokens):
@@ -72,16 +75,16 @@ class AST():
         _from, _import, _as = [], [], []
         if stm.peek().tp == "FROM":
             stm.next()
-            while not stm.eof() and stm.peek().tp != "IMPORT":
+            while not line_eof(stm) and stm.peek().tp != "IMPORT":
                 _from.append(stm.next().val)
         syntax_assert(stm.next(), "IMPORT", "expect import") 
-        while not stm.eof() and stm.peek().tp != "AS":
+        while not line_eof(stm) and stm.peek().tp != "AS":
             _import.append(stm.next())
         
         if not stm.eof():
             syntax_assert(stm.next(), "AS", "expect as") 
             while not stm.eof():
-                _as.append(stm.next())
+                _as.append(stm.next().val)
         return {"type":"IMPORT", "from":"".join(_from), "import":_import, "as":_as}
 
     def ast_same_type_seq(self, stm, is_valid):
