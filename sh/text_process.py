@@ -1,5 +1,7 @@
-import re, types
+import re
+from types import GeneratorType
 from itertools import chain
+from functools import reduce
 from sh.os_cmd import is_dir, replace_if_star_dir
 from collections.abc import Iterable
 
@@ -8,13 +10,13 @@ __all__ = ['pipe_itertool', 'grep', 'gen', 'colSel', 'format', 'pbar',
             'groupBy', 'take', 'takeWhile', 'drop', 'xreduce', 'head', 'join', 
             'map', 'filter', 'mapValues', 'flat', 'flatMap', 'awk', 'sed', 'split', 
             'findall', 'search', 'xsort', 'uniq', 'chunks', 'zip2','zip3', 'zipWithIndex', 
-            'sample', 'shuf']
+            'sample', 'shuf', 'FM', 'MF', 'foldl']
 
 
 def pipe_itertool(func):
     def wrapper(*args, **kw):
         assert(len(args) > 0)
-        if not isinstance(args[0], types.GeneratorType):
+        if not isinstance(args[0], GeneratorType):
             ans = func(*args, **kw)
             if ans is not None: yield ans
         else:
@@ -39,7 +41,7 @@ def pbar(n=5000):
 
 def chunks(iterable, n=2):
     """Yield successive n-sized chunks from l."""
-    if not isinstance(iterable, types.GeneratorType):
+    if not isinstance(iterable, GeneratorType):
         for i in range(0, len(iterable), n):
             yield iterable[i:i + n]
     else:
@@ -219,9 +221,6 @@ def drop(iterable, n):
         if i >= n: yield x
         i+=1
             
-def xreduce(iterable):
-    pass
-
 def head(iterable, n=10):
     """ shell: head """
     i = 0
@@ -241,6 +240,23 @@ def filter(iterable, func):
     for ele in iterable:
         if func(ele):
             yield ele
+
+def foldl(iterable, func, init=None):
+    if init is None:
+        return reduce(func, iterable)
+    else:
+        return reduce(func, iterable, init)
+
+def MF(iterable, mfunc, ffunc):
+    for ele in iterable:
+        v = mfunc(ele)
+        if ffunc(v):
+            yield v
+
+def FM(iterable, mfunc, ffunc):
+    for ele in iterable:
+        if ffunc(ele):
+            yield mfunc(ele):
 
 def mapValues(dict_obj, key):
     res = {}

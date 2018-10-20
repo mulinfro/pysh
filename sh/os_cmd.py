@@ -27,6 +27,8 @@ def is_dir(path):
     return os.path.isdir(path)
 
 def replace_if_star_dir(path):
+    path = path.strip()
+    if path == "*": path = "./*"
     if path[-1] == "*":
         ans = []
         path = path[0:-1]
