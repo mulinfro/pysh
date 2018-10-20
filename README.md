@@ -82,7 +82,7 @@ foo(x,_)    # L(y): foo(x, y)
 新增函数主要来自于：1.shell命令的python函数形式；2. Functional Program的一些函数
 
 - shell命令列表： ls, pwd, rm, cp, mv, mkdir, rm, find, grep, egrep, wc, cat, more, uniq, head, xsort
-- FP函数列表： map, filter, take, takeWhile, flat, flatMap, drop, groupBy, join, mapValues, zip2, zip3, zipWithIndex, chunks
+- FP函数列表： map, filter, FM, MF, take, takeWhile, flat, flatMap, drop, groupBy, join, mapValues, zip2, zip3, zipWithIndex, chunks
 - 其他一些有用函数：format, extract, replace, split, tojson, dumps, gen, help, doc, pbar, sample, shuf
 想了解每个函数的用法，可以使用help函数，比如: `help(ls)`
 
