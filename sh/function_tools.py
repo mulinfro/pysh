@@ -4,7 +4,7 @@ from functools import reduce
 from types import GeneratorType
 __all__ = [ 'pbar', 'groupBy', 'take', 'takeWhile', 'drop', 'dropWhile', 'map', 'filter',
             'mapValues', 'flat', 'flatMap', 'chunks', 'zip2','zip3', 'zipWithIndex', 
-            'FM', 'MF', 'foldl']
+            'FM', 'MF', 'foldl', 'repeat']
 
 def pbar(n=5000):
     """ each N step: display progress in pipe """
@@ -18,6 +18,11 @@ def pbar(n=5000):
         print("Done All: %d items"%i)
     return _pbar
     
+def repeat(func, n):
+    i = 0
+    while n < 0 or i < n:
+        yield func()
+        i += 1
 
 def chunks(iterable, n=2):
     """Yield successive n-sized chunks from l."""
