@@ -226,7 +226,7 @@ def parse_assign(node):
         return _assign_expr_val
 
 def lst_combine(var, v):
-    syntax_cond_assert(len(var) != len(v), "Value error: unpack %d values with %d variables"%(len(var), len(v)) )
+    syntax_cond_assert(len(var) == len(v), "Value error: unpack %d values with %d variables"%(len(var), len(v)) )
     pairs = list(zip(var, v))
     return pairs
 

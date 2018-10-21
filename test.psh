@@ -1,5 +1,4 @@
 
-
   # pysh PYSH
 
 ">>> import"
@@ -9,10 +8,13 @@ from os.path import join, abspath
 import math as mh 
 mh.log(10)
 
-">>> assert"
+">>> assert del"
 assert True
 assert 1==1, "1 equals 1"
 #assert 1==2, "1 not equals 2"
+
+a = range(100000) | list
+del a
 
 ">>> NUM"
 +1
@@ -44,9 +46,7 @@ lst[0]
 l1 = lst[8,6,4,2,0]
 l2 = lst[8:0:-2]
 
-
-
-"TUPLE"
+">>> TUPLE"
 (1,)
 (1,2)
 
@@ -133,6 +133,10 @@ for (x in lst)
 	end
 end
 
+for( x,y in zip2([0:10:2], [1:11:2]) )
+  print(x,y)
+end
+
 i = 0
 while(i<len(lst))
 	if(lst[i] > 5)
@@ -195,4 +199,5 @@ ls(".") | filter(_, lambda (x):len(x) > 3) | list
 ">>> CALL SHELL COMMANDS" + " fork一个进程通过shell解释shell命令, cd对当前进程不生效"
 $ ls
 $ /sbin/ifconfig|sed -n '/inet addr/s/^[^:]*:\([0-9.]\{7,15\}\) .*/\1/p'
-
+cmd = "ls | grep py"
+sh cmd

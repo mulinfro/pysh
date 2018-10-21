@@ -11,14 +11,14 @@ class Env(dict):
         elif self.outer is None: return None
         else: return self.outer.find(var)
 
-
 #builtins = locals()["__builtins__"]
 def get_builtin_env(builtins):
     paras = dir(builtins)
     args  = [builtins.__dict__.get(a) for a in paras]
-    from sh import os_cmd, text_process
+    from sh import os_cmd, text_process, function_tools
     register(os_cmd, paras, args)
     register(text_process, paras, args)
+    register(function_tools, paras, args)
     return Env(parms = paras, args = args)
 
 def register(module, paras, args):
