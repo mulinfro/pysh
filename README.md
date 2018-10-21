@@ -26,7 +26,10 @@ ls("/home/user/", "f")   # "f" is flag, will return only files
 ```
 
 #### 惰性求值
-利用的是python的generator
+惰性求值主要是性能上的考虑，利用的是python的generator机制
+- `gen` 输入一个可迭代对象返回一个生成器
+- `repeat` 输入一个函数，返回一个执行N次的生成器，N==-1则为无限次
+
 
 #### 偏函数
 偏函数定义便于高阶函数的使用，比如配合 `map, filter, flat, flatMap, fold` 等
