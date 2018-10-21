@@ -39,12 +39,19 @@ def is_block(cmd):
             return True
     return False
 
+
+repl_init_str = """  PYSH: sh & python & FP
+  repl commands: [exit -> exit;  clear -> clear environment]
+"""
+
+
 def REPL():
     try:
         repl_readline_helper()
     except ImportError:
         print("readline module is not installed! use raw input")
     IN = "$> "
+    print(repl_init_str)
     env = get_builtin_env(builtins)
 
     cmdlines, block_num, = [], 0
