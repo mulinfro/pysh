@@ -96,7 +96,7 @@ cat("source/*") | egrep(_, "^def\s") | wc
  # 输出目录下所有py源文件中的函数名称
 cat("source/*") | egrep(_, "^def\s") | extract(_, "def\((\w+)\)") | list
  # 
-py_files = ls(".", p='rf') | gen | egrep(_, ".py$") | map(_, cat) 
+py_files = ls(".", 'rf') | gen | egrep(_, ".py$") | map(_, cat) 
 ```
 
 ## 与python不一样的地方
@@ -107,6 +107,7 @@ py_files = ls(".", p='rf') | gen | egrep(_, ".py$") | map(_, cat)
 - 每个block用end结束
 - lambda, L 的参数必须用小括号包起来
 - if, for, while, def后面的冒号去掉;  eg. if(a > b) pass end;  经常忘打冒号，干脆去掉 
+- 支持`for( x,y in [(1,2),(3,4),(5,6)])`; 但不支持 `x,y = 1,2`
 
 ## import机制
 
@@ -117,9 +118,9 @@ py_files = ls(".", p='rf') | gen | egrep(_, ".py$") | map(_, cat)
 ```python
 import sys, math
 from os import path
-import("/home/user/ll/emath.py" )   # 用法emath.log  
-import("/home/user/ll/cmds.psh" )   # 用法cmds.log  
-import("/home/user/ll/emath.py" ) as mh   # 用法mh.log  
+import "/home/user/ll/emath.py"     # 用法emath.xxx 
+import "/home/user/ll/cmds.psh"     # 用法cmds.xxx  
+import "/home/user/ll/emath.py" as mh   # 用法mh.xxx  
 ```
 
 ## Examples

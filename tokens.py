@@ -24,6 +24,7 @@ keywords = {
 "continue" : "CONTINUE",
 "import":  "IMPORT",
 "from" :  "FROM",
+"as" :  "AS",
 "assert" :  "ASSERT",
 "del" :  "DEL",
 }

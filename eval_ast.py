@@ -1,5 +1,5 @@
 from builtin import operators, op_order, Binary, Unary, op_right
-import copy,sys
+import copy
 from env import Env
 from syntax_check import Error, syntax_cond_assert
 
@@ -74,8 +74,8 @@ def parse_expr_or_command(node):
 def parse_expr(node):
     if node["type"] in ("ASSIGN", "GASSIGN"):
         val = parse_assign(node)
-    elif node["type"] == "PASSIGN":
-        val = parse_pattern_assign(node)
+    elif node["type"] == "MULTI_ASSIGN":
+        val = parse_multi_assign(node)
     else:
         val = parse_simple_expr(node)
     return val
@@ -119,16 +119,26 @@ def parse_import(node):
 
     import sys, os
     def python_import(_from, _import, _as):
-        env = {}
-        as_name = [ tkn.val for tkn in _as if tkn.tp!="SEP" ] + [None]*len(_import)
         if _from: 
             fromlist = _from.split(".")
             top_module = __import__(_from, fromlist = fromlist)
-        for t,g in zip(_import, as_name):
-            if t.tp == "SEP": continue
-            nm = g if g else t.val
-            if _from: env[nm] = top_module.__getattribute__(t.val)
-            else:     env[nm] = __import__(_import[0])
+        _import_str, _import_val = "", [] 
+        for tkn in _import:
+            if tkn.tp == "SEP":
+                if _import_str:
+                    _import_val.append(_import_str)
+                    _import_str = ""
+            else:
+                _import_str += tkn.val
+
+        if _import_str: _import_val.append(_import_str)
+
+        env = {}
+        as_name = _as + [None]*len(_import_val)
+        for t,g in zip(_import_val, as_name):
+            nm = g if g else t.split(".")[0]
+            if _from: env[nm] = top_module.__getattribute__(t)
+            else:     env[nm] = __import__(t)
         return env
             
     def user_import_py(path, _as):
@@ -136,7 +146,6 @@ def parse_import(node):
         return SourceFileLoader(_as, path).load_module()
 
     def user_import_psh(path):
-        import os
         syntax_cond_assert(os.path.is_file(path),  "Error: path %s is not a file"%path)
         import repl
         return repl.pysh(path, run=False)
@@ -154,20 +163,21 @@ def parse_import(node):
 
     _from, _import, _as = node["from"], node["import"], node["as"]
     module = {}
-    if _from or _import[0].tp != "PARN":
+    if _from or _import[0].tp != "STRING":
         module = python_import(_from, _import, _as)
     else:
-        path = _import[0].val
+        path = _import[0].val.strip()
         if path.endswith(".py"):
             module_context = user_import_py(path)
         if path.endswith(".psh"):
             module_context = user_import_psh(path)
-        syntax_cond_assert(len(_as) <= 1, "can only import one module once")
+        syntax_cond_assert(len(_as) <= 1, "User Import Error: too many names after AS")
         if len(_as) == 1:
             module_name = _as[0]
         else:
             module_name = os.path.split(path)[1].split(".")[0]
-            module = {module_name: module_context}
+
+        module = {module_name: module_context}
             
     def update_env(env):
         env.update(module)
@@ -196,27 +206,23 @@ def parse_assign(node):
         return _assign_var
     else:
         var = node["var"]
-        syntax_cond_assert(len(var["suffix"]) > 0, "assign: left value is invalid")
+        syntax_cond_assert(var["type"] == "UNARY" and len(var["suffix"]) > 0, "assign: left value is invalid")
         var_idx = var["suffix"][-1]
         var["suffix"] = var["suffix"][0:-1]
-        cond_condition = var["type"] == "UNARY" and var_idx["type"] == "LIST"
-        syntax_cond_assert(cond_condition, "assign: left value is invalid")
-        syntax_cond_assert(len(var_idx["val"]) == 1, "assign: left value is invalid")
+        syntax_cond_assert(var_idx["type"] == "LIST", "assign: left value is invalid")
+        syntax_cond_assert(len(var_idx["val"]) == 1,  "assign: left value is invalid")
         var_idx_val = parse_expr(var_idx["val"][0])
         var_val = parse_expr(var)
         return _assign_expr_val
 
 def lst_combine(var, v):
-    syntax_cond_assert(len(var) <= len(v), "syntax error: to many variables")
+    syntax_cond_assert(len(var) != len(v), "Value error: unpack %d values with %d variables"%(len(var), len(v)) )
     pairs = list(zip(var, v))
-    tail = (pairs[-1][0], [pairs[-1][1]] + v[len(var)])
-    pairs.pop()
-    pairs.append(tail)
     return pairs
 
-def parse_pattern_assign(node):
+def parse_multi_assign(node):
     val = parse_expr(node["val"])
-    var = node["var"]["variables"]
+    var = node["var"]["names"]
     
     def _update(env):
         env.update(lst_combine(var, val(env)))
@@ -462,11 +468,11 @@ def parse_in(node):
             yield [(var, ele)]
 
     def _p_in(env):
-        var = node["var"]["variables"]
+        var = node["var"]["names"]
         for ele in v(env):
             yield lst_combine(var, ele)
 
-    return _p_in if node["var"]["type"] == "PATTERNVAR" else _in
+    return _p_in if node["var"]["type"] == "VAR_LIST" else _in
 
 def parse_for(node):
     in_f = parse_in(node["in"])

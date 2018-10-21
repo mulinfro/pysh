@@ -5,7 +5,6 @@
 from stream import stream
 from syntax_check import *
 from builtin import Binary, Unary
-import sys
 
 Tautology = lambda x: True
 
@@ -69,6 +68,17 @@ class AST():
             check_expr_end(stm)
             return left
         
+    def ast_var_list(self, stm):
+        var_list = []
+        while not line_eof(stm) and stm.peek().tp == "VAR" :
+            var_list.append(stm.next().val)
+            if line_eof(stm) or stm.peek().tp != "SEP": break
+            stm.next()
+
+        if len(var_list) == 1:
+            return {"type":"VAR", "name":var_list[0]}
+        return {"type":"VAR_LIST", "names":var_list}
+
     # python的import语法; 
     # pysh的import:  import(file_path) as name
     def ast_import(self, stm):
@@ -77,14 +87,21 @@ class AST():
             stm.next()
             while not line_eof(stm) and stm.peek().tp != "IMPORT":
                 _from.append(stm.next().val)
+            syntax_cond_assert(len(_from) >0, "Empty from")
         syntax_assert(stm.next(), "IMPORT", "expect import") 
         while not line_eof(stm) and stm.peek().tp != "AS":
             _import.append(stm.next())
         
-        if not stm.eof():
+        syntax_cond_assert(len(_import) >0, "Empty import")
+        if not line_eof(stm):
             syntax_assert(stm.next(), "AS", "expect as") 
-            while not stm.eof():
-                _as.append(stm.next().val)
+            var_list = self.ast_var_list(stm)
+            if var_list["type"] == "VAR_LIST":
+                _as = var_list["names"]
+            else:
+                _as =  [ var_list["name"] ]
+            syntax_cond_assert(len(_as) >0, "Empty as")
+        if not line_eof(stm): Error("Syntax error: unexpected words %s in import"%stm.peek().val)
         return {"type":"IMPORT", "from":"".join(_from), "import":_import, "as":_as}
 
     def ast_same_type_seq(self, stm, is_valid):
@@ -273,19 +290,8 @@ class AST():
         syntax_assert(stm.next(), "END", "missing END")
         return {"type":"WHILE", "cond":cond, "body":body}
 
-    def ast_pattern_var(self, stm):
-        variables = [self.ast_a_var(stm)]
-        while syntax_check(stm.peek(), "PASSIGN"):
-            stm.next()
-            variables.append(self.ast_a_var(stm)["name"])
-
-        if len(variables) > 1: 
-            return {"type":"PATTERNVAR", "variables":variables}
-        else:
-            return variables[0]
-
     def ast_in(self, stm):
-        var = self.ast_pattern_var(stm)
+        var = self.ast_var_list(stm)
         syntax_assert(stm.next(), ("OP", "IN"), "syntax error in for setence")
         val = self.ast_expr(stm)
         check_eof(stm)

@@ -3,8 +3,11 @@
   # pysh PYSH
 
 ">>> import"
-#import sys
-#print(sys.argv[0])
+import sys
+print(sys.argv[0])
+from os.path import join, abspath
+import math as mh 
+mh.log(10)
 
 ">>> assert"
 assert True
