@@ -31,6 +31,14 @@ def repl_readline_helper():
 
 builtins = locals()["__builtins__"]
 
+def is_block(cmd):
+    def helper(line, keyword):
+        return line.startswith(keyword) and len(line) > len(keyword) and line[len(keyword)] in " \t("
+    for kw in ["def", "if", "for", "while"]:
+        if helper(cmd, kw): 
+            return True
+    return False
+
 def REPL():
     try:
         repl_readline_helper()
@@ -38,17 +46,6 @@ def REPL():
         print("readline module is not installed! use raw input")
     IN = "$> "
     env = get_builtin_env(builtins)
-    def is_block(cmd):
-        def helper(line, n):
-            return len(line) > n and line[n] in " \t("
-        if cmd.startswith("def") or cmd.startswith("for"):
-            return helper(cmd, 3)
-        elif cmd.startswith("if"):
-            return helper(cmd, 2)
-        elif cmd.startswith("while"):
-            return helper(cmd, 5)
-        else:
-            return False
 
     cmdlines, block_num, = [], 0
     cmd = ""
@@ -58,6 +55,11 @@ def REPL():
         except KeyboardInterrupt:
             print(" CTRL-C")
         if cmd in ['quit', 'exit']: break
+        if cmd == 'clear':
+            del env
+            env = get_builtin_env(builtins)
+            cmd = ""
+            continue
         # in repl every multiline expr need \ 
         if cmd.endswith("\\"):
             cmd = cmd[0:-1]
