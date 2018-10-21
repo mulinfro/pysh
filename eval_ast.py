@@ -45,9 +45,17 @@ def parse_del(node):
     name = node["var"]
     def _del(env):
         t = env.find(name)
-        if t is not None:
-            del t[name]
+        if t is None: Error("undefind variable %s"%name)
+        del t[name]
     return _del
+
+def parse_sh(node):
+    cmd = parse_expr(node["cmd"])
+    def _sh(env):
+        cmd_val = cmd(env)
+        syntax_cond_assert(type(cmd_val) == str, "Value Error: sh handles a string")
+        return os_call(cmd_val)
+    return _sh
 
 def parse_block_expr(node):
     if node["type"] == 'IF':
@@ -67,6 +75,8 @@ def parse_expr_or_command(node):
         val = parse_assert(node)
     elif node["type"] == "DEL":
         val = parse_del(node)
+    elif node["type"] == "SH":
+        val = parse_sh(node)
     else:
         val = parse_expr(node)
     return val

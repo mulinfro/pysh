@@ -148,6 +148,12 @@ class AST():
         check_newline(stm)
         return {"type": "DEL", "var": var["name"] }
 
+    def ast_sh(self, stm):
+        stm.next()
+        expr = self.ast_expr(stm)
+        check_newline(stm)
+        return {"type": "SH", "cmd": expr }
+
     def ast_control(self, stm):
         tkn = stm.peek()
         if   tkn.tp == 'IF':
@@ -205,6 +211,8 @@ class AST():
             return self.ast_return_assert(stm, "ASSERT")
         elif stm.peek().tp == "DEL":
             return self.ast_del(stm)
+        elif stm.peek().tp == "SH":
+            return self.ast_sh(stm)
         else:
             return self.ast_try_assign(stm)
 
