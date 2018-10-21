@@ -115,7 +115,7 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 
 #### 没有支持的python关键词
 
-- try, except, raise, finally, assert, with, pass, yield, class
+- try, except, raise, finally, with, pass, yield, class
 - exec用 **$** 代替; global赋值用 **:=** 代替, 还是避免全局变量与本地变量名称一致
 
 
