@@ -12,8 +12,8 @@ pysh可以看作是兼具`shell`和`python`特点的解释器。主要目的是�
 
 #### 调用shell命令
 ```
-$ cd | grep py
-cmd = " cd | grep py"
+$ cd ~ | grep py
+cmd = " cd ~ | grep py"
 sh cmd
 ``` 
 
@@ -26,24 +26,26 @@ ls("/home/user/", "f")   # "f" is flag, will return only files
 ```
 
 #### 惰性求值
-惰性求值主要是性能上的考虑，利用的是python的generator机制
+惰性求值主要是性能上的考虑，利用的是python的generator机制, 两个辅助函数：
 - `gen` 输入一个可迭代对象返回一个生成器
 - `repeat` 输入一个函数，返回一个执行N次的生成器，N==-1则为无限次
 
+像 `cat, grep, replace, extract, more` 这些函数都应用了惰性求值，这样在处理大文件时，pipeline操作不容易遇到瓶颈； 需要注意的是这些函数返回值必须先取出来才能使用, `"  abc " | split | next`
+
 
 #### 偏函数
-偏函数定义便于高阶函数的使用，比如配合 `map, filter, flat, flatMap, fold` 等
+偏函数便于高阶函数的使用，配合 `map, filter, flat, flatMap, fold` 等， 能写出高效简洁的代码
 ```python
 _ > 2 ** 3  # L(x):x>2**3
 len(_) > 2  # L(x):len(x) > 2
-_.strip()   # L(x):x.strip()
 foo(x,_)    # L(y): foo(x, y)
+strlist | map(_, _.split()) | flatMap(_, _.strip(',.!"'))  | uniq  # list of string 的词汇表
 ```
 
 #### Pipe & IO
-IO重定向到文件：`&>, &>>`
-支持对数据的格式化输入输出，常用函数：`format, list_format, tojson, dumps`等
-通过管道把不同函数组合起来:
+- IO重定向到文件：`&>, &>>`
+- 对数据的格式化输入输出，常用函数：`format, list_format, tojson, dumps`等
+- 通过管道把不同函数组合起来
 ```python
  # 从每行都是一个json字符串的文件中解析出json data，并选择["color","size"]两个字段，重新写入新的文件
 cat("josn.log") | tojson |  colSel(_, ["color","size"]) | dumps &> "new_json.log"
@@ -124,7 +126,7 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 新增函数主要来自于：1.shell命令的python函数形式；2. Functional Program的一些函数
 
 - shell命令列表： ls, pwd, rm, cp, mv, mkdir, rm, find, grep, egrep, wc, cat, more, uniq, head, xsort
-- FP函数列表： map, filter, FM, MF, take, takeWhile, flat, flatMap, drop, groupBy, join, mapValues, zip2, zip3, zipWithIndex, chunks
+- FP函数列表： map, mmap, filter, foldl, FM, MF, take, takeWhile, flat, flatMap, drop, groupBy, join, mapValues, zip2, zip3, zipWithIndex, chunks
 - 其他一些有用函数：format, extract, replace, split, tojson, dumps, gen, help, doc, pbar, sample, shuf
 想了解每个函数的用法，可以使用help函数，比如: `help(ls)`
 
@@ -139,6 +141,9 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 - lambda, L 的参数必须用小括号包起来
 - if, for, while, def后面的冒号去掉;  eg. if(a > b) pass end;  经常忘打冒号，干脆去掉 
 - 支持`for( x,y in [(1,2),(3,4),(5,6)])`; 但不支持 `x,y = 1,2`
+- 不支持lst[0:]; 可以用lst[0:-1, -1] 替代;  
+
+> 后面两个python语法不支持，主要是实现上相对麻烦
 
 ## import机制
 

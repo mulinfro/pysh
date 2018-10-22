@@ -2,6 +2,7 @@ import re
 from types import GeneratorType
 from sh.os_cmd import is_dir, replace_if_star_dir
 from collections.abc import Iterable
+import json
 
 __all__ = ['sample', 'shuf', 'grep', 'egrep', 'gen', 'colSel', 'list_format', 'format', 
             'wc', 'extract', 'replace', 'cat', 'tojson', 'dumps', 'more', 'strip', 'head',
@@ -124,14 +125,12 @@ def cat(iterable):
 @pipe_gen_itertool
 def tojson(line):
     """python json loads"""
-    import json
     return json.loads(line.strip())
 
 @pipe_gen_itertool
 def dumps(var):
     """python json dumps"""
-    import json
-    return json.dumps(var)
+    return json.dumps(var, ensure_ascii=False)
 
 def more(file_name):
     """shell: more

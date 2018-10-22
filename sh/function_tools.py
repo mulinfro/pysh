@@ -4,7 +4,7 @@ from functools import reduce
 from types import GeneratorType
 __all__ = [ 'pbar', 'groupBy', 'take', 'takeWhile', 'drop', 'dropWhile', 'map', 'filter',
             'mapValues', 'flat', 'flatMap', 'chunks', 'zip2','zip3', 'zipWithIndex', 
-            'FM', 'MF', 'foldl', 'repeat']
+            'FM', 'MF', 'mmap', 'foldl', 'repeat']
 
 def pbar(n=5000):
     """ each N step: display progress in pipe """
@@ -101,6 +101,10 @@ def dropWhile(iterable, key):
 def map(iterable, func):
     for ele in iterable:
         yield func(ele)
+
+def mmap(iterable, func):
+    for ele in iterable:
+        yield list(map(ele, func))
 
 def filter(iterable, func):
     for ele in iterable:
