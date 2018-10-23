@@ -18,8 +18,8 @@ cmd = " cd ~ | grep py"
 sh cmd
 ``` 
 
-#### python重实现的shell命令
-为了简化原始shell命令的参数记忆，重写的命令只实现了原shell命令的主要功能，再搭配上少量的常用可选参数; 将用法简单化
+#### shell命令python函数化
+为了简化原始shell命令的参数记忆，重写的命令只实现了原shell命令的主要功能，再搭配上少量的常用可选参数; 尽量将用法简单化
 ```python
 grep("world", "hello world" )
 cat("/home/user/doc/*")  # lazy values 
