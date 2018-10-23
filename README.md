@@ -61,7 +61,7 @@ cat("source/*") | egrep("^def\s", _) | wc
  # 输出目录下所有py源文件中的函数名称
 cat("source/*") | egrep("^def\s", _) | extract( "def\((\w+)\)", _) | format("{0}", _ ) | list
  # 
-py_files = ls(".", 'rf') | gen | egrep(".py$", _ ) | map( cat|list ,) 
+py_files = ls(".", 'rf') | gen | egrep(".py$", _ ) | map( cat|list, _) 
 ```
 
 ## 数据结构
@@ -108,8 +108,8 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 
 1.  `#`:表示缩进
 2.  支持python的所有内置函数
-3.  关键词列表：def, is, in, if, else, elif, for, while, break, continue, return, lambda, L, True, False, None, _, assert, del， sh
-4.  操作符列表：and, or, not, +, -, *, **, /, //, %, =, :=, $, |, . , &>, &>>, >, >=, <, <=, !=, ==  
+3.  关键词列表：def, is, in, if, else, elif, for, while, break, continue, return, lambda, L, True, False, None, _ , assert, del, sh
+4.  操作符列表：and, or, not, +, -, *, **, /, //, %, =, :=, $, |, . , &>, &>>, >, >=, <, <=, !=, ==, @
 
 #### 除了python的关键词与操作符外， 额外增加了一些操作符
 
@@ -145,8 +145,7 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 
 #### 取消了python的缩进，这样在命令行模式下更加灵活
 
-- 不需要缩进
-- 每个block用end结束
+- 不需要缩进, 每个block用end结束
 - lambda, L 的参数必须用小括号包起来
 - if, for, while, def后面的冒号去掉;  eg. if(a > b) pass end;  经常忘打冒号，干脆去掉 
 - 支持`for( x,y in [(1,2),(3,4),(5,6)])`; 但不支持 `x,y = 1,2`
