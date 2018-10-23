@@ -261,7 +261,7 @@ def parse_binary_expr(node):
     for i in range(len(g_flag_vals)):
         g_vals.append(g_flag_vals[i][1])
         if g_flag_vals[i][0] == "PARTIAL" and \
-            (i==0 or g_ops[i-1]["name"]!="PIPE"):
+            (i==0 or (g_ops[i-1]["name"]!="PIPE" and g_ops[i-1]["name"]!="COMB" )):
             syntax_cond_assert(partial_idx < 0, "expression partial function can only one argument")
             partial_idx = i
     

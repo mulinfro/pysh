@@ -6,7 +6,8 @@ import json
 
 __all__ = ['sample', 'shuf', 'grep', 'egrep', 'gen', 'colSel', 'list_format', 'format', 
             'wc', 'extract', 'replace', 'cat', 'tojson', 'dumps', 'more', 'strip', 'head',
-            'join', 'split', 'findall', 'search', 'uniq']
+            'join', 'split', 'findall', 'search', 'uniq', ]
+
 
 def pipe_gen_itertool(func):
     def wrapper(*args, **kw):
@@ -36,7 +37,7 @@ def pipe_text_itertool(func):
     return wrapper
 
 
-def sample(iterable, sample_rate):
+def sample(sample_rate, iterable):
     import random
     for x in iterable:
         if random.uniform(0,1) < sample_rate:
@@ -49,12 +50,12 @@ def shuf(iterable):
 
 
 @pipe_text_itertool
-def grep(line, pat, p=""):
+def grep(pat, line, p=""):
     if pat in line: 
         return line
 
 @pipe_text_itertool
-def egrep(line, pat, p="i"):
+def egrep(pat, line, p="i"):
     if "i" in p: pattern = re.compile(pat, re.I)
     else:        pattern = re.compile(pat)
     match = pattern.search(line)
@@ -66,17 +67,17 @@ def gen(iterable):
         yield e
 
 @pipe_gen_itertool
-def colSel(iterable, idxes):
+def colSel(idxes, iterable):
     if type(idxes) not in (list, tuple):
         return iterable[idxes]
     return [iterable[idx] for idx in idxes]
 
 @pipe_gen_itertool
-def list_format(x, pat, sep=" "):
-    return sep.join( [pat.format(ele) for ele in x] )
+def list_format(pat, iterable, sep=" "):
+    return sep.join( [pat.format(ele) for ele in iterable] )
 
 @pipe_gen_itertool
-def format(x, pat):
+def format(pat, x):
     if isinstance(x, Iterable):
         return pat.format(*x)
     else:
@@ -90,15 +91,15 @@ def wc(iterable, p="l"):
 
 
 @pipe_text_itertool
-def extract(line, pat):
+def extract(pat, line):
     match = re.search(pat, line)
     if match:
         return match.groups()
 
 @pipe_text_itertool
-def replace(line, pat, repl, cnt=-1, p=""):
+def replace(pat, repl, line, cnt=-1, p=""):
     """string replace
-       parms: line, pattern, replace_str, cnt=inf
+       parms: pattern, replace_str, line, cnt=inf
        p = [v] v: using python module re.sub
     """
     if "v" not in p:
@@ -154,7 +155,7 @@ def more(file_name):
 
 @pipe_text_itertool
 def strip(string, p=" \t\n\r"):
-    return _.strip(p)
+    return string.strip(p)
 
 
 def head(iterable, n=10):

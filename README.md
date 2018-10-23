@@ -11,6 +11,7 @@ pysh可以看作是兼具`shell`和`python`特点的解释器。主要目的是�
 ## 主要特性
 
 #### 调用shell命令
+"$"后面直接接bash命令; `sh`关键字调用命令
 ```
 $ cd ~ | grep py
 cmd = " cd ~ | grep py"
@@ -18,9 +19,9 @@ sh cmd
 ``` 
 
 #### python重实现的shell命令
-为了简化原始shell命令的参数记忆，重写的命令只实现了原始shell命令的主要功能，再搭配上少量的常用可选参数，不足的功能由其它函数补充
-```
-grep("hello world", "world")
+为了简化原始shell命令的参数记忆，重写的命令只实现了原shell命令的主要功能，再搭配上少量的常用可选参数; 将用法简单化
+```python
+grep("world", "hello world" )
 cat("/home/user/doc/*")  # lazy values 
 ls("/home/user/", "f")   # "f" is flag, will return only files
 ```
@@ -33,13 +34,16 @@ ls("/home/user/", "f")   # "f" is flag, will return only files
 像 `cat, grep, replace, extract, more` 这些函数都应用了惰性求值，这样在处理大文件时，pipeline操作不容易遇到瓶颈； 需要注意的是这些函数返回值必须先取出来才能使用, `"  abc " | split | next`
 
 
-#### 偏函数
-偏函数便于高阶函数的使用，配合 `map, filter, flat, flatMap, fold` 等， 能写出高效简洁的代码
+#### FP
+匿名函数，偏函数, 函数组合, 高阶函数的使用，能写出高效简洁的代码, 常用高阶函数 `map, mmap, filter, flat, flatMap, fold` 等 
 ```python
+a = L(x, y): x + y  # 匿名函数 L == lambda
 _ > 2 ** 3  # L(x):x>2**3
 len(_) > 2  # L(x):len(x) > 2
 foo(x,_)    # L(y): foo(x, y)
-strlist | map(_, _.split()) | flatMap(_, _.strip(',.!"'))  | uniq  # list of string 的词汇表
+b = a@1     # 函数组合, L(1, y): 1 + y;  b(2) == 3
+map@ len(_) # 给定list求每个元素的长度
+strlist | map( _.split(), _) | flatMap( _.strip(',.!"'), _)  | uniq  # list of string 的词汇表
 ```
 
 #### Pipe & IO
@@ -48,11 +52,11 @@ strlist | map(_, _.split()) | flatMap(_, _.strip(',.!"'))  | uniq  # list of str
 - 通过管道把不同函数组合起来
 ```python
  # 从每行都是一个json字符串的文件中解析出json data，并选择["color","size"]两个字段，重新写入新的文件
-cat("josn.log") | tojson |  colSel(_, ["color","size"]) | dumps &> "new_json.log"
+cat("josn.log") | tojson |  colSel(["color","size"], _) | dumps &> "new_json.log"
  # 统计目录下所有py源文件中的函数定义的数量
-cat("source/*") | egrep(_, "^def\s") | wc 
+cat("source/*") | egrep("^def\s", _) | wc 
  # 输出目录下所有py源文件中的函数名称
-cat("source/*") | egrep(_, "^def\s") | extract(_, "def\((\w+)\)") | list
+cat("source/*") | egrep("^def\s", _) | extract( "def\((\w+)\)", _) | format("{0}", _ ) | list
  # 
 py_files = ls(".", 'rf') | gen | egrep(_, ".py$") | map(_, cat) 
 ```
@@ -112,6 +116,7 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 - `|`: pipe功能,前面的值当作后面函数的输入， `a | b | c | d = d(c(b(a)))`
 - `L`: 等价于lambda关键字，主要为了少打点字， 注： 与python不同的是lambda后面的参数必须用小括号包起来
 - `_`: 参数占位符，方便定义偏函数， 这个特性结合PIPE非常方便, 
+- `@`: 函数组合，`f@m == f(m)(..)`
 
 
 
@@ -168,14 +173,14 @@ import "/home/user/ll/emath.py" as mh   # 用法mh.xxx
              return lst
          end
 
-         leftpart = filter(lst, _ < lst[0]) | list
-         rightpart = filter(lst, _ > lst[0]) | list
-         eqpart = filter(lst, L(x): x == lst[0]) | list
+         leftpart = filter@ _ < lst[0](lst) | list
+         rightpart = filter(_ > lst[0], lst) | list
+         eqpart = filter(L(x): x == lst[0], lst) | list
          return  qsort(leftpart) + eqpart + qsort(rightpart)
     end
     file = "test.txt"
 	# 把test文件去除空行，然后每50行保存到不同的文件下
-    line_chunks = cat(file) | filter(_, L(x): len(x.strip()) >0 ) | chunks(_, 50)
+    line_chunks = cat(file) | filter(L(x): len(x.strip()) >0, _ ) | chunks(50, _)
     for(ck in zipWithIndex(line_chunks))
         ck[0] &> "%d.txt"%ck[1]
     end
@@ -191,7 +196,6 @@ import "/home/user/ll/emath.py" as mh   # 用法mh.xxx
 python3 repl.py      # open a interactive console
 python3 repl.py test.psh params  # run a psh file, main function is entry point
 ```
-
 
 ## TODO
 1. 补充文档注释

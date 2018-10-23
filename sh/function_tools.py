@@ -4,7 +4,11 @@ from functools import reduce
 from types import GeneratorType
 __all__ = [ 'pbar', 'groupBy', 'take', 'takeWhile', 'drop', 'dropWhile', 'map', 'filter',
             'mapValues', 'flat', 'flatMap', 'chunks', 'zip2','zip3', 'zipWithIndex', 
-            'FM', 'MF', 'mmap', 'foldl', 'repeat']
+            'FM', 'MF', 'mmap', 'foldl', 'repeat', 'M', 'slf']
+
+def slf(x):
+    """ slf: return self"""
+    return x
 
 def pbar(n=5000):
     """ each N step: display progress in pipe """
@@ -18,6 +22,9 @@ def pbar(n=5000):
         print("Done All: %d items"%i)
     return _pbar
     
+def M(func, iterable):
+    return [ func(x) for x in iterable ]
+
 def repeat(func, n):
     i = 0
     while n < 0 or i < n:
@@ -58,7 +65,7 @@ def zipWithIndex(iterable, start=0):
         yield (x, i)
         i = i + 1
 
-def groupBy(iterable, key = lambda x:x[0]):
+def groupBy(key, iterable):
     """ iterable groupBy key function
         key: a function; for each element generate group identity
         default key = lambda x:x[0]
@@ -70,7 +77,7 @@ def groupBy(iterable, key = lambda x:x[0]):
         res[k].append(x)
     return res
 
-def take(iterable, n):
+def take(n, iterable):
     """ iterable take first n elements """
     i = 0
     for x in iterable:
@@ -78,47 +85,47 @@ def take(iterable, n):
         i+=1
         yield x
 
-def takeWhile(iterable, key):
+def takeWhile(key, iterable):
     """ iterable take while condition is statisfied """
     for x in iterable:
         if not key(x): break
         yield x
 
-def drop(iterable, n):
+def drop(n, iterable):
     """ iterable drop first n elements """
     i = 0
     for x in iterable:
         if i >= n: yield x
         i+=1
 
-def dropWhile(iterable, key):
+def dropWhile(key, iterable):
     need_drop = True
     for x in iterable:
         if need_drop and key(x): continue
         else: need_drop = False
         yield x
             
-def map(iterable, func):
+def map(func, iterable):
     for ele in iterable:
         yield func(ele)
 
-def mmap(iterable, func):
+def mmap(func, iterable):
     for ele in iterable:
         yield list(map(ele, func))
 
-def filter(iterable, func):
+def filter(func, iterable):
     for ele in iterable:
         if func(ele):
             yield ele
 
-def foldl(iterable, func, init=None):
+def foldl(func, iterable, init=None):
     """ fold left: python reduce """
     if init is None:
         return reduce(func, iterable)
     else:
         return reduce(func, iterable, init)
 
-def MF(iterable, mfunc, ffunc):
+def MF(mfunc, ffunc, iterable):
     """  MF = map | filter
          paras: 1.iterable,  2. map_key_func,  3.filter_key_func
     """
@@ -127,7 +134,7 @@ def MF(iterable, mfunc, ffunc):
         if ffunc(v):
             yield v
 
-def FM(iterable, mfunc, ffunc):
+def FM(mfunc, ffunc, iterable):
     """  FM = filter | map
          paras: 1.iterable,  2. map_key_func,  3.filter_key_func
     """
@@ -135,7 +142,7 @@ def FM(iterable, mfunc, ffunc):
         if ffunc(ele):
             yield mfunc(ele)
 
-def mapValues(dict_obj, key):
+def mapValues(key, dict_obj):
     res = {}
     for k,v in dict_obj.items():
         res[k] = key(v)

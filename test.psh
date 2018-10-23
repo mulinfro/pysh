@@ -150,9 +150,9 @@ def qsort(lst)
     if (len(lst) <= 1)
         return lst
     end
-    leftpart = filter(lst, _ < lst[0]) | list
-    rightpart = filter(lst, _ > lst[0]) | list
-    eqpart = filter(lst, L(x): x == lst[0]) | list
+    leftpart = filter(_ < lst[0], lst ) | list
+    rightpart = filter(_ > lst[0], lst) | list
+    eqpart = filter( L(x): x == lst[0], lst) | list
     return qsort(leftpart) + eqpart + qsort(rightpart)
 end
 
@@ -193,8 +193,8 @@ strip("\t abc  \n") == "abc"
 ">>> PIPE"
 ls(".") | head
 a = ls(".") 
-filter(a, lambda (x):len(x) > 3)
-ls(".") | filter(_, lambda (x):len(x) > 3) | list
+filter(lambda (x):len(x) > 3, a)
+ls(".") | filter(lambda (x):len(x) > 3, _) | list
 
 ">>> CALL SHELL COMMANDS" + " fork一个进程通过shell解释shell命令, cd对当前进程不生效"
 $ ls

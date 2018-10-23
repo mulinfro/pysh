@@ -26,6 +26,7 @@ operators = {
     ".": "DOT",
     "is":"IS",
     "in":"IN",
+    "@" :"COMB",
 }
 
 special_op = {
@@ -37,6 +38,7 @@ special_op = {
 op_order = {
     'WRITE':1,
     'APPEND':1,
+    'COMB':2,
     "OR": 3,
     "AND": 4,
     "IS": 5, "IN": 5,
@@ -113,6 +115,12 @@ def _assign(var, val, env):
 def _return(v):
     raise v
 
+def _comb(f, comb_arg):
+    def _comb_warper(*args, **keyargs):
+        new_arg = (comb_arg,) + args
+        return f( *new_arg, **keyargs )
+    return _comb_warper
+
 Binary = {
     'PIPE':   _pipe,
     'WRITE':  _write,
@@ -136,6 +144,7 @@ Binary = {
     "LE":     operator.le,
     "NEQ":    operator.ne,
     "EQUAL":  operator.eq,
+    "COMB" :  _comb,
 }
 
 
