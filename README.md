@@ -3,7 +3,7 @@
 
 pysh可以看作是兼具`shell`和`python`特点的解释器。主要目的是为了在交互模式下, 能同时使用到shell的方便和python的强大表达能力。
 在其中，我又加入了一些函数式编程的特性，使得pysh表达能力更强，能写出比python简短多的代码。 
-依本人的实践经验，10到20行的python文本处理脚本，pysh常常只需要一行pipeline就能解决
+依本人的实践经验，10到20行的python文本处理脚本，pysh常常只需要几行pipeline就能解决
 
  **如果你在开发过程中有大量的文本处理需求，花半小时了解下，你会发现pysh是一把利器！**
 
@@ -198,7 +198,7 @@ import "/home/user/ll/emath.py" as mh   # 用法mh.xxx
     end
 ```
 
-## Requirements:
+## Requirements
 - python 3
 - readline[optional]
 
