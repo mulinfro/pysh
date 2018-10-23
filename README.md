@@ -61,7 +61,7 @@ cat("source/*") | egrep("^def\s", _) | wc
  # 输出目录下所有py源文件中的函数名称
 cat("source/*") | egrep("^def\s", _) | extract( "def\((\w+)\)", _) | format("{0}", _ ) | list
  # 
-py_files = ls(".", 'rf') | gen | egrep(_, ".py$") | map(_, cat) 
+py_files = ls(".", 'rf') | gen | egrep(".py$", _ ) | map( cat|list ,) 
 ```
 
 ## 数据结构
