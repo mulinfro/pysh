@@ -150,10 +150,10 @@ def qsort(lst)
     if (len(lst) <= 1)
         return lst
     end
-    leftpart = filter(_ < lst[0], lst ) | list
+    leftpart = (filter@ (_ < lst[0]))(lst) | list
     rightpart = filter(_ > lst[0], lst) | list
-    eqpart = filter( L(x): x == lst[0], lst) | list
-    return qsort(leftpart) + eqpart + qsort(rightpart)
+    eqpart = filter(L(x): x == lst[0], lst) | list
+    return  qsort(leftpart) + eqpart + qsort(rightpart)
 end
 
 print("###-func-qsort")

@@ -137,7 +137,7 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 - shell命令列表： ls, pwd, rm, cp, mv, mkdir, rm, find, grep, egrep, wc, cat, more, uniq, head, xsort
 - FP函数列表： map, mmap, filter, foldl, FM, MF, take, takeWhile, flat, flatMap, drop, groupBy, join, mapValues, zip2, zip3, zipWithIndex, chunks
 - 其他一些有用函数：format, extract, replace, split, tojson, dumps, gen, help, doc, pbar, sample, shuf
-想了解每个函数的用法，可以使用help函数，比如: `help(ls)`
+想了解每个函数的用法，可以使用doc函数，比如: `doc(ls)`
 
 
 
@@ -176,7 +176,7 @@ import "/home/user/ll/emath.py" as mh   # 用法mh.xxx
              return lst
          end
 
-         leftpart = filter@ _ < lst[0](lst) | list
+         leftpart = (filter@ ( _ < lst[0])) (lst) | list
          rightpart = filter(_ > lst[0], lst) | list
          eqpart = filter(L(x): x == lst[0], lst) | list
          return  qsort(leftpart) + eqpart + qsort(rightpart)
