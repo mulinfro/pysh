@@ -34,7 +34,7 @@ ls("/home/user/", "f")   # "f" is flag, will return only files
 - `gen` 输入一个可迭代对象返回一个生成器
 - `repeat` 输入一个函数，返回一个执行N次的生成器，N==-1则为无限次
 
-> 需要注意的是这些函数返回值必须先取出来才能使用, 比如`"  abc " | split | next`
+> 需要注意的是这些函数返回值必须先取出来才能使用, 比如`"  abc " | strip | next`
 
 
 #### FP
@@ -60,8 +60,17 @@ cat("josn.log") | tojson |  colSel(["color","size"], _) | dumps &> "new_json.log
 cat("source/*") | egrep("^def\s", _) | wc 
  # 输出目录下所有py源文件中的函数名称
 cat("source/*") | egrep("^def\s", _) | extract( "def\((\w+)\)", _) | format("{0}", _ ) | list
- # 
-py_files = ls(".", 'rf') | gen | egrep(".py$", _ ) | map( cat|list, _) 
+ 
+ 
+ # NLP中的一个常见任务，把分词文件映射成one-hot形式
+ # 输入文件格式，空格分开的句子 "knowledge is power"  =>  输出是"100 2 3"这种格式
+ # 并且要统计词频，只取top 10000的高频词，不在高频词中的当作UNK，映射到2
+ word_count = cat("input.txt") | split | flatMap @ slf | mapValues(len, _) | list 
+ sorted(word_count, key=L(x):x[1], reverse = True)
+ word_count | colSel@0 | zipWithIndex(_, 10) | format@ "{0}\t{1}" &> "words"      # word: index file;  maping start from 10
+ word_idx_dict = cat("words") | take@10000 | split | dict      # 只使用top10000高频词
+ cat("input.txt") | split | map@int | mmap@ word_idx_dict.get(_, 2)  | list_format("{0}", _, sep=" ")  &>  "output.txt"    #  不在10000个词中的词用2代替，
+ 
 ```
 
 ## 数据结构

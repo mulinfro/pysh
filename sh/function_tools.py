@@ -31,7 +31,7 @@ def repeat(func, n):
         yield func()
         i += 1
 
-def chunks(iterable, n=2):
+def chunks(n, iterable):
     """Yield successive n-sized chunks from l."""
     if not isinstance(iterable, GeneratorType):
         for i in range(0, len(iterable), n):
