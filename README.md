@@ -27,15 +27,18 @@ ls("/home/user/", "f")   # "f" is flag, will return only files
 ```
 
 #### 惰性求值
-惰性求值主要是性能上的考虑，利用的是python的generator机制, 两个辅助函数：
+惰性求值主要是性能上的考虑，利用的是python的generator机制, 基本上文本处理相关的shell命令，如`cat, grep, replace, extract, more`等，都应用了惰性求值的特性，这样在处理大文件时，pipeline操作不容易遇到瓶颈；
+
+
+有两个辅助函数：
 - `gen` 输入一个可迭代对象返回一个生成器
 - `repeat` 输入一个函数，返回一个执行N次的生成器，N==-1则为无限次
 
-像 `cat, grep, replace, extract, more` 这些函数都应用了惰性求值，这样在处理大文件时，pipeline操作不容易遇到瓶颈； 需要注意的是这些函数返回值必须先取出来才能使用, `"  abc " | split | next`
+> 需要注意的是这些函数返回值必须先取出来才能使用, 比如`"  abc " | split | next`
 
 
 #### FP
-匿名函数，偏函数, 函数组合, 高阶函数的使用，能写出高效简洁的代码, 常用高阶函数 `map, mmap, filter, flat, flatMap, fold` 等 
+匿名函数，偏函数, 函数组合, 高阶函数的使用，能写出高效简洁的代码, 常用高阶函数如 `map, mmap, filter, flat, flatMap, fold` 等 
 ```python
 a = L(x, y): x + y  # 匿名函数 L == lambda
 _ > 2 ** 3  # L(x):x>2**3
@@ -105,12 +108,13 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 
 1.  `#`:表示缩进
 2.  支持python的所有内置函数
-3.  关键词列表：def, is, in, if, else, elif, for, while, break, continue, return, lambda, L, True, False, None, _, assert, del 
+3.  关键词列表：def, is, in, if, else, elif, for, while, break, continue, return, lambda, L, True, False, None, _, assert, del， sh
 4.  操作符列表：and, or, not, +, -, *, **, /, //, %, =, :=, $, |, . , &>, &>>, >, >=, <, <=, !=, ==  
 
 #### 除了python的关键词与操作符外， 额外增加了一些操作符
 
 - `$`: 代表执行原生的shell命令；比如 `$ls; $cat file | grep xxx`  注意**$** 会fork一个新的子进程运行命令; 所以像$cd这样的命令在当前进程不会生效
+- `sh` 关键字实际效果跟`$`一样， 区别是`sh`后面是表达式（返回结果是string即可）， `$`后面直到行尾的都是shell命令的一部分，类似于宏
 - `:=`: 代表赋值给全局变量; 功能上替换了python的global关键字
 - `&`, `&>>`:  IO重定向，功能上与shell的 ">, >>" 一样， 方便快速输出到文件
 - `|`: pipe功能,前面的值当作后面函数的输入， `a | b | c | d = d(c(b(a)))`
