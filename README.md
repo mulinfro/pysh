@@ -14,8 +14,11 @@ pysh可以看作是兼具`shell`和`python`特点的解释器。主要目的是�
 "$"后面直接接bash命令; `sh`关键字调用命令
 ```
 $ cd ~ | grep py
-cmd = " cd ~ | grep py"
-sh cmd
+cmd = " rm %s"
+files = ls(".", 'rf') | grep @ ".tmp"
+for( f in files)
+    sh cmd % f   # 删除目录,子目录下所有tmp文件
+end
 ``` 
 
 #### shell命令python函数化
