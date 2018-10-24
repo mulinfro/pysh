@@ -4,19 +4,23 @@ from sh.os_cmd import is_dir, replace_if_star_dir
 from collections.abc import Iterable
 import json
 
-__all__ = ['sample', 'shuf', 'grep', 'egrep', 'gen', 'colSel', 'list_format', 'format', 
-            'wc', 'extract', 'replace', 'cat', 'tojson', 'dumps', 'more', 'strip', 'head',
-            'join', 'split', 'findall', 'search', 'uniq', ]
 
+_pipe_func = ['grep', 'egrep', 'colSel', 'list_format', 'format', 
+            'extract', 'replace', 'tojson', 'dumps', 'strip', 
+            'split', ]
+_other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more', 'head',
+            'join', 'findall', 'search', 'uniq', ]
 
-def pipe_gen_itertool(func):
+__all__ = _pipe_func + _other_func + list(map(lambda x: "_"+x, _pipe_func))
+
+def pipe_gen_itertool(func, N=0):
     def wrapper(*args, **kw):
         assert(len(args) > 0)
         if not isinstance(args[0], GeneratorType):
             ans = func(*args, **kw)
             if ans is not None: yield ans
         else:
-            for line in args[0]:
+            for line in args[N]:
                 new_args = (line,) + args[1:]
                 ans = func(*new_args, **kw)
                 if ans is not None: yield ans
@@ -37,6 +41,14 @@ def pipe_text_itertool(func):
     return wrapper
 
 
+def pipe_itertool(func, n):
+    def wrapper(*args, **kw):
+        for line in args[n]:
+            new_args = args[0:n] + (line, ) + args[n+1:]
+            ans = func(*new_args, **kw)
+            if ans is not None: yield ans
+    return wrapper
+
 def sample(sample_rate, iterable):
     import random
     for x in iterable:
@@ -49,39 +61,43 @@ def shuf(iterable):
     return iterable
 
 
-@pipe_text_itertool
-def grep(pat, line, p=""):
-    if pat in line: 
+def _grep(pat, line, p=""):
+    if pat in line:
         return line
 
-@pipe_text_itertool
-def egrep(pat, line, p="i"):
+grep = pipe_itertool(_grep, 1)
+
+def _egrep(pat, line, p="i"):
     if "i" in p: pattern = re.compile(pat, re.I)
     else:        pattern = re.compile(pat)
     match = pattern.search(line)
     if match:
         return line
 
+egrep = pipe_itertool(_egrep, 1)
+
 def gen(iterable):
     for e in iterable:
         yield e
 
-@pipe_gen_itertool
-def colSel(idxes, iterable):
+def _colSel(idxes, iterable):
     if type(idxes) not in (list, tuple):
         return iterable[idxes]
     return [iterable[idx] for idx in idxes]
+colSel = pipe_itertool(_colSel, 1)
 
-@pipe_gen_itertool
-def list_format(pat, iterable, sep=" "):
+def _list_format(pat, iterable, sep=" "):
     return sep.join( [pat.format(ele) for ele in iterable] )
 
-@pipe_gen_itertool
-def format(pat, x):
+list_format = pipe_itertool(_list_format, 1)
+
+def _format(pat, x):
     if isinstance(x, Iterable):
         return pat.format(*x)
     else:
         return pat.format(x)
+
+format = pipe_itertool(_format, 1)
 
 def wc(iterable, p="l"):
     i = 0
@@ -90,14 +106,14 @@ def wc(iterable, p="l"):
     return i
 
 
-@pipe_text_itertool
-def extract(pat, line):
+def _extract(pat, line):
     match = re.search(pat, line)
     if match:
         return match.groups()
 
-@pipe_text_itertool
-def replace(pat, repl, line, cnt=-1, p=""):
+extract = pipe_itertool(_extract, 1)
+
+def _replace(pat, repl, line, cnt=-1, p=""):
     """string replace
        parms: pattern, replace_str, line, cnt=inf
        p = [v] v: using python module re.sub
@@ -108,6 +124,7 @@ def replace(pat, repl, line, cnt=-1, p=""):
         if cnt < 0: cnt = 0
         return re.sub(pat, repl, line, cnt)
 
+replace = pipe_itertool(_replace, 2)
 
 def cat(iterable):
     """ shell: cat
@@ -123,15 +140,17 @@ def cat(iterable):
                 yield line.rstrip("\n")
             f.close()
 
-@pipe_gen_itertool
-def tojson(line):
+def _tojson(line):
     """python json loads"""
     return json.loads(line.strip())
 
-@pipe_gen_itertool
-def dumps(var):
+tojson = pipe_itertool(_tojson, 0)
+
+def _dumps(var):
     """python json dumps"""
     return json.dumps(var, ensure_ascii=False)
+
+dumps = pipe_itertool(_dumps, 0)
 
 def more(file_name):
     """shell: more
@@ -153,9 +172,10 @@ def more(file_name):
                 break
 
 
-@pipe_text_itertool
-def strip(string, p=" \t\n\r"):
+def _strip(string, p=" \t\n\r"):
     return string.strip(p)
+
+strip = pipe_itertool(_strip, 0)
 
 
 def head(iterable, n=10):
@@ -176,13 +196,14 @@ def awk():
 def sed():
     pass
 
-@pipe_text_itertool
-def split(string, sep=None, cnt=-1, p=""):
+def _split(string, sep=None, cnt=-1, p=""):
     if "v" in p:
         if cnt < 0: cnt = 0
         return re.split(sep, string, cnt)
     else:
         return string.split(sep, cnt)
+
+split = pipe_itertool(_split, 0)
 
 def findall():
     pass

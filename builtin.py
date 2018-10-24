@@ -38,16 +38,16 @@ special_op = {
 op_order = {
     'WRITE':1,
     'APPEND':1,
-    'COMB':2,
-    "OR": 3,
-    "AND": 4,
-    "IS": 5, "IN": 5,
+    "PIPE": 2,
+    'COMB':3,
+    "OR": 4,
+    "AND": 5,
+    "IS": 6, "IN": 6,
     "LT": 7, "GT": 7, "LE": 7, "GE": 7, "EQUAL": 7, "NEQ": 7,
     "ADD": 10, "MINUS": 10,
     "MOD": 15,
     "MUL": 20, "DIV": 20, "ZDIV": 20,
     "POWER": 21,
-    "PIPE": 25
 }
 
 # 结合性; 右结合
