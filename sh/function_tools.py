@@ -143,10 +143,9 @@ def FM(mfunc, ffunc, iterable):
             yield mfunc(ele)
 
 def mapValues(key, dict_obj):
-    res = {}
     for k,v in dict_obj.items():
-        res[k] = key(v)
-    return res
+        dict_obj[k] = key(v)
+    return dict_obj
 
 def flat(listOfLists):
     return chain.from_iterable(listOfLists)

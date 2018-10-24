@@ -58,9 +58,13 @@ def REPL():
     cmd = ""
     while True:
         try:
-            cmd = cmd + input(IN).strip()
+            new_cmd = input(IN).strip()
         except KeyboardInterrupt:
             print(" CTRL-C")
+            new_cmd = ""
+        except EOFError:
+            break
+        cmd = cmd + new_cmd
         if cmd in ['quit', 'exit']: break
         if cmd == 'clear':
             del env
