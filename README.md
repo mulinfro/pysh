@@ -14,6 +14,7 @@ pysh可以看作是兼具`shell`和`python`特点的解释器。主要目的是�
 "$"后面直接接bash命令; `sh`关键字调用命令
 ```
 $ cd ~ | grep py
+$ vim "test.psh"
 cmd = " rm %s"
 files = ls(".", 'rf') | grep @ ".tmp"
 for( f in files)
@@ -68,11 +69,11 @@ cat("source/*") | egrep("^def\s", _) | extract( "def\((\w+)\)", _) | format("{0}
  # NLP中的一个常见任务，把分词文件映射成one-hot形式
  # 输入文件格式，空格分开的句子 "knowledge is power"  =>  输出是"100 2 3"这种格式
  # 并且要统计词频，只取top 10000的高频词，不在高频词中的当作UNK，映射到2
- word_count = cat("input.txt") | split | flatMap @ slf | mapValues(len, _) | list 
+ word_count = cat("input.txt") | split@" " | flatMap @ slf | mapValues(len, _) | list 
  sorted(word_count, key=L(x):x[1], reverse = True)
  word_count | colSel@0 | zipWithIndex(_, 10) | format@ "{0}\t{1}" &> "words"      # word: index file;  maping start from 10
- word_idx_dict = cat("words") | take@10000 | split | dict      # 只使用top10000高频词
- cat("input.txt") | split | map@int | mmap@ word_idx_dict.get(_, 2)  | list_format("{0}", _, sep=" ")  &>  "output.txt"    #  不在10000个词中的词用2代替，
+ word_idx_dict = cat("words") | take@10000 | split"\t" | dict      # 只使用top10000高频词
+ cat("input.txt") | split@" " | map@int | mmap@ word_idx_dict.get(_, 2)  | list_format("{0}", _, sep=" ")  &>  "output.txt"    #  不在10000个词中的词用2代替，
  
 ```
 

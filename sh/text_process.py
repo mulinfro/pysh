@@ -196,7 +196,7 @@ def awk():
 def sed():
     pass
 
-def _split(string, sep=None, cnt=-1, p=""):
+def _split(sep, string, cnt=-1, p=""):
     if "v" in p:
         if cnt < 0: cnt = 0
         return re.split(sep, string, cnt)

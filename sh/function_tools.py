@@ -4,7 +4,7 @@ from functools import reduce
 from types import GeneratorType
 __all__ = [ 'pbar', 'groupBy', 'take', 'takeWhile', 'drop', 'dropWhile', 'map', 'filter',
             'mapValues', 'flat', 'flatMap', 'chunks', 'zip2','zip3', 'zipWithIndex', 
-            'FM', 'MF', 'mmap', 'foldl', 'repeat', 'M', 'slf']
+            'FM', 'MF', 'mmap', 'dmap', 'foldl', 'repeat', 'M', 'slf', '_if']
 
 def slf(x):
     """ slf: return self"""
@@ -21,7 +21,13 @@ def pbar(n=5000):
             yield x
         print("Done All: %d items"%i)
     return _pbar
-    
+   
+def _if(cond, true_v, false_v):
+    if cond:
+        return true_v
+    else:
+        return false_v
+
 def M(func, iterable):
     return [ func(x) for x in iterable ]
 
@@ -111,7 +117,11 @@ def map(func, iterable):
 
 def mmap(func, iterable):
     for ele in iterable:
-        yield list(map(ele, func))
+        yield [func(e) for e in ele]
+
+def dmap(func1, func2, iterable):
+    for ele in iterable:
+        yield (func1(ele), func2(ele))
 
 def filter(func, iterable):
     for ele in iterable:

@@ -6,6 +6,7 @@ from tokens import token_list
 from env import get_builtin_env
 import os, types, re, sys, glob
 PSH_DIR = sys.path[0]
+HISLENGTH = 20
 
 def pathCompleter(self,text,state):
         """ 
@@ -41,11 +42,12 @@ def is_block(cmd):
 
 
 repl_init_str = """  PYSH: sh & python & FP
-  repl commands: [exit -> exit;  clear -> clear environment]
+  repl commands: [history -> cmd list; exit -> exit;  clear -> clear environment]
 """
 
 
 def REPL():
+    cmd_history = []
     try:
         repl_readline_helper()
     except ImportError:
@@ -53,6 +55,7 @@ def REPL():
     IN = "$> "
     print(repl_init_str)
     env = get_builtin_env(builtins)
+    env["history"] = cmd_history
 
     cmdlines, block_num, = [], 0
     cmd = ""
@@ -61,7 +64,7 @@ def REPL():
             new_cmd = input(IN).strip()
         except KeyboardInterrupt:
             print(" CTRL-C")
-            new_cmd = ""
+            continue
         except EOFError:
             break
         cmd = cmd + new_cmd
@@ -77,6 +80,9 @@ def REPL():
             continue
 
         cmdlines.append(cmd)
+        if cmd not in ["end", "", "exit", "history","clear"] and cmd not in cmd_history:
+            cmd_history.append(cmd)
+            if len(cmd_history) > HISLENGTH: cmd_history.pop(0)
         if is_block(cmd): block_num = block_num + 1
         if cmd.endswith("end"): 
             if len(cmd) == 3 or cmd[-4] in [" ", "\t"]:
@@ -110,7 +116,11 @@ def pysh(psh_file, run=True):
     with open(psh_file, encoding="utf-8") as f:
         script = char_stream(f.read())
     env = get_builtin_env(builtins)
-    parse_and_eval_with_env(script, env)
+    try:
+        parse_and_eval_with_env(script, env)
+    except Exception as e:
+        print(repr(e))
+        return None
 
     if run and "main" in env:
         return env["main"](*sys.argv[2:])

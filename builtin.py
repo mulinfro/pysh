@@ -53,6 +53,7 @@ op_order = {
 # 结合性; 右结合
 op_right = {
     "EQUAL": 2,
+    'COMB':2,
 }
 
 _add = lambda x,y: x + y
