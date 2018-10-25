@@ -7,9 +7,9 @@ import json
 
 _pipe_func = ['grep', 'egrep', 'colSel', 'list_format', 'format', 
             'extract', 'replace', 'tojson', 'dumps', 'strip', 
-            'split', ]
+            'split', 'load']
 _other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more', 'head',
-            'join', 'findall', 'search', 'uniq', ]
+            'join', 'findall', 'search', 'uniq', 'ksort']
 
 __all__ = _pipe_func + _other_func + list(map(lambda x: "_"+x, _pipe_func))
 
@@ -25,7 +25,6 @@ def pipe_gen_itertool(func, N=0):
                 ans = func(*new_args, **kw)
                 if ans is not None: yield ans
     return wrapper
-
 
 def pipe_text_itertool(func):
     def wrapper(*args, **kw):
@@ -48,6 +47,14 @@ def pipe_itertool(func, n):
             ans = func(*new_args, **kw)
             if ans is not None: yield ans
     return wrapper
+
+def _load(dumped_str):
+    wappered = "{%s:%s}"% ("'wapper'", dumped_str)
+    print(wappered)
+    return json.loads(wappered) ["'wapper'"]
+    
+
+load = pipe_itertool(_load, 0)
 
 def sample(sample_rate, iterable):
     import random
@@ -86,10 +93,10 @@ def _colSel(idxes, iterable):
     return [iterable[idx] for idx in idxes]
 colSel = pipe_itertool(_colSel, 1)
 
-def _list_format(pat, iterable, sep=" "):
-    return sep.join( [pat.format(ele) for ele in iterable] )
+def _list_format(iterable, sep=" "):
+    return sep.join( ["{0}".format(ele) for ele in iterable] )
 
-list_format = pipe_itertool(_list_format, 1)
+list_format = pipe_itertool(_list_format, 0)
 
 def _format(pat, x):
     if isinstance(x, Iterable):
@@ -203,7 +210,7 @@ def _split(sep, string, cnt=-1, p=""):
     else:
         return string.split(sep, cnt)
 
-split = pipe_itertool(_split, 0)
+split = pipe_itertool(_split, 1)
 
 def findall():
     pass
@@ -211,8 +218,9 @@ def findall():
 def search():
     pass
 
-def xsort(lines, n=-1, f="", p=""):
-    pass
+def ksort(k, lines, p=""):
+     rev_flag = True if "r" in p else False
+     return sorted(lines, key=lambda x:x[k], reverse = rev_flag)
 
 def uniq(iterable):
     ans = set()

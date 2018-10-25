@@ -2,6 +2,7 @@
     builtin operators
 """
 import operator
+import types, json
 
 operators = {
     '|': 'PIPE',
@@ -82,12 +83,13 @@ def _pipe(x,f):
 """
 
 def _write_helper(var, filename, mode):
-    import types
     with open(filename, mode) as f:
         if isinstance(var, types.GeneratorType):
             for e in var: f.write(str(e) + "\n")
+        elif type(var) == str:
+            f.write(var)
         else:
-            f.write(str(var))
+            f.write(json.dumps(var, ensure_ascii=False))
         
 
 def _write(var, filename):
