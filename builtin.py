@@ -5,9 +5,6 @@ import operator
 import types, json
 
 operators = {
-    '|': 'PIPE',
-    '&>': 'WRITE',
-    '&>>': 'APPEND',
     '+': 'ADD',
     '*': 'MUL',
     '**': 'POWER',
@@ -27,13 +24,19 @@ operators = {
     ".": "DOT",
     "is":"IS",
     "in":"IN",
-    "@" :"COMB",
 }
 
 special_op = {
     '::': 'PASSIGN',
     '=': 'ASSIGN',
     ':=': 'GASSIGN',
+}
+
+pipe_op = {
+    "|": 'PIPE',
+    '&>': 'WRITE',
+    '&>>': 'APPEND',
+    "@" :"COMB",
 }
 
 op_order = {
@@ -54,7 +57,6 @@ op_order = {
 # 结合性; 右结合
 op_right = {
     "EQUAL": 2,
-    'COMB':2,
 }
 
 _add = lambda x,y: x + y

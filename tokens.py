@@ -1,4 +1,4 @@
-from builtin import operators, special_op
+from builtin import operators, special_op, pipe_op
 
 keywords = {
 'and': ("OP", 'AND'),
@@ -168,6 +168,8 @@ class token_list():
             op += self.chars.next()
         if op in special_op:
             return token(special_op[op], op, line, col)
+        elif op in pipe_op: 
+            return token("PIPE", pipe_op[op], line, col)
         elif op in operators: 
             return token("OP", operators[op], line, col)
         else:

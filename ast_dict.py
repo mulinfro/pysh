@@ -57,9 +57,20 @@ class AST():
 
             self.ast.append(val)
 
+    def ast_try_pipe(self, stm):
+        left = self.ast_expr(stm)
+        pipes, exprs = [], [left]
+        while not stm.eof() and stm.peek().tp == "PIPE":
+            tkn = stm.next()
+            pipes.append({"type":tkn.tp, "val":tkn.val})
+            exprs.append(self.ast_expr(stm))
+        if len(pipes) > 0:
+            return {"type":"PIPE", "pipes":pipes, "exprs":exprs}
+        return left
+
     # 赋值；可连续赋值 x=y=z=1+1
     def ast_try_assign(self, stm):
-        left = self.ast_expr(stm)
+        left = self.ast_try_pipe(stm)
         if not stm.eof() and stm.peek().tp in ("ASSIGN", "GASSIGN"):
             tkn = stm.next()
             right = self.ast_try_assign(stm)
@@ -132,11 +143,11 @@ class AST():
 
     def ast_return_assert(self, stm, tp):
         stm.next()
-        expr = self.ast_expr(stm)
+        expr = self.ast_try_pipe(stm)
         msg = None
         if not stm.eof() and syntax_check(stm.peek(), ("SEP", "COMMA")):
             stm.next()
-            msg = self.ast_expr(stm)
+            msg = self.ast_try_pipe(stm)
         check_newline(stm)
         syntax_cond_assert(tp == "ASSERT" or msg==None, "syntax error: return")
         return {"type": tp, "rval": expr, "msg":msg}
@@ -150,7 +161,7 @@ class AST():
 
     def ast_sh(self, stm):
         stm.next()
-        expr = self.ast_expr(stm)
+        expr = self.ast_try_pipe(stm)
         check_newline(stm)
         return {"type": "SH", "cmd": expr }
 
@@ -267,7 +278,7 @@ class AST():
             stm.next(); tkn = stm.next()
             syntax_assert(tkn, "PARN", "need parn")
             cond_stream = stream(tkn.val)
-            cond = self.ast_expr(cond_stream)
+            cond = self.ast_try_pipe(cond_stream)
             check_eof(cond_stream)
             true_part = self.ast_body(stm, self.ast_block_expr)
             condlist.append(cond)
@@ -292,7 +303,7 @@ class AST():
         stm.next(); tkn = stm.next()
         syntax_assert(tkn, "PARN",  "missing (")
         cond_stream = stream(tkn.val)
-        cond = self.ast_expr(cond_stream)
+        cond = self.ast_try_pipe(cond_stream)
         check_eof(cond_stream)
         body = self.ast_body(stm, self.ast_block_expr)
         syntax_assert(stm.next(), "END", "missing END")
@@ -301,7 +312,7 @@ class AST():
     def ast_in(self, stm):
         var = self.ast_var_list(stm)
         syntax_assert(stm.next(), ("OP", "IN"), "syntax error in for setence")
-        val = self.ast_expr(stm)
+        val = self.ast_try_pipe(stm)
         check_eof(stm)
         return {"type":"IN", "var":var, "val":val }
 
@@ -378,12 +389,12 @@ class AST():
         return {"type":"LAMBDA", "args":args, "body":body}
 
     def ast_list_comp(self, stm):
-        beg = self.ast_expr(stm)
+        beg = self.ast_try_pipe(stm)
         end, interval  = None, 1
         if not stm.eof() and syntax_check(stm.peek(), ("OP", "COLON") ):
-            stm.next(); end = self.ast_expr(stm)
+            stm.next(); end = self.ast_try_pipe(stm)
             if not stm.eof() and syntax_check(stm.peek(), ("OP", "COLON")):
-                stm.next(); interval = self.ast_expr(stm)
+                stm.next(); interval = self.ast_try_pipe(stm)
         check_comma(stm)
         if end is None: return beg
         return {"type":"LISTCOM", "beg":beg, "end":end, "interval":interval}
@@ -397,8 +408,8 @@ class AST():
     def ast_dict(self, stm):
         key,val = [],[]
         while not stm.eof():
-            key.append(self.ast_expr(stm))
+            key.append(self.ast_try_pipe(stm))
             syntax_assert(stm.next(), ("OP","COLON"),  "missing colon :")
-            val.append(self.ast_expr(stm))
+            val.append(self.ast_try_pipe(stm))
             check_comma(stm)
         return {"type":"DICT", "key":key, "val":val}

@@ -50,7 +50,7 @@ def parse_del(node):
     return _del
 
 def parse_sh(node):
-    cmd = parse_expr(node["cmd"])
+    cmd = parse_pipe_or_expr(node["cmd"])
     def _sh(env):
         cmd_val = cmd(env)
         syntax_cond_assert(type(cmd_val) == str, "Value Error: sh handles a string")
@@ -66,6 +66,8 @@ def parse_block_expr(node):
         val = parse_for(node)
     elif node["type"] in ["BREAK", "CONTINUE", "RETURN"]:
         val = parse_flow_goto(node)
+    elif node["type"] == "PIPE":
+        val = parse_pipe(node)
     else:
         val = parse_expr_or_command(node)
     return val
@@ -78,8 +80,24 @@ def parse_expr_or_command(node):
     elif node["type"] == "SH":
         val = parse_sh(node)
     else:
-        val = parse_expr(node)
+        val = parse_pipe_or_expr(node)
     return val
+
+def parse_pipe_or_expr(node):
+    if node["type"] == "PIPE":
+        return parse_pipe(node)
+    else:
+        return parse_expr(node)
+
+def parse_pipe(node):
+    g_exprs = list(map(parse_expr, node["exprs"]))
+    g_ops  = list(map(parse_bi_oper, node["pipes"]))
+
+    def _eval_pipe(env):
+        exprs, ops = copy.copy(g_exprs), copy.copy(g_ops)
+        return compute_expr(env, exprs, ops)
+
+    return _eval_pipe
 
 def parse_expr(node):
     if node["type"] in ("ASSIGN", "GASSIGN"):
@@ -101,8 +119,8 @@ def parse_simple_expr(node):
 
 
 def parse_assert(node):
-    rval = parse_expr(node["rval"])
-    msg = parse_expr(node["msg"]) if node["msg"] else None
+    rval = parse_pipe_or_expr(node["rval"])
+    msg = parse_pipe_or_expr(node["msg"]) if node["msg"] else None
 
     def _assert_condition(env):
         cond = rval(env)
@@ -113,7 +131,7 @@ def parse_assert(node):
 
 def parse_flow_goto(node):
     if node["type"] == "RETURN":
-        rval = parse_expr(node["rval"])
+        rval = parse_pipe_or_expr(node["rval"])
         val = Return_exception(rval)
     elif node["type"] == "BREAK":
         val = Break_exception()
@@ -195,7 +213,7 @@ def parse_import(node):
     return update_env
 
 def parse_assign(node):
-    val = parse_expr(node["val"])
+    val = parse_pipe_or_expr(node["val"])
     var_idx_val = None
     def _assign_var(env):
         v = val(env)
@@ -221,8 +239,8 @@ def parse_assign(node):
         var["suffix"] = var["suffix"][0:-1]
         syntax_cond_assert(var_idx["type"] == "LIST", "assign: left value is invalid")
         syntax_cond_assert(len(var_idx["val"]) == 1,  "assign: left value is invalid")
-        var_idx_val = parse_expr(var_idx["val"][0])
-        var_val = parse_expr(var)
+        var_idx_val = parse_pipe_or_expr(var_idx["val"][0])
+        var_val = parse_pipe_or_expr(var)
         return _assign_expr_val
 
 def lst_combine(var, v):
@@ -231,7 +249,7 @@ def lst_combine(var, v):
     return pairs
 
 def parse_multi_assign(node):
-    val = parse_expr(node["val"])
+    val = parse_pipe_or_expr(node["val"])
     var = node["var"]["names"]
     
     def _update(env):
@@ -252,6 +270,30 @@ def parse_bi_oper(node):
     return op_info
 
 
+def compute_expr(env, vals, ops):
+    def binary_order(left, preorder):
+        if len(ops) <= 0: return left
+        if preorder >= ops[0]["order"]: return left
+        my_op = ops.pop(0)
+
+        # Logic short circuit
+        if (my_op["name"] == 'OR' and left ) or (my_op["name"] == 'AND' and (not left)):
+            return left
+
+        right = vals.pop(0)(env)
+        if len(ops) > 0:
+            his_op = ops[0]
+            if his_op["order"] > my_op["order"] or \
+                (his_op["order"] == my_op["order"] and his_op["right"]):
+                right = binary_order(right, my_op["order"])
+
+        new_left = my_op["func"](left,right)
+        return binary_order(new_left, preorder)
+
+    left = vals.pop(0)(env)
+    return binary_order(left, -1)
+
+
 def parse_binary_expr(node):
     g_flag_vals = list(map(parse_unary, node["val"]))
     g_ops  = list(map(parse_bi_oper, node["op"]))
@@ -260,34 +302,9 @@ def parse_binary_expr(node):
     partial_idx  = -1
     for i in range(len(g_flag_vals)):
         g_vals.append(g_flag_vals[i][1])
-        if g_flag_vals[i][0] == "PARTIAL" and \
-            (i==0 or (g_ops[i-1]["name"]!="PIPE" and g_ops[i-1]["name"]!="COMB" )):
+        if g_flag_vals[i][0] == "PARTIAL":
             syntax_cond_assert(partial_idx < 0, "expression partial function can only one argument")
             partial_idx = i
-    
-    def compute_expr(env, vals, ops):
-
-        def binary_order(left, preorder):
-            if len(ops) <= 0: return left
-            if preorder >= ops[0]["order"]: return left
-            my_op = ops.pop(0)
-
-            # Logic short circuit
-            if (my_op["name"] == 'OR' and left ) or (my_op["name"] == 'AND' and (not left)):
-                return left
-
-            right = vals.pop(0)(env)
-            if len(ops) > 0:
-                his_op = ops[0]
-                if his_op["order"] > my_op["order"] or \
-                    (his_op["order"] == my_op["order"] and his_op["right"]):
-                    right = binary_order(right, my_op["order"])
-
-            new_left = my_op["func"](left,right)
-            return binary_order(new_left, preorder)
-
-        left = vals.pop(0)(env)
-        return binary_order(left, -1)
     
     def ori_warpper(env):
         vals, ops = copy.copy(g_vals), copy.copy(g_ops)
@@ -304,10 +321,10 @@ def parse_binary_expr(node):
 
 def parse_args(node):
     syntax_cond_assert(node["type"] in ("ARGS", "TUPLE", "PARN", "PARTIAL"), "error type")
-    arg_vals = list(map(parse_expr, node["val"]))
+    arg_vals = list(map(parse_pipe_or_expr, node["val"]))
     default_vals = []
     if "default_vals" in node:
-        default_vals = list(map(parse_expr, node["default_vals"]))
+        default_vals = list(map(parse_pipe_or_expr, node["default_vals"]))
 
     partial_idx = []
     for i,t in enumerate(arg_vals):
@@ -328,7 +345,7 @@ def parse_args(node):
 # 返回第一个值
 def parse_parn(node):
     syntax_cond_assert(len(node["val"]) == 1 , "error: empty parn")
-    parn_node = parse_expr(node["val"][0])
+    parn_node = parse_pipe_or_expr(node["val"][0])
     return lambda env: parn_node(env)
     
 def parse_suffix_op(op):
@@ -416,9 +433,9 @@ def parse_val_expr(node):
 def parse_list_comp(node):
     interval = lambda env: 1
     if 1 != node["interval"]:
-        interval = parse_expr(node["interval"])
-    beg = parse_expr(node["beg"])
-    end = parse_expr(node["end"])
+        interval = parse_pipe_or_expr(node["interval"])
+    beg = parse_pipe_or_expr(node["beg"])
+    end = parse_pipe_or_expr(node["end"])
 
     def _list_range(env):
         beg_v = beg(env)
@@ -434,7 +451,7 @@ def parse_list(node_list):
         if ele["type"] == "LISTCOM":
             res.append(("COMP", parse_list_comp(ele)))
         else:
-            res.append(("ELE", parse_expr(ele)))
+            res.append(("ELE", parse_pipe_or_expr(ele)))
 
     def _p_list(env):
         v = []
@@ -471,7 +488,7 @@ def parse_if(node):
     return do_switch
 
 def parse_in(node):
-    v = parse_expr(node["val"])
+    v = parse_pipe_or_expr(node["val"])
     def _in(env):
         var = node["var"]["name"]
         for ele in v(env):
@@ -565,7 +582,7 @@ def parse_def(node):
 
     default_args, default_vals = [], []
     if "default_args" in args_node:
-        default_vals = [parse_expr(v) for v in args_node["default_vals"]]
+        default_vals = [parse_pipe_or_expr(v) for v in args_node["default_vals"]]
         default_args = args_node["default_args"]
     body_f = parse_block(node["body"])
 

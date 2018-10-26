@@ -116,8 +116,10 @@ def pysh(psh_file, run=True):
     with open(psh_file, encoding="utf-8") as f:
         script = char_stream(f.read())
     env = get_builtin_env(builtins)
+    parse_and_eval_with_env(script, env)
     try:
-        parse_and_eval_with_env(script, env)
+        #parse_and_eval_with_env(script, env)
+        pass
     except Exception as e:
         print(repr(e))
         return None
