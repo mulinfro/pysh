@@ -1,12 +1,12 @@
 from stream import stream
 from char_stream import char_stream
-from eval_ast import parse, Env
+from eval_ast import parse
 from ast_dict import AST
 from tokens import token_list
-from env import get_builtin_env
-import os, types, re, sys, glob
+from env import get_builtin_env, Env
+from config import IN, HISLENGTH, repl_init_str
+import os, types, sys, glob
 PSH_DIR = sys.path[0]
-HISLENGTH = 20
 
 def pathCompleter(self,text,state):
         """ 
@@ -40,39 +40,39 @@ def is_block(cmd):
             return True
     return False
 
-
-repl_init_str = """  PYSH: sh & python & FP
-  repl commands: [history -> cmd list; exit -> exit;  clear -> clear environment]
-"""
-
-
 def REPL():
     cmd_history = []
     try:
         repl_readline_helper()
     except ImportError:
         print("readline module is not installed! use raw input")
-    IN = "$> "
     print(repl_init_str)
     env = get_builtin_env(builtins)
     env["history"] = cmd_history
 
-    cmdlines, block_num, = [], 0
-    cmd = ""
+    cmdlines, block_num, cmd = [], 0, ""
+
+    def inputStateClear():
+        cmdlines.clear()
+        block_num = 0
+        cmd = ""
+
     while True:
         try:
             new_cmd = input(IN).strip()
         except KeyboardInterrupt:
             print(" CTRL-C")
+            inputStateClear()
             continue
         except EOFError:
             break
-        cmd = cmd + new_cmd
+        cmd += new_cmd
         if cmd in ['quit', 'exit']: break
         if cmd == 'clear':
             del env
             env = get_builtin_env(builtins)
-            cmd = ""
+            env["history"] = cmd_history
+            inputStateClear()
             continue
         # in repl every multiline expr need \ 
         if cmd.endswith("\\"):
@@ -91,7 +91,7 @@ def REPL():
             
         if block_num == 0:
             script = char_stream("\n".join(cmdlines) +"\n")
-            cmdlines = []
+            cmdlines.clear()
             try:
                 parse_and_eval_with_env(script, env)
             except Exception as e:

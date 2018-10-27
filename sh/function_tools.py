@@ -4,7 +4,7 @@ from functools import reduce
 from types import GeneratorType
 __all__ = [ 'pbar', 'groupBy', 'take', 'takeWhile', 'drop', 'dropWhile', 'map', 'filter',
             'mapValues', 'flat', 'flatMap', 'chunks', 'zip2','zip3', 'zipWithIndex', 
-            'FM', 'MF', 'mmap', 'dmap', 'foldl', 'repeat', 'M', 'slf', '_if']
+            'FM', 'MF', 'mmap', 'dmap', 'kmap', 'foldl', 'repeat', 'M', 'slf', '_if']
 
 def slf(x):
     """ slf: return self"""
@@ -122,6 +122,12 @@ def mmap(func, iterable):
 def dmap(func1, func2, iterable):
     for ele in iterable:
         yield (func1(ele), func2(ele))
+
+def kmap(k, func, iterable):
+    for ele in iterable:
+        ele = list(ele)
+        ele[k] = func(ele[k])
+        yield ele
 
 def filter(func, iterable):
     for ele in iterable:
