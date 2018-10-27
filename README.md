@@ -49,8 +49,8 @@ _ > 2 ** 3  # L(x):x>2**3
 len(_) > 2  # L(x):len(x) > 2
 foo(x,_)    # L(y): foo(x, y)
 b = a@1     # 函数组合, L(1, y): 1 + y;  b(2) == 3
-map@ len(_) # 给定list求每个元素的长度
-strlist | map( _.split(), _) | flatMap( _.strip(',.!"'), _)  | uniq  # list of string 的词汇表
+map@ len # 给定list求每个元素的长度
+cat("nnn.txt") | map( _.split(), _) | flatMap( _.strip(',.!"'), _)  | uniq  # list of string 的词汇表
 ```
 
 #### Pipe & IO
@@ -69,11 +69,11 @@ cat("source/*") | egrep("^def\s", _) | extract( "def\((\w+)\)", _) | format("{0}
  # NLP中的一个常见任务，把分词文件映射成one-hot形式
  # 输入文件格式，空格分开的句子 "knowledge is power"  =>  输出是"100 2 3"这种格式
  # 并且要统计词频，只取top 10000的高频词，不在高频词中的当作UNK，映射到2
- word_count = cat("input.txt") | split@" " | flatMap @ slf | mapValues(len, _) | list 
+ word_count = cat("input.txt") | split@" " | flatMap @ slf | mapValues@ len | list 
  sorted(word_count, key=L(x):x[1], reverse = True)
  word_count | colSel@0 | zipWithIndex(_, 10) | format@ "{0}\t{1}" &> "words"      # word: index file;  maping start from 10
- word_idx_dict = cat("words") | take@10000 | split"\t" | dict      # 只使用top10000高频词
- cat("input.txt") | split@" " | map@int | mmap@ word_idx_dict.get(_, 2)  | list_format("{0}", _, sep=" ")  &>  "output.txt"    #  不在10000个词中的词用2代替，
+ word_idx_dict = cat("words") | take@10000 | split@"\t" | dict      # 只使用top10000高频词
+ cat("input.txt") | split@" " | mmap@int | mmap@ word_idx_dict.get(_, 2)  | list_format  &>  "output.txt"    #  不在10000个词中的词用2代替，
  
 ```
 
@@ -133,7 +133,7 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 - `|`: pipe功能,前面的值当作后面函数的输入， `a | b | c | d = d(c(b(a)))`
 - `L`: 等价于lambda关键字，主要为了少打点字， 注： 与python不同的是lambda后面的参数必须用小括号包起来
 - `_`: 参数占位符，方便定义偏函数， 这个特性结合PIPE非常方便, 
-- `@`: 函数组合，`f@m == f(m)(..)`
+- `@`: 吸收一个参数的函数，`f@m == f(m)(..)`
 
 
 
@@ -147,8 +147,8 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 
 新增函数主要来自于：1.shell命令的python函数形式；2. Functional Program的一些函数
 
-- shell命令列表： ls, pwd, rm, cp, mv, mkdir, rm, find, grep, egrep, wc, cat, more, uniq, head, xsort
-- FP函数列表： map, mmap, filter, foldl, FM, MF, take, takeWhile, flat, flatMap, drop, groupBy, join, mapValues, zip2, zip3, zipWithIndex, chunks
+- shell命令列表： ls, pwd, rm, cp, mv, mkdir, rm, find, grep, egrep, wc, cat, more, uniq, head, ksort
+- FP函数列表： map, mmap, dmap, kmap, filter, foldl, FM, MF, take, takeWhile, flat, flatMap, drop, groupBy, join, mapValues, zip2, zip3, zipWithIndex, chunks, _if
 - 其他一些有用函数：format, extract, replace, split, tojson, dumps, gen, help, doc, pbar, sample, shuf
 想了解每个函数的用法，可以使用doc函数，比如: `doc(ls)`
 
@@ -162,7 +162,7 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 - lambda, L 的参数必须用小括号包起来
 - if, for, while, def后面的冒号去掉;  eg. if(a > b) pass end;  经常忘打冒号，干脆去掉 
 - 支持`for( x,y in [(1,2),(3,4),(5,6)])`; 但不支持 `x,y = 1,2`
-- 不支持lst[0:]; 可以用lst[0:-1, -1] 替代;  
+- 不支持lst[0:]; 可以用lst[0:len(lst)] 替代;  
 
 > 后面两个python语法不支持，主要是实现上相对麻烦
 

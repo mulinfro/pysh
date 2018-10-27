@@ -133,14 +133,18 @@ def _call(f, arg):
 def _get_dict(v, k):
     r = [v[ki] if ki in v else None for ki in k]
     if len(r) == 1: return r[0]
-    if type(v) == str:
-        return "".join(r)
     return r
 
 def _get(v, k):
     if type(v) is dict: return _get_dict(v,k)
-    if len(k) == 1: return v[k[0]]
-    else: return [v[ki] for ki in k]
+    if len(k) == 1: 
+        return v[k[0]]
+    else: 
+        r = [v[ki] for ki in k]
+        if type(v) == str:
+            return "".join(r)
+        return r
+
 
 def _assign(var, val, env):
     env[var] = val
