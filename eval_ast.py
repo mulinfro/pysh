@@ -313,7 +313,7 @@ def parse_binary_expr(node):
     for i in range(len(g_flag_vals)):
         g_vals.append(g_flag_vals[i][1])
         if g_flag_vals[i][0] == "PARTIAL":
-            syntax_cond_assert(partial_idx < 0, "partial expression can only have one _")
+            syntax_cond_assert(partial_idx < 0, "partial binary expression can only have one unknown arg")
             partial_idx = i
     
     def ori_warpper(env):
