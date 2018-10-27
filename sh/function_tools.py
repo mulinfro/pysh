@@ -164,10 +164,13 @@ def mapValues(key, dict_obj):
     return dict_obj
 
 def flat(listOfLists):
-    return chain.from_iterable(listOfLists)
+    for x in chain.from_iterable(listOfLists):
+        yield x
 
-def flatMap(f, items):
-    return chain.from_iterable(map(items, f))
+def flatMap(func, items):
+    alleles = chain.from_iterable(items)
+    for x in alleles:
+        yield func(x)
 
 
 if __name__ == "__main__":

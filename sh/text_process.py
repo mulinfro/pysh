@@ -117,7 +117,7 @@ def _rSel(iterable):
         return random.choice(list(iterable.items()))
     else:
         idx = random.randint(0, len(iterable) - 1)
-        return rSel[idx]
+        return iterable[idx]
 
 rSel = pipe_itertool(_rSel, 0)
 

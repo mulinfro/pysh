@@ -17,9 +17,14 @@ $ cd ~ | grep py
 $ vim "test.psh"
 cmd = " rm %s"
 files = ls(".", 'rf') | grep @ ".tmp"
+# sh 关键字
 for( f in files)
     sh cmd % f   # 删除目录,子目录下所有tmp文件
 end
+# cd 关键字
+cd "/home/user/" + "docs"
+cdh   # 全局变量，记录最近访问的目录列表
+cd 1  # cd 1 == cd cdh[1]
 ``` 
 
 #### shell命令python函数化
@@ -212,7 +217,29 @@ import "/home/user/ll/emath.py" as mh   # 用法mh.xxx
 python3 repl.py      # open a interactive console
 python3 repl.py test.psh params  # run a psh file, main function is entry point
 ```
+命令行模式下支持Vi mode
+支持简单的Tab补全
 
+## 函数介绍
+
+| :------------ |:---------------:| -----:|
+| take, takeWhile, drop, dropWhile |   |
+| map, filter,M, FM, MF, mmap, dmap, kmap |   | 
+| groupBy, mapValues, flat, flatMap, foldl  |  |
+| zip2, zip3, zipWithIndex, chunks,  |  |
+| gen, slf, repeat, _if , _rSel, _colSel |  |
+| pbar, sample, shuf, 
+
+| _format, _list_format, _tojson, _dumps |
+| _grep, _egrep , _extract, _replace, _strip, _split |
+
+"_"开头的函数(除了`_if`)都有一个对应的不带下划线的函数，方便批量处理， `func = map@ _func`; 
+`grep, egrep, colSel, list_format, format, extract, replace, tojson, dumps, strip, split, rSel`
+
+| wc, cat, more, head, uniq, ksort, doc |
+| pwd, is_file, is_dir,  ls, mkdir, rm, cp, mv, find |
+
+			
 ## TODO
 1. 补充文档注释
 2. import机制的完成测试
