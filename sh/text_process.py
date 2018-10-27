@@ -176,6 +176,7 @@ def more(file_name):
             try:
                 if input("more? ").strip() not in ["", "y", "Y"]: break
             except KeyboardInterrupt:
+                print("\n")
                 break
 
 

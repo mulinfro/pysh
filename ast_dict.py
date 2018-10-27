@@ -159,11 +159,11 @@ class AST():
         check_newline(stm)
         return {"type": "DEL", "var": var["name"] }
 
-    def ast_sh(self, stm):
-        stm.next()
+    def ast_sh_or_cd(self, stm):
+        tkn = stm.next()
         expr = self.ast_try_pipe(stm)
         check_newline(stm)
-        return {"type": "SH", "cmd": expr }
+        return {"type": tkn.tp, "cmd": expr }
 
     def ast_control(self, stm):
         tkn = stm.peek()
@@ -222,8 +222,8 @@ class AST():
             return self.ast_return_assert(stm, "ASSERT")
         elif stm.peek().tp == "DEL":
             return self.ast_del(stm)
-        elif stm.peek().tp == "SH":
-            return self.ast_sh(stm)
+        elif stm.peek().tp in [ "SH", 'CD']:
+            return self.ast_sh_or_cd(stm)
         else:
             return self.ast_try_assign(stm)
 

@@ -16,9 +16,11 @@ def get_builtin_env(builtins):
     paras = dir(builtins)
     args  = [builtins.__dict__.get(a) for a in paras]
     from sh import os_cmd, text_process, function_tools
+    import config
     register(os_cmd, paras, args)
     register(text_process, paras, args)
     register(function_tools, paras, args)
+    register(config, paras, args)
     return Env(parms = paras, args = args)
 
 def register(module, paras, args):

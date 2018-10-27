@@ -4,7 +4,7 @@ import os
 from sh.utils import normal_leven
 
 __all__ =  ['pwd', 'is_file', 'is_dir', 'replace_if_star_dir', 'ls', 'll', 
-            'cd', 'cdb', 'cdn', 'mkdir', 'rm', 'cp', 'mv', 'find', 'doc']
+            'mkdir', 'rm', 'cp', 'mv', 'find', 'doc']
 
 def pwd():
     """Current work directory"""
@@ -14,11 +14,6 @@ def doc(obj):
     """return python object's __doc__"""
     print(obj.__doc__)
 
-WORK_DIR = pwd()
-PRE_DIR = "~"
-HOME_DIR = os.path.expanduser("~")
-DIRS_HIS = []
-DIRS_HIS.append(WORK_DIR)
 
 def is_file(filename):
     return os.path.isfile(filename)
@@ -51,7 +46,7 @@ def ls(path=".", p=""):
     for filename in os.listdir(path):
         new_path = os.path.join(path,filename)
         if os.path.isdir(new_path):
-            if "d" in p: ans.append(filename)
+            if "d" in p: ans.append(filename + "/")
             if "r" in p: 
                 t = ls(new_path, p)
                 t_cpl = [ os.path.join(filename, e) for e in t ]
@@ -62,24 +57,6 @@ def ls(path=".", p=""):
 
 def ll():
     pass
-
-def cd(path = ".."):
-    """shell: cd""" 
-    path = path.strip()
-    if path.startswith("~"):
-        path = HOME_DIR + path[1:]
-    if is_dir(path): 
-        PRE_DIR = pwd()
-        if path not in DIRS_HIS:
-            DIRS_HIS.append(path)
-    os.chdir(path)
-
-def cdb():
-    cd(PRE_DIR)
-
-def cdn(n=-1):
-    if n < len(DIRS_HIS):
-        cd(DIRS_HIS[n])
 
 def mkdir(path, mode=0o777, p=""):
     """shell: mkdir

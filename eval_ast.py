@@ -1,4 +1,4 @@
-from builtin import operators, op_order, Binary, Unary, op_right
+from builtin import operators, op_order, Binary, Unary, op_right, os_call, cd
 import copy
 from env import Env
 from syntax_check import Error, syntax_cond_assert
@@ -57,6 +57,14 @@ def parse_sh(node):
         return os_call(cmd_val)
     return _sh
 
+def parse_cd(node):
+    cmd = parse_pipe_or_expr(node["cmd"])
+    def _cd(env):
+        cmd_val = cmd(env)
+        syntax_cond_assert(type(cmd_val) in [ str, int], "Value Error: cd accept a string or int")
+        return cd(cmd_val)
+    return _cd
+
 def parse_block_expr(node):
     if node["type"] == 'IF':
         val = parse_if(node)
@@ -79,6 +87,8 @@ def parse_expr_or_command(node):
         val = parse_del(node)
     elif node["type"] == "SH":
         val = parse_sh(node)
+    elif node["type"] == "CD":
+        val = parse_cd(node)
     else:
         val = parse_pipe_or_expr(node)
     return val
@@ -532,11 +542,6 @@ def parse_while(node):
                 break
 
     return _while
-
-def os_call(sh):
-    import subprocess
-    out_bytes = subprocess.run(sh, shell=True, stderr=subprocess.STDOUT)
-    return out_bytes.stdout
 
 def parse_syscall(node):
     return lambda env:os_call(node["val"])

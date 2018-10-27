@@ -28,6 +28,7 @@ keywords = {
 "assert" :  "ASSERT",
 "del" :  "DEL",
 "sh" :  "SH",
+"cd" :  "CD",
 }
 
 # 字符转义表， 字符串解析中使用

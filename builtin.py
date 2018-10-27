@@ -1,7 +1,7 @@
 """
     builtin operators
 """
-import operator
+import operator, os, config
 import types, json
 
 operators = {
@@ -83,6 +83,8 @@ def _pipe(x,f):
         for sx in x:
             yield f(sx)
 """
+    if len(CDHIST) > 20: CDHIST.pop(-1)
+    _cd_helper()
 
 def _write_helper(var, filename, mode):
     with open(filename, mode) as f:
@@ -93,7 +95,6 @@ def _write_helper(var, filename, mode):
         else:
             f.write(json.dumps(var, ensure_ascii=False))
         
-
 def _write(var, filename):
     _write_helper(var, filename, 'w')
 
@@ -106,6 +107,8 @@ def _call(f, arg):
 def _get_dict(v, k):
     r = [v[ki] if ki in v else None for ki in k]
     if len(r) == 1: return r[0]
+    if type(v) == str:
+        return "".join(r)
     return r
 
 def _get(v, k):
