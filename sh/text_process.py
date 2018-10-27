@@ -1,4 +1,4 @@
-import re
+import re, random
 from types import GeneratorType
 from sh.os_cmd import is_dir, replace_if_star_dir
 from collections.abc import Iterable
@@ -7,7 +7,7 @@ import json
 
 _pipe_func = ['grep', 'egrep', 'colSel', 'list_format', 'format', 
             'extract', 'replace', 'tojson', 'dumps', 'strip', 
-            'split', 'load']
+            'split', 'rSel' ]
 _other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more', 'head',
             'join', 'findall', 'search', 'uniq', 'ksort']
 
@@ -48,22 +48,13 @@ def pipe_itertool(func, n):
             if ans is not None: yield ans
     return wrapper
 
-def _load(dumped_str):
-    wappered = "{%s:%s}"% ("'wapper'", dumped_str)
-    print(wappered)
-    return json.loads(wappered) ["'wapper'"]
-    
-
-load = pipe_itertool(_load, 0)
 
 def sample(sample_rate, iterable):
-    import random
     for x in iterable:
         if random.uniform(0,1) < sample_rate:
             yield x
 
 def shuf(iterable):
-    import random
     random.shuffle(iterable)
     return iterable
 
@@ -119,6 +110,16 @@ def _extract(pat, line):
         return match.groups()
 
 extract = pipe_itertool(_extract, 1)
+
+def _rSel(iterable):
+    """ random select a element"""
+    if type(iterable) == dict:
+        return random.choice(list(iterable.items()))
+    else:
+        idx = random.randint(0, len(iterable) - 1)
+        return rSel[idx]
+
+rSel = pipe_itertool(_rSel, 0)
 
 def _replace(pat, repl, line, cnt=-1, p=""):
     """string replace
