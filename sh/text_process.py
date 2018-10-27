@@ -154,9 +154,9 @@ def _tojson(line):
 
 tojson = pipe_itertool(_tojson, 0)
 
-def _dumps(var):
+def _dumps(var, indent=None):
     """python json dumps"""
-    return json.dumps(var, ensure_ascii=False)
+    return json.dumps(var, indent=indent, ensure_ascii=False)
 
 dumps = pipe_itertool(_dumps, 0)
 
