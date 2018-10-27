@@ -74,15 +74,41 @@ _is  = lambda x,y: x is y
 _power = lambda x,y: x**y
 _zdiv = lambda x, y: x//y
 
-"""
-def _pipe(x,f):
-    import types
-    if not isinstance(x, types.GeneratorType):
-        yield f(x)
-    else:
-        for sx in x:
-            yield f(sx)
-"""
+
+def os_call(sh):
+    import subprocess
+    out_bytes = subprocess.run(sh, shell=True, stderr=subprocess.STDOUT)
+    return out_bytes.stdout
+
+HOME_DIR = os.path.expanduser("~")
+CDHIST = [("~", os.getcwd() )]
+
+def cd(path = ".."):
+    """cd: int -> hitory cd path in cdh; string -> cd to this path""" 
+
+    def _cd_helper():
+        config.cdh.clear()
+        config.cdh.extend([  (x[0], i) for i, x in enumerate(CDHIST) ])
+        os.chdir(CDHIST[0][1])
+
+    if type(path) == int:
+        cd_path = CDHIST.pop(path)
+        CDHIST.insert(0, cd_path)
+        _cd_helper()
+        return
+
+    path = path.strip()
+    if path.startswith("~"):
+        path = HOME_DIR + path[1:]
+    if not os.path.isdir(path):
+        print("Error Not_a_dir: %s" % path )
+    abspath = os.path.abspath(path)
+    CDHIST.insert(0, (path, abspath))
+    # LRU
+    for i in range(1, len(CDHIST)):
+        if CDHIST[i][0] == CDHIST[0][0]:
+            CDHIST.pop(i)
+            break
     if len(CDHIST) > 20: CDHIST.pop(-1)
     _cd_helper()
 
