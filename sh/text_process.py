@@ -84,10 +84,10 @@ def _colSel(idxes, iterable):
     return [iterable[idx] for idx in idxes]
 colSel = pipe_itertool(_colSel, 1)
 
-def _list_format(iterable, sep=" "):
-    return sep.join( ["{0}".format(ele) for ele in iterable] )
+def _list_format(pat, iterable, sep=" "):
+    return sep.join( [pat.format(ele) for ele in iterable] )
 
-list_format = pipe_itertool(_list_format, 0)
+list_format = pipe_itertool(_list_format, 1)
 
 def _format(pat, x):
     if isinstance(x, Iterable):

@@ -78,7 +78,7 @@ cat("source/*") | egrep("^def\s", _) | extract( "def\((\w+)\)", _) | format("{0}
  sorted(word_count, key=L(x):x[1], reverse = True)
  word_count | colSel@0 | zipWithIndex(_, 10) | format@ "{0}\t{1}" &> "words"      # word: index file;  maping start from 10
  word_idx_dict = cat("words") | take@10000 | split@"\t" | dict      # 只使用top10000高频词
- cat("input.txt") | split@" " | mmap@int | mmap@ word_idx_dict.get(_, 2)  | list_format  &>  "output.txt"    #  不在10000个词中的词用2代替，
+ cat("input.txt") | split@" " | mmap@int | mmap@ word_idx_dict.get(_, 2)  | list_format@"{0}"  &>  "output.txt"    #  不在10000个词中的词用2代替，
  
 ```
 
@@ -138,7 +138,7 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 - `|`: pipe功能,前面的值当作后面函数的输入， `a | b | c | d = d(c(b(a)))`
 - `L`: 等价于lambda关键字，主要为了少打点字， 注： 与python不同的是lambda后面的参数必须用小括号包起来
 - `_`: 参数占位符，方便定义偏函数， 这个特性结合PIPE非常方便, 
-- `@`: 吸收一个参数的函数，`f@m == f(m)(..)`
+- `@`: 吸收一个参数返回函数，`f@m == f(m)(..)`
 
 
 
@@ -150,13 +150,13 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 
 ## Shell & FP
 
-新增函数主要来自于：1.shell命令的python函数形式；2. Functional Program的一些函数
+新增函数主要来自于：
+- 1.shell命令的python函数形式；
+- 2.Functional Programing的一些函数
+- 3.其他一些实用函数
 
-- shell命令列表： ls, pwd, rm, cp, mv, mkdir, rm, find, grep, egrep, wc, cat, more, uniq, head, ksort
-- FP函数列表： map, mmap, dmap, kmap, filter, foldl, FM, MF, take, takeWhile, flat, flatMap, drop, groupBy, join, mapValues, zip2, zip3, zipWithIndex, chunks, _if
-- 其他一些有用函数：format, extract, replace, split, tojson, dumps, gen, help, doc, pbar, sample, shuf
-想了解每个函数的用法，可以使用doc函数，比如: `doc(ls)`
-
+具体列表可以看下面 **函数介绍** 的章节
+想了解每个函数的用法，可以使用doc函数，比如: `doc(ls)`, 会给出每个函数的定义
 
 
 ## 与python不一样的地方
@@ -225,20 +225,21 @@ python3 repl.py test.psh params  # run a psh file, main function is entry point
 |id| functions | describe |
 |---| :------------ |:---------------:|
 |1| take, takeWhile, drop, dropWhile |  describe |
-|2| map,_map, filter, FM, MF, mmap, dmap, kmap | _map:非lazed, FM = filter&map, MF与FM相反, mmap = map&map, dmap = (map1, map2) , kmap=map& (map kth element)  | 
+|2| map,_map, filter, FM, MF, mmap, dmap, kmap | _map:非lazed, FM = filter&map, MF与FM相反, mmap = map&map, dmap = (map1, map2) , kmap= map kth element  | 
 |3| groupBy, groupMap, mapValues, flat, flatMap, foldl  |  foldl=reduce, flat= [[..],[..]..] -> [...]; flatMap=flat&map, mapValues对dict value的map，会修改原dict |
-|4| zip2, zip3, zipWithIndex, unzip, chunks | describe |
-|5| gen, slf, repeat, _if , _rSel, _colSel | describe |
-|6 | pbar, sample, shuf    | describe |
+|4| zip2, zip3, zipWithIndex, unzip, chunks | zip functions |
+|5| gen, slf, repeat, _if , _rSel, _colSel | slf返回自身, _colSel = L(x)：x[...]  |
+|6 | pbar, sample, shuf , doc   | pbar每N个对象display下,用于监控处理进度, doc可以查看每个函数的定义 |
 
 |id| functions | describe |
 |---| :------------ |:---------------:|
-|1 | _format, _list_format, _tojson, _dumps |  describe |
-|2 | _grep, _egrep , _extract, _replace, _strip, _split |  describe |
-|3 | wc, cat, more, head, uniq, ksort, doc |  describe |
-|4 | pwd, is_file, is_dir,  ls, mkdir, rm, cp, mv, find | describe |
+|1 | _format, _list_format, _tojson, _dumps |  字符串格式化; 建议直接将python对象dump成可解析的json格式  |
+|2 | _grep, _egrep , _extract, _replace, _strip, _split |  文本处理函数，p参数中带"v"则使用正则匹配 |
+|3 | wc, cat, more, head, uniq, ksort  |  功能和对应的shell命令相似|
+|4 | pwd, is_file, is_dir, ls, mkdir, rm, cp, mv, find | 功能和对应的shell命令相似, 参数p="r"代表递归子目录；建议可以使用$或sh直接调用shell命令 |
 
-"_"开头的函数(除了`_if`)都有一个对应的不带下划线的函数，方便批量处理， `func = map@ _func`; 
+"_"开头的函数(除了`_if`, `_map`与map不是对应)都有一个对应的不带下划线的函数，方便批量处理，
+func会遍历一个可迭代对象，并调用_func, `func = map@ _func(...)`; 
 `grep, egrep, colSel, list_format, format, extract, replace, tojson, dumps, strip, split, rSel`
 
 
