@@ -222,22 +222,26 @@ python3 repl.py test.psh params  # run a psh file, main function is entry point
 
 ## 函数介绍
 
-| :------------ |:---------------:| -----:|
-| take, takeWhile, drop, dropWhile |   |
-| map, filter,M, FM, MF, mmap, dmap, kmap |   | 
-| groupBy, mapValues, flat, flatMap, foldl  |  |
-| zip2, zip3, zipWithIndex, chunks,  |  |
-| gen, slf, repeat, _if , _rSel, _colSel |  |
-| pbar, sample, shuf, 
+|id| functions | describe |
+|---| :------------ |:---------------:|
+|1| take, takeWhile, drop, dropWhile |  describe |
+|2| map, filter,M, FM, MF, mmap, dmap, kmap | describe  | 
+|3| groupBy, mapValues, flat, flatMap, foldl  |  describe |
+|4| zip2, zip3, zipWithIndex, chunks | describe |
+|5| gen, slf, repeat, _if , _rSel, _colSel | describe |
+|6 | pbar, sample, shuf    | describe |
 
-| _format, _list_format, _tojson, _dumps |
-| _grep, _egrep , _extract, _replace, _strip, _split |
+|id| functions | describe |
+|---| :------------ |:---------------:|
+|1 | _format, _list_format, _tojson, _dumps |  describe |
+|2 | _grep, _egrep , _extract, _replace, _strip, _split |  describe |
+|3 | wc, cat, more, head, uniq, ksort, doc |  describe |
+|4 | pwd, is_file, is_dir,  ls, mkdir, rm, cp, mv, find | describe |
 
 "_"开头的函数(除了`_if`)都有一个对应的不带下划线的函数，方便批量处理， `func = map@ _func`; 
 `grep, egrep, colSel, list_format, format, extract, replace, tojson, dumps, strip, split, rSel`
 
-| wc, cat, more, head, uniq, ksort, doc |
-| pwd, is_file, is_dir,  ls, mkdir, rm, cp, mv, find |
+
 
 			
 ## TODO
