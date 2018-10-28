@@ -23,12 +23,14 @@ def pbar(n=5000):
     return _pbar
    
 def _if(cond, true_v, false_v):
+    """_if(cond, true_v, false_v)"""
     if cond:
         return true_v
     else:
         return false_v
 
 def _map(func, iterable):
+    """ Not lazyed: map"""
     return [ func(x) for x in iterable ]
 
 def repeat(func, n):
@@ -38,7 +40,8 @@ def repeat(func, n):
         i += 1
 
 def chunks(n, iterable):
-    """Yield successive n-sized chunks from l."""
+    """Lazyed: chunks(n, iterable)
+    Yield successive n-sized chunks from l."""
     if not isinstance(iterable, GeneratorType):
         for i in range(0, len(iterable), n):
             yield iterable[i:i + n]
@@ -55,30 +58,25 @@ def chunks(n, iterable):
 
 
 def zip2(l1, l2):
-    """ zip two iterables, python zip return zip object, while zip2 return a generator """
+    """ Lazyed: zip two iterables, python zip return zip object, while zip2 return a generator """
     for x in zip(l1, l2):
         yield x
 
 def zip3(l1, l2, l3):
-    """ zip three iterables, python zip return zip object, while zip3 return a generator """
+    """zip3(l1, l2, l3)\nLazyed: zip three iterables, python zip return zip object, while zip3 return a generator """
     for x in zip(l1, l2, l3):
         yield x
 
 def zipWithIndex(iterable, start=0):
-    """ zip iterable with indexes: "abc" => [(0, "a"), (1, "b"), (2, "c")] """
-    i = start
-    for x in iterable:
-        yield (x, i)
-        i = i + 1
-
-def zipWithIndex(iterable, start=0):
-    """ zip iterable with indexes: "abc" => [(0, "a"), (1, "b"), (2, "c")] """
+    """ zipWithIndex(iterable, start=0)
+    Lazyed: zip iterable with indexes: "abc" => [(0, "a"), (1, "b"), (2, "c")] """
     i = start
     for x in iterable:
         yield (x, i)
         i = i + 1
 
 def unzip(iterable):
+    """unzip(iterable) """
     it = iter(iterable)
     val = next(it)
     ans = [ [x] for x in val ]
@@ -90,7 +88,6 @@ def unzip(iterable):
 def groupBy(key, iterable):
     """ iterable groupBy key function
         key: a function; for each element generate group identity
-        default key = lambda x:x[0]
     """
     res = {}
     for x in iterable:
@@ -100,9 +97,9 @@ def groupBy(key, iterable):
     return res
 
 def groupMap(key_func, value_func, iterable):
-    """ iterable groupBy key function
-        key: a function; for each element generate group identity
-        default key = lambda x:x[0]
+    """groupMap(key_func, value_func, iterable):
+    iterable groupBy key function
+    key_func: a function; for each element generate group identity
     """
     res = {}
     for x in iterable:
@@ -112,7 +109,8 @@ def groupMap(key_func, value_func, iterable):
     return res
 
 def take(n, iterable):
-    """ iterable take first n elements """
+    """take(n, iterable)
+    lazyed: iterable take first n elements """
     i = 0
     for x in iterable:
         if i >= n: break
@@ -120,19 +118,22 @@ def take(n, iterable):
         yield x
 
 def takeWhile(key, iterable):
-    """ iterable take while condition is statisfied """
+    """takeWhile(key, iterable)
+       Lazyed: iterable take while condition is statisfied """
     for x in iterable:
         if not key(x): break
         yield x
 
 def drop(n, iterable):
-    """ iterable drop first n elements """
+    """drop(n, iterable)
+    iterable drop first n elements """
     i = 0
     for x in iterable:
         if i >= n: yield x
         i+=1
 
 def dropWhile(key, iterable):
+    """dropWhile(key, iterable)"""
     need_drop = True
     for x in iterable:
         if need_drop and key(x): continue
@@ -140,37 +141,45 @@ def dropWhile(key, iterable):
         yield x
             
 def map(func, iterable):
+    """Lazyed: map"""
     for ele in iterable:
         yield func(ele)
 
 def mmap(func, iterable):
+    """Lazyed: map with map"""
     for ele in iterable:
         yield [func(e) for e in ele]
 
 def dmap(func1, func2, iterable):
+    """dmap(func1, func2, iterable)
+    Lazyed: """
     for ele in iterable:
         yield (func1(ele), func2(ele))
 
 def kmap(k, func, iterable):
+    """Lazyed: kmap(k, func, iterable)"""
     for ele in iterable:
         ele = list(ele)
         ele[k] = func(ele[k])
         yield ele
 
 def filter(func, iterable):
+    """filter(func, iterable)"""
     for ele in iterable:
         if func(ele):
             yield ele
 
 def foldl(func, iterable, init=None):
-    """ fold left: python reduce """
+    """ foldl(func, iterable, init=None)
+    fold left: python reduce """
     if init is None:
         return reduce(func, iterable)
     else:
         return reduce(func, iterable, init)
 
 def MF(mfunc, ffunc, iterable):
-    """  MF = map | filter
+    """MF(mfunc, ffunc, iterable)
+    MF = map | filter
          paras: 1.iterable,  2. map_key_func,  3.filter_key_func
     """
     for ele in iterable:
@@ -179,24 +188,28 @@ def MF(mfunc, ffunc, iterable):
             yield v
 
 def FM(mfunc, ffunc, iterable):
-    """  FM = filter | map
-         paras: 1.iterable,  2. map_key_func,  3.filter_key_func
+    """FM(mfunc, ffunc, iterable)
+    FM = filter | map
+     paras: 1.iterable,  2. map_key_func,  3.filter_key_func
     """
     for ele in iterable:
         if ffunc(ele):
             yield mfunc(ele)
 
 def mapValues(key, dict_obj):
+    """mapValues(key, dict_obj)"""
     for k,v in dict_obj.items():
         dict_obj[k] = key(v)
     return dict_obj
 
 def flat(listOfLists):
+    """flat(listOfLists)"""
     for x in chain.from_iterable(listOfLists):
         yield x
 
-def flatMap(func, items):
-    alleles = chain.from_iterable(items)
+def flatMap(func, listOfLists):
+    """ flatMap(func, listOfLists)"""
+    alleles = chain.from_iterable(listOfLists)
     for x in alleles:
         yield func(x)
 

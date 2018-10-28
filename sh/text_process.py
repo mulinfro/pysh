@@ -50,22 +50,26 @@ def pipe_itertool(func, n):
 
 
 def sample(sample_rate, iterable):
+    """Lazyed: sample(sample_rate, iterable)"""
     for x in iterable:
         if random.uniform(0,1) < sample_rate:
             yield x
 
 def shuf(iterable):
+    """shuf(iterable)\ninplace shuf, return self """
     random.shuffle(iterable)
     return iterable
 
 
-def _grep(pat, line, p=""):
+def _grep(pat, line):
+    """_grep(pat, line)\npat in line?  """
     if pat in line:
         return line
 
 grep = pipe_itertool(_grep, 1)
 
 def _egrep(pat, line, p="i"):
+    """_egrep(pat, line, p="i")"""
     if "i" in p: pattern = re.compile(pat, re.I)
     else:        pattern = re.compile(pat)
     match = pattern.search(line)
@@ -75,21 +79,27 @@ def _egrep(pat, line, p="i"):
 egrep = pipe_itertool(_egrep, 1)
 
 def gen(iterable):
+    """ for e in iterable: yield e """
     for e in iterable:
         yield e
 
 def _colSel(idxes, iterable):
+    """_colSel(idxes, iterable)"""
     if type(idxes) not in (list, tuple):
         return iterable[idxes]
     return [iterable[idx] for idx in idxes]
 colSel = pipe_itertool(_colSel, 1)
 
 def _list_format(pat, iterable, sep=" "):
+    """_list_format(pat, iterable, sep=" ")"""
     return sep.join( [pat.format(ele) for ele in iterable] )
 
 list_format = pipe_itertool(_list_format, 1)
 
 def _format(pat, x):
+    """_format(pat, x): 
+ Iterable: pat.format(*x) else pat.format(x)
+    """
     if isinstance(x, Iterable):
         return pat.format(*x)
     else:
@@ -97,7 +107,8 @@ def _format(pat, x):
 
 format = pipe_itertool(_format, 1)
 
-def wc(iterable, p="l"):
+def wc(iterable):
+    """ wc(iterable)\niterable count """
     i = 0
     for x in iterable:
         i += 1
@@ -105,6 +116,9 @@ def wc(iterable, p="l"):
 
 
 def _extract(pat, line):
+    """ _extract(pat, line)
+        re.search(pat, line).groups()
+    """
     match = re.search(pat, line)
     if match:
         return match.groups()
@@ -112,7 +126,7 @@ def _extract(pat, line):
 extract = pipe_itertool(_extract, 1)
 
 def _rSel(iterable):
-    """ random select a element"""
+    """ _rSel(iterable)\nrandom select a element"""
     if type(iterable) == dict:
         return random.choice(list(iterable.items()))
     else:
@@ -182,6 +196,7 @@ def more(file_name):
 
 
 def _strip(string, p=" \t\n\r"):
+    """_strip(string, p=" \t\n\r")"""
     return string.strip(p)
 
 strip = pipe_itertool(_strip, 0)
@@ -196,16 +211,10 @@ def head(iterable, n=10):
         yield line
 
 
-def join():
-    pass
-
-def awk():
-    pass
-
-def sed():
-    pass
-
 def _split(sep, string, cnt=-1, p=""):
+    """_split(sep, string, cnt=-1, p="")
+    p="v": use re.split
+    """
     if "v" in p:
         if cnt < 0: cnt = 0
         return re.split(sep, string, cnt)
@@ -214,17 +223,16 @@ def _split(sep, string, cnt=-1, p=""):
 
 split = pipe_itertool(_split, 1)
 
-def findall():
-    pass
-
-def search():
-    pass
-
 def ksort(k, lines, p=""):
-     rev_flag = True if "r" in p else False
-     return sorted(lines, key=lambda x:x[k], reverse = rev_flag)
+    """ksort(k, lines, p="")
+    k: kth element as key
+    p="r" -> reversed
+    """
+    rev_flag = True if "r" in p else False
+    return sorted(lines, key=lambda x:x[k], reverse = rev_flag)
 
 def uniq(iterable):
+    """uniq(iterable)"""
     ans = set()
     for x in iterable:
         if x not in ans:
