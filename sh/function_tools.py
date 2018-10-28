@@ -3,8 +3,8 @@ from itertools import chain
 from functools import reduce
 from types import GeneratorType
 __all__ = [ 'pbar', 'groupBy', 'take', 'takeWhile', 'drop', 'dropWhile', 'map', 'filter',
-            'mapValues', 'flat', 'flatMap', 'chunks', 'zip2','zip3', 'zipWithIndex', 
-            'FM', 'MF', 'mmap', 'dmap', 'kmap', 'foldl', 'repeat', 'M', 'slf', '_if']
+            'mapValues', 'flat', 'flatMap', 'groupMap', 'chunks', 'zip2','zip3', 'zipWithIndex', 'unzip', 
+            'FM', 'MF', 'mmap', 'dmap', 'kmap', 'foldl', 'repeat', '_map', 'slf', '_if']
 
 def slf(x):
     """ slf: return self"""
@@ -28,7 +28,7 @@ def _if(cond, true_v, false_v):
     else:
         return false_v
 
-def M(func, iterable):
+def _map(func, iterable):
     return [ func(x) for x in iterable ]
 
 def repeat(func, n):
@@ -71,6 +71,22 @@ def zipWithIndex(iterable, start=0):
         yield (x, i)
         i = i + 1
 
+def zipWithIndex(iterable, start=0):
+    """ zip iterable with indexes: "abc" => [(0, "a"), (1, "b"), (2, "c")] """
+    i = start
+    for x in iterable:
+        yield (x, i)
+        i = i + 1
+
+def unzip(iterable):
+    it = iter(iterable)
+    val = next(it)
+    ans = [ [x] for x in val ]
+    for ele in enumerate(it):
+        for i,x in enumerate(ele):
+            ans[i].append(x)
+    return ans
+
 def groupBy(key, iterable):
     """ iterable groupBy key function
         key: a function; for each element generate group identity
@@ -81,6 +97,18 @@ def groupBy(key, iterable):
         k = key(x)
         if k not in res: res[k] = []
         res[k].append(x)
+    return res
+
+def groupMap(key_func, value_func, iterable):
+    """ iterable groupBy key function
+        key: a function; for each element generate group identity
+        default key = lambda x:x[0]
+    """
+    res = {}
+    for x in iterable:
+        k = key_func(x)
+        if k not in res: res[k] = []
+        res[k].append(value_func(x))
     return res
 
 def take(n, iterable):

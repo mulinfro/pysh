@@ -225,9 +225,9 @@ python3 repl.py test.psh params  # run a psh file, main function is entry point
 |id| functions | describe |
 |---| :------------ |:---------------:|
 |1| take, takeWhile, drop, dropWhile |  describe |
-|2| map, filter,M, FM, MF, mmap, dmap, kmap | describe  | 
-|3| groupBy, mapValues, flat, flatMap, foldl  |  describe |
-|4| zip2, zip3, zipWithIndex, chunks | describe |
+|2| map,_map, filter, FM, MF, mmap, dmap, kmap | _map:非lazed, FM = filter&map, MF与FM相反, mmap = map&map, dmap = (map1, map2) , kmap=map& (map kth element)  | 
+|3| groupBy, groupMap, mapValues, flat, flatMap, foldl  |  foldl=reduce, flat= [[..],[..]..] -> [...]; flatMap=flat&map, mapValues对dict value的map，会修改原dict |
+|4| zip2, zip3, zipWithIndex, unzip, chunks | describe |
 |5| gen, slf, repeat, _if , _rSel, _colSel | describe |
 |6 | pbar, sample, shuf    | describe |
 
