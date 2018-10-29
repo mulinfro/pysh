@@ -4,13 +4,14 @@ from functools import reduce
 from types import GeneratorType
 from sh.utils import pipe_itertool, unlazyed
 
-_pipe_func = ["wrapList"]
+_pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile', 
+            'map', 'filter', 'filter_not', 'flat', 'flatMap', 'chunks', 
+            'zip2','zip3', 'zipWithIndex', 'FM', 'MF', 'mmap', 'dmap', 'kmap']
 
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
-__all__ = [ 'pbar', 'groupBy', 'take', 'takeWhile', 'drop', 'dropWhile', 'map', 'filter', 'filter_not',
-            'mapValues', 'flat', 'flatMap', 'groupMap', 'chunks', 'zip2','zip3', 'zipWithIndex', 'unzip', 
-            'FM', 'MF', 'mmap', 'dmap', 'kmap', 'foldl', 'repeat', '_map', 'slf', '_if'] + _pipe_func + _pipe_func_ori
+__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 
+            'foldl', 'repeat', 'slf', '_if'] + _pipe_func + _pipe_func_ori
 
 def slf(x):
     """ slf: return self"""
@@ -69,16 +70,20 @@ def chunks(n, iterable):
                 ans = list()
         if len(ans) > 0: yield ans
 
+_chunks = unlazyed(chunks)
+
 
 def zip2(l1, l2):
     """ Lazyed: zip two iterables, python zip return zip object, while zip2 return a generator """
     for x in zip(l1, l2):
         yield x
+_zip2 = unlazyed(zip2)
 
 def zip3(l1, l2, l3):
     """zip3(l1, l2, l3)\nLazyed: zip three iterables, python zip return zip object, while zip3 return a generator """
     for x in zip(l1, l2, l3):
         yield x
+_zip3 = unlazyed(zip3)
 
 def zipWithIndex(iterable, start=0):
     """ zipWithIndex(iterable, start=0)
@@ -87,6 +92,8 @@ def zipWithIndex(iterable, start=0):
     for x in iterable:
         yield (x, i)
         i = i + 1
+
+_zipWithIndex = unlazyed(zipWithIndex)
 
 def unzip(iterable):
     """unzip(iterable) """
@@ -121,7 +128,7 @@ def groupMap(key_func, value_func, iterable):
         res[k].append(value_func(x))
     return res
 
-def _take(n, iterable):
+def take(n, iterable):
     """take(n, iterable)
     lazyed: iterable take first n elements """
     i = 0
@@ -130,16 +137,16 @@ def _take(n, iterable):
         i+=1
         yield x
 
-take = unlazyed(_take)
+_take = unlazyed(take)
 
-def _takeWhile(key, iterable):
+def takeWhile(key, iterable):
     """takeWhile(key, iterable)
        Lazyed: iterable take while condition is statisfied """
     for x in iterable:
         if not key(x): break
         yield x
 
-takeWhile = unlazyed(_takeWhile)
+_takeWhile = unlazyed(takeWhile)
 
 def drop(n, iterable):
     """drop(n, iterable)
@@ -149,6 +156,8 @@ def drop(n, iterable):
         if i >= n: yield x
         i+=1
 
+_drop = unlazyed(drop)
+
 def dropWhile(key, iterable):
     """dropWhile(key, iterable)"""
     need_drop = True
@@ -156,6 +165,8 @@ def dropWhile(key, iterable):
         if need_drop and key(x): continue
         else: need_drop = False
         yield x
+
+_dropWhile = unlazyed(dropWhile)
             
 def map(func, iterable):
     """Lazyed: map"""
@@ -166,12 +177,14 @@ def mmap(func, iterable):
     """Lazyed: map with map"""
     for ele in iterable:
         yield [func(e) for e in ele]
+_mmap = unlazyed(mmap)
 
 def dmap(func1, func2, iterable):
     """dmap(func1, func2, iterable)
     Lazyed: """
     for ele in iterable:
         yield (func1(ele), func2(ele))
+_dmap = unlazyed(dmap)
 
 def kmap(k, func, iterable):
     """Lazyed: kmap(k, func, iterable)"""
@@ -179,19 +192,22 @@ def kmap(k, func, iterable):
         ele = list(ele)
         ele[k] = func(ele[k])
         yield ele
+_kmap = unlazyed(kmap)
 
-def _filter(func, iterable):
+def filter(func, iterable):
     """filter(func, iterable)"""
     for ele in iterable:
         if func(ele):
             yield ele
-filter = unlazyed(_filter)
+_filter = unlazyed(filter)
 
 def filter_not(func, iterable):
     """filter(func, iterable)"""
     for ele in iterable:
         if not func(ele):
             yield ele
+
+_filter_not = unlazyed(filter_not)
 
 def foldl(func, iterable, init=None):
     """ foldl(func, iterable, init=None)
@@ -211,6 +227,8 @@ def MF(mfunc, ffunc, iterable):
         if ffunc(v):
             yield v
 
+_MF = unlazyed(MF)
+
 def FM(mfunc, ffunc, iterable):
     """FM(mfunc, ffunc, iterable)
     FM = filter | map
@@ -219,6 +237,8 @@ def FM(mfunc, ffunc, iterable):
     for ele in iterable:
         if ffunc(ele):
             yield mfunc(ele)
+
+_FM = unlazyed(FM)
 
 def mapValues(key, dict_obj):
     """mapValues(key, dict_obj)"""
@@ -232,12 +252,15 @@ def flat(listOfLists):
         for x in lst:
             yield x
 
+_flat = unlazyed(flat)
+
 def flatMap(func, listOfLists):
     """ flatMap(func, listOfLists)"""
     for lst in listOfLists:
         for x in lst:
             yield func(x)
 
+_flatMap = unlazyed(flatMap)
 
 if __name__ == "__main__":
     pass
