@@ -1,9 +1,19 @@
 
-import re
-
 def wget():
     pass
 
+def pipe_itertool(func, n):
+    def wrapper(*args, **kw):
+        for line in args[n]:
+            new_args = args[0:n] + (line, ) + args[n+1:]
+            ans = func(*new_args, **kw)
+            if ans is not None: yield ans
+    return wrapper
+
+def unlazyed(func):
+    def wrapper(*args, **kw):
+        return list(func(*args, **kw))
+    return wrapper
 
 # 编辑距离； 供find匹配
 def normal_leven(str1, str2):

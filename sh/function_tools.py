@@ -2,9 +2,15 @@
 from itertools import chain
 from functools import reduce
 from types import GeneratorType
-__all__ = [ 'pbar', 'groupBy', 'take', 'takeWhile', 'drop', 'dropWhile', 'map', 'filter',
+from sh.utils import pipe_itertool, unlazyed
+
+_pipe_func = ["wrapList"]
+
+_pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
+
+__all__ = [ 'pbar', 'groupBy', 'take', 'takeWhile', 'drop', 'dropWhile', 'map', 'filter', 'filter_not',
             'mapValues', 'flat', 'flatMap', 'groupMap', 'chunks', 'zip2','zip3', 'zipWithIndex', 'unzip', 
-            'FM', 'MF', 'mmap', 'dmap', 'kmap', 'foldl', 'repeat', '_map', 'slf', '_if']
+            'FM', 'MF', 'mmap', 'dmap', 'kmap', 'foldl', 'repeat', '_map', 'slf', '_if'] + _pipe_func + _pipe_func_ori
 
 def slf(x):
     """ slf: return self"""
@@ -38,6 +44,13 @@ def repeat(func, n):
     while n < 0 or i < n:
         yield func()
         i += 1
+
+def _wrapList(item):
+    if type(item) != list:
+        return [item]
+    return item
+
+wrapList = pipe_itertool(_wrapList, 0)
 
 def chunks(n, iterable):
     """Lazyed: chunks(n, iterable)
@@ -108,7 +121,7 @@ def groupMap(key_func, value_func, iterable):
         res[k].append(value_func(x))
     return res
 
-def take(n, iterable):
+def _take(n, iterable):
     """take(n, iterable)
     lazyed: iterable take first n elements """
     i = 0
@@ -117,12 +130,16 @@ def take(n, iterable):
         i+=1
         yield x
 
-def takeWhile(key, iterable):
+take = unlazyed(_take)
+
+def _takeWhile(key, iterable):
     """takeWhile(key, iterable)
        Lazyed: iterable take while condition is statisfied """
     for x in iterable:
         if not key(x): break
         yield x
+
+takeWhile = unlazyed(_takeWhile)
 
 def drop(n, iterable):
     """drop(n, iterable)
@@ -163,10 +180,17 @@ def kmap(k, func, iterable):
         ele[k] = func(ele[k])
         yield ele
 
-def filter(func, iterable):
+def _filter(func, iterable):
     """filter(func, iterable)"""
     for ele in iterable:
         if func(ele):
+            yield ele
+filter = unlazyed(_filter)
+
+def filter_not(func, iterable):
+    """filter(func, iterable)"""
+    for ele in iterable:
+        if not func(ele):
             yield ele
 
 def foldl(func, iterable, init=None):
@@ -204,14 +228,15 @@ def mapValues(key, dict_obj):
 
 def flat(listOfLists):
     """flat(listOfLists)"""
-    for x in chain.from_iterable(listOfLists):
-        yield x
+    for lst in listOfLists:
+        for x in lst:
+            yield x
 
 def flatMap(func, listOfLists):
     """ flatMap(func, listOfLists)"""
-    alleles = chain.from_iterable(listOfLists)
-    for x in alleles:
-        yield func(x)
+    for lst in listOfLists:
+        for x in lst:
+            yield func(x)
 
 
 if __name__ == "__main__":

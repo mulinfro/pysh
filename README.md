@@ -229,7 +229,7 @@ python3 repl.py test.psh params  # run a psh file, main function is entry point
 |3| groupBy, groupMap, mapValues, flat, flatMap, foldl  |  foldl=reduce, flat= [[..],[..]..] -> [...]; flatMap=flat&map, mapValues对dict value的map，会修改原dict |
 |4| zip2, zip3, zipWithIndex, unzip, chunks | zip functions |
 |5| gen, slf, repeat, _if , _rSel, _colSel | slf返回自身, _colSel = L(x)：x[...]  |
-|6 | pbar, sample, shuf , doc   | pbar每N个对象display下,用于监控处理进度, doc可以查看每个函数的定义 |
+|6 | pbar, sample, shuf , doc, wrapList   | pbar每N个对象display下,用于监控处理进度, doc可以查看每个函数的定义 |
 
 |id| functions | describe |
 |---| :------------ |:---------------:|

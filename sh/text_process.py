@@ -3,7 +3,7 @@ from types import GeneratorType
 from sh.os_cmd import is_dir, replace_if_star_dir
 from collections.abc import Iterable
 import json
-
+from sh.utils import pipe_itertool
 
 _pipe_func = ['grep', 'egrep', 'colSel', 'list_format', 'format', 
             'extract', 'replace', 'tojson', 'dumps', 'strip', 
@@ -38,16 +38,6 @@ def pipe_text_itertool(func):
                 ans = func(*new_args, **kw)
                 if ans is not None: yield ans
     return wrapper
-
-
-def pipe_itertool(func, n):
-    def wrapper(*args, **kw):
-        for line in args[n]:
-            new_args = args[0:n] + (line, ) + args[n+1:]
-            ans = func(*new_args, **kw)
-            if ans is not None: yield ans
-    return wrapper
-
 
 def sample(sample_rate, iterable):
     """Lazyed: sample(sample_rate, iterable)"""

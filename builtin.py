@@ -112,14 +112,17 @@ def cd(path = ".."):
     if len(CDHIST) > 20: CDHIST.pop(-1)
     _cd_helper()
 
+def var2str(var):
+    if type(var) != str:
+        return json.dumps(var, ensure_ascii=False)
+    return var
+
 def _write_helper(var, filename, mode):
     with open(filename, mode) as f:
         if isinstance(var, types.GeneratorType):
-            for e in var: f.write(str(e) + "\n")
-        elif type(var) == str:
-            f.write(var)
+            for e in var: f.write(var2str(e) + "\n")
         else:
-            f.write(json.dumps(var, ensure_ascii=False))
+            f.write(var2str(var))
         
 def _write(var, filename):
     _write_helper(var, filename, 'w')
