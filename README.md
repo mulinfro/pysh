@@ -225,7 +225,7 @@ python3 repl.py test.psh params  # run a psh file, main function is entry point
 ## 函数介绍
 
 |id| functions | describe |
-|---| :------------ |:---------------:|
+|---| :------------: |:---------------:|
 |1| take, takeWhile, drop, dropWhile |  describe |
 |2| map,_map, filter, FM, MF, mmap, dmap, kmap | _map:非lazed, FM = filter&map, MF与FM相反, mmap = map&map, dmap = (map1, map2) , kmap= map kth element  | 
 |3| groupBy, groupMap, mapValues, flat, flatMap, foldl  |  foldl=reduce, flat= [[..],[..]..] -> [...]; flatMap=flat&map, mapValues对dict value的map，会修改原dict |
@@ -234,7 +234,7 @@ python3 repl.py test.psh params  # run a psh file, main function is entry point
 |6 | pbar, sample, shuf , doc, wrapList   | pbar每N个对象display下,用于监控处理进度, doc可以查看每个函数的定义 |
 
 |id| functions | describe |
-|---| :------------ |:---------------:|
+|---| :------------: |:---------------:|
 |1 | _format, _list_format, _tojson, _dumps |  字符串格式化; 建议直接将python对象dump成可解析的json格式  |
 |2 | _grep, _egrep , _extract, _replace, _strip, _split |  文本处理函数，p参数中带"v"则使用正则匹配 |
 |3 | wc, cat, more, head, uniq, ksort  |  功能和对应的shell命令相似|
