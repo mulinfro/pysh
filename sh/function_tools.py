@@ -6,7 +6,7 @@ from sh.utils import pipe_itertool, unlazyed
 
 _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile', 
             'map', 'filter', 'filter_not', 'flat', 'flatMap', 'chunks', 
-            'zip2','zip3', 'zipWithIndex', 'FM', 'MF', 'mmap', 'dmap', 'kmap']
+            'zip2','zip3', 'zipWithIndex', 'FM', 'MF', 'mmap', 'dmap', 'kmap', 'splitList']
 
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
@@ -35,6 +35,19 @@ def _if(cond, true_v, false_v):
         return true_v
     else:
         return false_v
+
+def splitList(cond, lst):
+    ans = []
+    for x in lst:
+        if cond(x):
+            yield ans
+            ans = []
+        else:
+            ans.append(x)
+    if ans:
+        yield ans
+
+_splitList = unlazyed(splitList)
 
 def _map(func, iterable):
     """ Not lazyed: map"""

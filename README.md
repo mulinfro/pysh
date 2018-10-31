@@ -236,7 +236,7 @@ python3 repl.py test.psh params  # run a psh file, main function is entry point
 |id| functions | describe |
 |---| :------------: |:---------------:|
 |1 | _format, _list_format, _tojson, _dumps |  字符串格式化; 建议直接将python对象dump成可解析的json格式  |
-|2 | _grep, _egrep , _extract, _replace, _strip, _split |  文本处理函数，p参数中带"v"则使用正则匹配 |
+|2 | _grep, _egrep , _extract, _replace, _strip, _split, _splitList |  文本处理函数，p参数中带"v"则使用正则匹配 |
 |3 | wc, cat, more, head, uniq, ksort  |  功能和对应的shell命令相似|
 |4 | pwd, is_file, is_dir, ls, mkdir, rm, cp, mv, find | 功能和对应的shell命令相似, 参数p="r"代表递归子目录；建议可以使用$或sh直接调用shell命令 |
 
