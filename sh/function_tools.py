@@ -1,5 +1,4 @@
 
-from itertools import chain
 from functools import reduce
 from types import GeneratorType
 from sh.utils import pipe_itertool, unlazyed
@@ -21,6 +20,13 @@ def sequence(funcs, ele):
     """ sequence(funcs, ele)"""
     return [ func(ele) for func in funcs ] 
 
+def cond_break(cond):
+    if cond:
+        pass
+
+
+def cond_continue(cond):
+    pass
 
 def foreach(func, iterable):
     """foreach(func, iterable)"""
