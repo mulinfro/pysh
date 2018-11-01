@@ -52,17 +52,13 @@ def REPL():
 
     cmdlines, block_num, cmd = [], 0, ""
 
-    def inputStateClear():
-        cmdlines.clear()
-        block_num = 0
-        cmd = ""
-
     while True:
         try:
             new_cmd = input(IN).strip()
         except KeyboardInterrupt:
             print(" CTRL-C")
-            inputStateClear()
+            cmdlines.clear()
+            block_num, cmd = 0, ""
             continue
         except EOFError:
             break
@@ -71,8 +67,8 @@ def REPL():
         if cmd == 'clear':
             del env
             env = get_builtin_env(builtins)
-            env["history"] = cmd_history
-            inputStateClear()
+            block_num, cmd, env["history"] = 0, "", cmd_history
+            cmdlines.clear()
             continue
         # in repl every multiline expr need \ 
         if cmd.endswith("\\"):
