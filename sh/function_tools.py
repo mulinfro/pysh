@@ -10,12 +10,22 @@ _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile',
 
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
-__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 
+__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', '_while',
             'foldl', 'repeat', 'slf', '_if'] + _pipe_func + _pipe_func_ori
 
 def slf(x):
     """ slf: return self"""
     return x
+
+def foreach(func, iterable):
+    """foreach(func, iterable)"""
+    for x in iterable:
+        func(x)
+
+def _while(cond, func):
+    """_while(cond, func)"""
+    while cond:
+        func()
 
 def pbar(n=5000):
     """ each N step: display progress in pipe """
