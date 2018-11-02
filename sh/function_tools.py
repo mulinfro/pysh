@@ -20,14 +20,6 @@ def sequence(funcs, ele):
     """ sequence(funcs, ele)"""
     return [ func(ele) for func in funcs ] 
 
-def cond_break(cond):
-    if cond:
-        pass
-
-
-def cond_continue(cond):
-    pass
-
 def foreach(func, iterable):
     """foreach(func, iterable)"""
     for x in iterable:

@@ -46,7 +46,7 @@ op_order = {
     'COMB':3,
     "OR": 4,
     "AND": 5,
-    "IS": 6, "IN": 6,
+    "IS": 6, "IN": 6, "NOT_IS":6, "NOT_IN":6,
     "LT": 7, "GT": 7, "LE": 7, "GE": 7, "EQUAL": 7, "NEQ": 7,
     "ADD": 10, "MINUS": 10,
     "MOD": 15,
@@ -70,7 +70,9 @@ _or = lambda x,y: x or y
 _not = lambda x: not x
 _pipe = lambda x,f: f(x)
 _in  = lambda x,y: x in y
+_not_in  = lambda x,y: x not in y
 _is  = lambda x,y: x is y
+_not_is  = lambda x,y: x is not y
 _power = lambda x,y: x**y
 _zdiv = lambda x, y: x//y
 
@@ -178,7 +180,9 @@ Binary = {
     'AND':    _and,
     'OR':     _or,
     "IS":     _is,
+    "NOT_IS": _not_is,
     "IN":     _in,
+    "NOT_IN": _not_in,
     "GT":     operator.gt,
     "GE":     operator.ge,
     "LT":     operator.lt,

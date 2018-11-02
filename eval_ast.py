@@ -140,18 +140,23 @@ def parse_assert(node):
     return _assert_condition
 
 def parse_flow_goto(node):
+    def _raise_error(val):
+        raise val
+
     if node["type"] == "RETURN":
         rval = parse_pipe_or_expr(node["rval"])
-        val = Return_exception(rval)
+        return lambda env: _raise_error(Return_exception(rval))
     elif node["type"] == "BREAK":
         val = Break_exception()
     else:
         val = Continue_exception()
 
-    def _raise_error(val):
-        raise val
+    if node["cond"]:
+        cond = parse_pipe_or_expr(node["cond"])
+    else:
+        cond = lambda env: True
 
-    return lambda env: _raise_error(val)
+    return lambda env: _raise_error(val) if cond(env) else None
 
 def parse_import(node):
 

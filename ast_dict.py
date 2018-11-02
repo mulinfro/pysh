@@ -138,8 +138,12 @@ class AST():
 
     def ast_bc(self, stm):
         tp = stm.next().tp
+        cond_expr = None
+        if not stm.eof() and stm.peek().tp == "IF":
+            stm.next()
+            cond_expr = self.ast_try_pipe(stm)
         check_newline(stm)
-        return {"type": tp}
+        return {"type": tp, "cond": cond_expr}
 
     def ast_return_assert(self, stm, tp):
         stm.next()
@@ -359,8 +363,14 @@ class AST():
 
     def ast_try_op(self, stm):
         tkn = stm.peek()
-        if tkn.tp == "OP" and tkn.val in Binary:
-            return {"type":tkn.tp, "val":stm.next().val}
+        if tkn.tp == "OP":
+            if tkn.val == "NOT":
+                stm.next()
+                tkn = stm.next()
+                syntax_cond_assert(tkn.val in ["IS", "IN"], "undefined OP: Not %s"%tkn.val)
+                return {"type":tkn.tp, "val": "NOT_" + tkn.val}
+            elif tkn.val in Binary:
+                return {"type":tkn.tp, "val":stm.next().val}
         return None
 
     def ast_val(self, stm):
