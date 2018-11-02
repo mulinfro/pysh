@@ -130,7 +130,7 @@ def test_psh_file():
     pysh(os.path.join(PSH_DIR,"test.psh"))
         
 if __name__ == "__main__":
-    #test_psh_file()
+    test_psh_file()
     if len(sys.argv) > 1:
         pysh(sys.argv[1])
     else:

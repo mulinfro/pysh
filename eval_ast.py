@@ -306,7 +306,9 @@ def compute_expr(env, vals, ops):
         return binary_order(new_left, preorder)
 
     left = vals.pop(0)(env)
-    return binary_order(left, -1)
+    val = binary_order(left, -1)
+    del vals, ops
+    return val
 
 
 def parse_binary_expr(node):
@@ -484,10 +486,8 @@ def parse_tuple(node):
 def parse_dict(node):
     keys = parse_list(node["key"])
     vals = parse_list(node["val"])
-    res = {}
     def _dict(env):
-        res.update(list(zip(keys(env), vals(env))))
-        return res
+        return dict(zip(keys(env), vals(env)))
     return _dict
         
 def parse_if(node):
@@ -560,10 +560,11 @@ def parse_lambda(node):
     def _lambda(env):
         body_f = parse_expr(node["body"])
         def proc(*arg_val_list):
-            new_env = Env(outer = env)
-            if len(arg_var_list) != len(arg_val_list): Error("not enough arguments")
-            new_env.update(zip(arg_var_list,arg_val_list))
-            return body_f(new_env)
+            syntax_cond_assert(len(arg_var_list) == len(arg_val_list), "not enough arguments")
+            new_env = Env(arg_var_list, arg_val_list, outer = env)
+            val = body_f(new_env)
+            del new_env
+            return val
         return proc
 
     return _lambda
@@ -597,18 +598,17 @@ def parse_def(node):
     body_f = parse_block(node["body"])
 
     def _def(env):
-        new_env = Env(outer = env)
-        r_default_vals = [a(new_env) for a in default_vals]
+        r_default_vals = [a(env) for a in default_vals]
         def proc(*args_vals, **kwargs):
+            new_env = Env(outer = env)
             if len(args_vals) < len(args) or len(args_vals) > len(args) + len(default_args):
                 Error("%s() unexpected argument number"% node["name"])
             for k,v in kwargs.items():
                 if k not in default_args:
                     Error("%s() not defined argument %s"%(node["name"], k))
             # default args
-            new_env.update(list(zip(default_args, r_default_vals)))
-            av = list(zip(args + default_args, args_vals))
-            new_env.update(av)
+            new_env.update(zip(default_args, r_default_vals))
+            new_env.update(zip(args + default_args, args_vals))
             new_env.update(kwargs)
 
             try:
@@ -617,6 +617,7 @@ def parse_def(node):
                 return r.value(new_env)
             except Assert_exception as r:
                 assert r.value, r.msg + "error on here"
+            del new_env
 
         env[node["funcname"]] = proc
         #return "function: " + node["funcname"]
