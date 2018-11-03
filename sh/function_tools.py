@@ -10,11 +10,20 @@ _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile',
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
 __all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', '_while', 
-            'foldl', 'repeat', 'slf', '_if', "sequence"] + _pipe_func + _pipe_func_ori
+            'foldl', 'repeat', 'slf', '_if', "sequence", "swapListEle"] + _pipe_func + _pipe_func_ori
 
 def slf(x):
     """ slf: return self"""
     return x
+
+
+def swapListEle(list_obj, i=0, j=1)
+    """ swapListEle(list_obj, i=0, j=1) """
+    list_obj = list(list_obj)
+    tmp = list_obj[i]
+    list_obj[i] = list_obj[j]
+    list_obj[j] = tmp
+
 
 def sequence(funcs, ele):
     """ sequence(funcs, ele)"""
@@ -30,16 +39,18 @@ def _while(cond, func):
     while cond:
         func()
 
-def pbar(n=5000):
-    """ each N step: display progress in pipe """
+def pbar(n=5000, callback=None):
+    """ each N step: display progress in pipe and call callback func """
     def _pbar(iterable):
         i = 0
         for x in iterable:
             i = i + 1
             if i % n == 0:
                 print("Done: %d items"%i)
+                if callback: callback()
             yield x
         print("Done All: %d items"%i)
+        if callback: callback()
     return _pbar
    
 def _if(cond, true_v, false_v):
