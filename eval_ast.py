@@ -260,8 +260,7 @@ def parse_assign(node):
 
 def lst_combine(var, v):
     syntax_cond_assert(len(var) == len(v), "Value error: unpack %d values with %d variables"%(len(var), len(v)) )
-    pairs = list(zip(var, v))
-    return pairs
+    return list(zip(var, v))
 
 def parse_multi_assign(node):
     val = parse_pipe_or_expr(node["val"])

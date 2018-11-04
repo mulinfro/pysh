@@ -17,7 +17,7 @@ def slf(x):
     return x
 
 
-def swapListEle(list_obj, i=0, j=1)
+def swapListEle(list_obj, i=0, j=1):
     """ swapListEle(list_obj, i=0, j=1) """
     list_obj = list(list_obj)
     tmp = list_obj[i]
