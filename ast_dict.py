@@ -20,6 +20,8 @@ def syntax_assert_helper(stm, flag):
         syntax_assert(tkn, md[flag], error_msg)
 
 def check_expr_end(stm):
+    if not stm.eof() and stm.peek().tp == "END": 
+        return True
     syntax_assert_helper(stm, "EXPR_END")
 
 def check_newline(stm):
