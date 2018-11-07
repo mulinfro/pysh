@@ -26,6 +26,8 @@ operators = {
     "in":"IN",
 }
 
+operator_val_dict = dict( [ (y,x) for x, y in operators.items() ])
+
 special_op = {
     '::': 'PASSIGN',
     '=': 'ASSIGN',

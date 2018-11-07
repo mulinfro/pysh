@@ -4,7 +4,6 @@ class stream():
     def __init__(self, lst, pos=0):
         self._stream = lst
         self.pos = pos
-        self.token_record = []
 
     def lookahead(self):
         return self._stream[self.pos - 1]
@@ -19,7 +18,6 @@ class stream():
 
     def next(self):
         ch = self.peek()
-        self.token_record.append(ch)
         self.pos = self.pos + 1
         return ch
 
@@ -40,8 +38,3 @@ class stream():
 
     def crack(self, msg):
         Error("Syntax Error: " + msg, 0,0)
-
-    def get_record(self):
-        val =  self.token_record
-        self.token_record = []
-        return val

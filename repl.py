@@ -100,6 +100,7 @@ def parse_and_eval_with_env(script, env):
     #print("tokens", tokens)
     ast_tree = AST(stream(tokens))
     for node in ast_tree.ast:
+        #print(node)
         ans = parse(node)(env)
         if ans is None or node["type"] == "ASSIGN": continue
         if isinstance(ans, types.GeneratorType):
@@ -115,7 +116,6 @@ def pysh(psh_file, run=True):
     #parse_and_eval_with_env(script, env)
     try:
         parse_and_eval_with_env(script, env)
-        pass
     except Exception as e:
         print(repr(e))
         return None

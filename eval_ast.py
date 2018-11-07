@@ -38,7 +38,7 @@ def exception_warp(func, msg):
         try:
             return func(*args, **kargs)
         except Exception as r:
-            raise Exception(str(r) + "\n" + msg)
+            raise Exception(str(r) + " in '" + msg + "'")
 
     return _run_with_catch_exception
 
@@ -57,7 +57,7 @@ def parse_del(node):
         t = env.find(name)
         if t is None: Error("undefind variable %s"%name)
         del t[name]
-    return _del
+    return exception_warp(_del, node["msg"])
 
 def parse_sh(node):
     cmd = parse_pipe_or_expr(node["cmd"])
@@ -65,7 +65,7 @@ def parse_sh(node):
         cmd_val = cmd(env)
         syntax_cond_assert(type(cmd_val) == str, "Value Error: sh handles a string")
         return os_call(cmd_val)
-    return _sh
+    return exception_warp(_sh, node["msg"])
 
 def parse_cd(node):
     cmd = parse_pipe_or_expr(node["cmd"])
@@ -73,7 +73,7 @@ def parse_cd(node):
         cmd_val = cmd(env)
         syntax_cond_assert(type(cmd_val) in [ str, int], "Value Error: cd accept a string or int")
         return cd(cmd_val)
-    return _cd
+    return exception_warp(_cd, node["msg"])
 
 def parse_block_expr(node):
     if node["type"] == 'IF':
@@ -117,7 +117,7 @@ def parse_pipe(node):
         exprs, ops = copy.copy(g_exprs), copy.copy(g_ops)
         return compute_expr(env, exprs, ops)
 
-    return _eval_pipe
+    return exception_warp(_eval_pipe, node["msg"])
 
 def parse_expr(node):
     if node["type"] in ("ASSIGN", "GASSIGN"):
@@ -344,7 +344,7 @@ def parse_binary_expr(node):
         return warpper
 
     func = ori_warpper if partial_idx < 0 else partial_warpper
-    return exception_warp(func, "node")
+    return exception_warp(func, node["msg"])
 
 def parse_args(node):
     syntax_cond_assert(node["type"] in ("ARGS", "TUPLE", "PARN", "PARTIAL"), "error type")
@@ -424,13 +424,13 @@ def parse_unary(node):
         return warpper    
 
     if p_flag == "PARTIAL":
-        return ("PARTIAL", _unary_partial)
+        return ("PARTIAL", exception_warp(_unary_partial, node["msg"]) )
 
     for op in node["suffix"]:
         if op["type"] == "PARTIAL":
-            return ("PARTIAL", _unary)
+            return ("PARTIAL", exception_warp(_unary, node["msg"]))
 
-    return ("UNARY", _unary)
+    return ("UNARY", exception_warp(_unary, node["msg"]))
         
 # function call; var; literal value; unary operator
 def parse_val_expr(node):
@@ -455,7 +455,7 @@ def parse_val_expr(node):
         atom = parse_parn(node)
     else:
         Error("val_expr: " + t_type)
-    return ("VAL", atom)
+    return ("VAL", exception_warp(atom, node["msg"]))
 
 def parse_list_comp(node):
     interval = lambda env: 1
@@ -470,7 +470,7 @@ def parse_list_comp(node):
         interval_v = interval(env)
         return range(beg_v, end_v, interval_v)
 
-    return  _list_range
+    return  exception_warp(_list_range, node["msg"])
 
 def parse_list(node_list):
     res = []
@@ -491,14 +491,14 @@ def parse_list(node_list):
 
 def parse_tuple(node):
     val = parse_list(node["val"])
-    return lambda env: tuple(val(env))
+    return exception_warp(lambda env: tuple(val(env)), node["msg"])
 
 def parse_dict(node):
     keys = parse_list(node["key"])
     vals = parse_list(node["val"])
     def _dict(env):
         return dict(zip(keys(env), vals(env)))
-    return _dict
+    return exception_warp(_dict, node["msg"])
         
 def parse_if(node):
     else_f = parse_block(node["else"]) if node["else"] else lambda env: None 
@@ -524,7 +524,8 @@ def parse_in(node):
         for ele in v(env):
             yield lst_combine(var, ele)
 
-    return _p_in if node["var"]["type"] == "VAR_LIST" else _in
+    func =  _p_in if node["var"]["type"] == "VAR_LIST" else _in
+    return exception_warp(func, node["msg"])
 
 def parse_for(node):
     in_f = parse_in(node["in"])
@@ -577,7 +578,7 @@ def parse_lambda(node):
             return val
         return proc
 
-    return _lambda
+    return exception_warp(_lambda, node["msg"])
 
 def parse_var(node):
     var = node["name"]

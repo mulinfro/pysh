@@ -4,7 +4,7 @@
 """
 from stream import stream
 from syntax_check import *
-from builtin import Binary, Unary
+from builtin import Binary, Unary, operator_val_dict
 
 Tautology = lambda x: True
 
@@ -35,6 +35,9 @@ def check_eof(stm):
 
 def line_eof(stm):
     return stm.eof() or syntax_check(stm.peek(),  ("SEP", "NEWLINE"))
+
+def get_nodes_val(tkns, sep=" "):
+    return sep.join([tkn["msg"] for tkn in tkns])
 
 class AST():
     
@@ -67,8 +70,7 @@ class AST():
             pipes.append({"type":tkn.tp, "val":tkn.val})
             exprs.append(self.ast_expr(stm))
         if len(pipes) > 0:
-            nodemsg = " | ".join(exprs["msg"])
-            return {"type":"PIPE", "pipes":pipes, "exprs":exprs, "msg":nodemsg}
+            return {"type":"PIPE", "pipes":pipes, "exprs":exprs, "msg":get_nodes_val(exprs, " | ")}
         return left
 
     # 赋值；可连续赋值 x=y=z=1+1
@@ -77,7 +79,7 @@ class AST():
         if not stm.eof() and stm.peek().tp in ("ASSIGN", "GASSIGN"):
             tkn = stm.next()
             right = self.ast_try_assign(stm)
-            return {"type":tkn.tp, "var":left, "val":right, "msg":"%s %s %s"%( left.msg, tkn.val, right.msg) }
+            return {"type":tkn.tp, "var":left, "val":right, "msg":"%s %s %s"%( left["msg"], tkn.val, right["msg"]) }
         else:
             check_expr_end(stm)
             return left
@@ -90,8 +92,8 @@ class AST():
             stm.next()
 
         if len(var_list) == 1:
-            return {"type":"VAR", "name":var_list[0], "msg": "Var " + var_list[0]}
-        return {"type":"VAR_LIST", "names":var_list, "msg" : "Var list " + " ".join(var_list)}
+            return {"type":"VAR", "name":var_list[0], "msg": var_list[0]}
+        return {"type":"VAR_LIST", "names":var_list, "msg" : " ".join(var_list)}
 
     # python的import语法; 
     # pysh的import:  import(file_path) as name
@@ -146,7 +148,7 @@ class AST():
             stm.next()
             cond_expr = self.ast_try_pipe(stm)
         check_newline(stm)
-        return {"type": tp, "cond": cond_expr}
+        return {"type": tp, "cond": cond_expr, "msg": tp + " " + cond_expr["msg"]}
 
     def ast_return_assert(self, stm, tp):
         stm.next()
@@ -164,13 +166,13 @@ class AST():
         syntax_assert(stm.peek(), "VAR", "Usage: del var")
         var = self.ast_a_var(stm)
         check_newline(stm)
-        return {"type": "DEL", "var": var["name"] }
+        return {"type": "DEL", "var": var["name"], "msg":"del " + var["name"] }
 
     def ast_sh_or_cd(self, stm):
         tkn = stm.next()
         expr = self.ast_try_pipe(stm)
         check_newline(stm)
-        return {"type": tkn.tp, "cmd": expr }
+        return {"type": tkn.tp, "cmd": expr , "msg": tkn.val + " " + expr["msg"]}
 
     def ast_control(self, stm):
         tkn = stm.peek()
@@ -210,11 +212,12 @@ class AST():
         if is_partial or len(default_args) > 0:
             tp = "ARGS" if not is_partial else "PARTIAL"
             return {"type":tp, "val":vals, 
-                 "default_args": default_args, "default_vals":default_vals}
+                 "default_args": default_args, "default_vals":default_vals, 
+                 "msg": get_nodes_val(vals, ", ")}
         elif len(vals) != 1:
-            return {"type":"TUPLE", "val":vals}
+            return {"type":"TUPLE", "val":vals, "msg": get_nodes_val(vals, ", ")}
         else:
-            return {"type":"PARN",  "val":vals}
+            return {"type":"PARN",  "val":vals, "msg": get_nodes_val(vals, ", ")}
                 
 
     def ast_parn_eles(self, stm):
@@ -242,7 +245,8 @@ class AST():
             syntax_assert(stm.next(), "ELSE", "need else branch")
             else_part = self.ast_binary_expr(stm)
             return {"type":"SIMPLEIF", "then":true_part,
-                    "cond":cond, "else":else_part}
+                    "cond":cond, "else":else_part, 
+                    "msg": true_part["msg"] + " if " + cond["msg"] + " then " + else_part["msg"] }
         return true_part
                 
     def ast_def(self, stm):
@@ -252,12 +256,13 @@ class AST():
         body = self.ast_body(stm, self.ast_func_body)
         syntax_assert(stm.next(), "END", "missing END")
         return {"type":'DEF', "funcname":funcname["name"], 
-                "args":args, "body":body}
+                "args":args, "body":body, "msg":"def " + funcname["name"]}
         
     def ast_args(self, stm):
         syntax_assert(stm.peek(), "PARN", "need parenthese")
         t = self.ast_parn(stream(stm.next().val))
         t["type"] = "ARGS"
+        t["msg"] = "(" + t["msg"] + ")"
         return t
 
     def ast_body(self, stm, parse_func):
@@ -277,7 +282,7 @@ class AST():
     def ast_a_var(self, stm, error_msg = "expect a variable"):
         tkn = stm.next()
         syntax_assert(tkn, "VAR", error_msg)
-        return {"type":"VAR", "name":tkn.val}
+        return {"type":"VAR", "name":tkn.val, "msg": tkn.val}
 
     def ast_if(self, stm):
         condlist, do_list = [], []
@@ -296,7 +301,8 @@ class AST():
             stm.next()
             else_part = self.ast_body(stm, self.ast_block_expr)
         syntax_assert(stm.next(), "END", "'%s' missing END"%tkn.val)
-        return {"type":'IF', "cond":condlist, "then":do_list, "else":else_part}
+        return {"type":'IF', "cond":condlist, "then":do_list, "else":else_part, 
+                "msg": "if " + condlist[0]["msg"]}
         
     def ast_for(self, stm):
         stm.next(); tkn = stm.next()
@@ -304,7 +310,7 @@ class AST():
         _in = self.ast_in(stream(tkn.val))
         body = self.ast_body(stm, self.ast_block_expr)
         syntax_assert(stm.next(), "END", "missing END")
-        return {"type":"FOR", "in":_in, "body":body}
+        return {"type":"FOR", "in":_in, "body":body, "msg": "for " + _in["msg"]}
 
     def ast_while(self, stm):
         stm.next(); tkn = stm.next()
@@ -314,14 +320,14 @@ class AST():
         check_eof(cond_stream)
         body = self.ast_body(stm, self.ast_block_expr)
         syntax_assert(stm.next(), "END", "missing END")
-        return {"type":"WHILE", "cond":cond, "body":body}
+        return {"type":"WHILE", "cond":cond, "body":body, "msg":"while " + cond["msg"]}
 
     def ast_in(self, stm):
         var = self.ast_var_list(stm)
         syntax_assert(stm.next(), ("OP", "IN"), "syntax error in for setence")
         val = self.ast_try_pipe(stm)
         check_eof(stm)
-        return {"type":"IN", "var":var, "val":val }
+        return {"type":"IN", "var":var, "val":val , "msg": var["msg"] + "in" + val["msg"]}
 
     def ast_unary(self, stm):
         prefix = self.ast_prefix_op(stm)
@@ -329,12 +335,12 @@ class AST():
         suffix = self.ast_suffix_op(stm)
         if len(prefix["val"]) + len(suffix["val"]) == 0: return obj_val
         return {"type":"UNARY", "prefix":prefix["val"],
-                "obj":obj_val, "suffix":suffix["val"]}
+                "obj":obj_val, "suffix":suffix["val"], "msg": prefix["msg"] + obj_val["msg"] + suffix["msg"]}
 
     def ast_prefix_op(self, stm):
         is_valid = lambda tkn: tkn.tp == "OP" and tkn.val in Unary
         tps = self.ast_same_type_seq(stm, is_valid)
-        return {"type":"PREFIXOP", "val":tps}
+        return {"type":"PREFIXOP", "val":tps, "msg": "".join(tps)}
 
     def ast_suffix_op(self, stm):
         tps = []
@@ -346,12 +352,12 @@ class AST():
                 tps.append(self.ast_dot(stm))
             else:
                 break
-        return {"type":"SUFFIXOP", "val":tps}
+        return {"type":"SUFFIXOP", "val":tps, "msg": get_nodes_val(tps, "")}
 
     def ast_dot(self, stm):
         stm.next()
         var = self.ast_a_var(stm)
-        return {"type":"DOT", "attribute": var["name"]}
+        return {"type":"DOT", "attribute": var["name"], "msg":"."}
 
     def ast_binary_expr(self, stm):
         vals , ops = [], []
@@ -361,8 +367,11 @@ class AST():
             if op is None: break
             ops.append(op)
             vals.append(self.ast_unary(stm))
-        if len(ops) == 0: return vals[0]
-        else: return {"type":"BIEXPR", "val":vals, "op":ops}
+        if len(ops) == 0:
+            return vals[0]
+        else:
+            nodemsg = " ".join([ x["msg"] + " " + y["msg"] for x, y in zip(vals, ops) ]) + " " + vals[-1]["msg"]
+            return {"type":"BIEXPR", "val":vals, "op":ops, "msg": nodemsg}
 
     def ast_try_op(self, stm):
         tkn = stm.peek()
@@ -371,9 +380,9 @@ class AST():
                 stm.next()
                 tkn = stm.next()
                 syntax_cond_assert(tkn.val in ["IS", "IN"], "undefined OP: Not %s"%tkn.val)
-                return {"type":tkn.tp, "val": "NOT_" + tkn.val}
+                return {"type":tkn.tp, "val": "NOT_" + tkn.val, "msg": "not " + operator_val_dict[tkn.val]}
             elif tkn.val in Binary:
-                return {"type":tkn.tp, "val":stm.next().val}
+                return {"type":tkn.tp, "val":stm.next().val, "msg": operator_val_dict[tkn.val] }
         return None
 
     def ast_val(self, stm):
@@ -387,9 +396,9 @@ class AST():
         elif tkn.tp == "DICT":
             val = self.ast_dict(stream(tkn.val))
         elif tkn.tp == "VAR":
-            val = {"type":"VAR", "name":tkn.val}
+            val = {"type":"VAR", "name":tkn.val, "msg": tkn.val}
         elif tkn.tp in ('NUM', 'STRING', 'BOOL', "SYSCALL" ,"SYSFUNC", "NONE"):
-            val = {"type":tkn.tp, "val":tkn.val}
+            val = {"type":tkn.tp, "val":tkn.val, "msg": str(tkn.val)}
         else:
             Error("Parse Error:%s,%s"%(tkn.tp, str(tkn.val)), tkn.line, tkn.col)
 
@@ -399,7 +408,9 @@ class AST():
         args = self.ast_args(stm)
         syntax_assert(stm.next(), ("OP", "COLON"), "lambda missing :")
         body = self.ast_expr(stm)
-        return {"type":"LAMBDA", "args":args, "body":body}
+        print(body["msg"], args)
+        return {"type":"LAMBDA", "args":args, "body":body, 
+                "msg": "lambda " + args["msg"] + ":" + body["msg"]}
 
     def ast_list_comp(self, stm):
         beg = self.ast_try_pipe(stm)
@@ -410,13 +421,13 @@ class AST():
                 stm.next(); interval = self.ast_try_pipe(stm)
         check_comma(stm)
         if end is None: return beg
-        return {"type":"LISTCOM", "beg":beg, "end":end, "interval":interval}
+        return {"type":"LISTCOM", "beg":beg, "end":end, "interval":interval, "msg":beg["msg"] + ":" + end["msg"]}
         
     def ast_list(self, stm):
         vals = []
         while not stm.eof():
             vals.append(self.ast_list_comp(stm))
-        return {"type":"LIST", "val": vals}
+        return {"type":"LIST", "val": vals, "msg":"[ " + get_nodes_val(vals, ",") +  " ]"}
 
     def ast_dict(self, stm):
         key,val = [],[]
@@ -425,4 +436,6 @@ class AST():
             syntax_assert(stm.next(), ("OP","COLON"),  "missing colon :")
             val.append(self.ast_try_pipe(stm))
             check_comma(stm)
-        return {"type":"DICT", "key":key, "val":val}
+
+        nodemsg = [ x["msg"] + ": " + y["msg"] for x,y in zip(key, val)]
+        return {"type":"DICT", "key":key, "val":val, "msg": "{"  + ",".join(nodemsg) + "}" }
