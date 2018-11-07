@@ -67,7 +67,8 @@ class AST():
             pipes.append({"type":tkn.tp, "val":tkn.val})
             exprs.append(self.ast_expr(stm))
         if len(pipes) > 0:
-            return {"type":"PIPE", "pipes":pipes, "exprs":exprs}
+            nodemsg = " | ".join(exprs["msg"])
+            return {"type":"PIPE", "pipes":pipes, "exprs":exprs, "msg":nodemsg}
         return left
 
     # 赋值；可连续赋值 x=y=z=1+1
@@ -76,7 +77,7 @@ class AST():
         if not stm.eof() and stm.peek().tp in ("ASSIGN", "GASSIGN"):
             tkn = stm.next()
             right = self.ast_try_assign(stm)
-            return {"type":tkn.tp, "var":left, "val":right}
+            return {"type":tkn.tp, "var":left, "val":right, "msg":"%s %s %s"%( left.msg, tkn.val, right.msg) }
         else:
             check_expr_end(stm)
             return left
@@ -89,8 +90,8 @@ class AST():
             stm.next()
 
         if len(var_list) == 1:
-            return {"type":"VAR", "name":var_list[0]}
-        return {"type":"VAR_LIST", "names":var_list}
+            return {"type":"VAR", "name":var_list[0], "msg": "Var " + var_list[0]}
+        return {"type":"VAR_LIST", "names":var_list, "msg" : "Var list " + " ".join(var_list)}
 
     # python的import语法; 
     # pysh的import:  import(file_path) as name

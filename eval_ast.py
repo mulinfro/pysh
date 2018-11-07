@@ -32,6 +32,16 @@ class Break_exception(Exception):
     def __str__(self):
         return repr(self.value)
 
+
+def exception_warp(func, msg):
+    def _run_with_catch_exception(*args, **kargs):
+        try:
+            return func(*args, **kargs)
+        except Exception as r:
+            raise Exception(str(r) + "\n" + msg)
+
+    return _run_with_catch_exception
+
 def parse(node):
     if  node["type"] == 'DEF': 
         val = parse_def(node)
@@ -333,7 +343,8 @@ def parse_binary_expr(node):
             return compute_expr(env, vals, ops)
         return warpper
 
-    return ori_warpper if partial_idx < 0 else partial_warpper
+    func = ori_warpper if partial_idx < 0 else partial_warpper
+    return exception_warp(func, "node")
 
 def parse_args(node):
     syntax_cond_assert(node["type"] in ("ARGS", "TUPLE", "PARN", "PARTIAL"), "error type")
