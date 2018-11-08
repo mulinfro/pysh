@@ -5,7 +5,7 @@ from sh.utils import pipe_itertool, unlazyed
 
 _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile', 
             'map', 'filter', 'filter_not', 'flat', 'flatMap', 'chunks', 
-            'zip2','zip3', 'zipWithIndex', 'FM', 'MF', 'mmap', 'dmap', 'kmap', 'splitList']
+            'zip2','zip3', 'zipWithIndex', 'FM', 'MF', 'mmap', 'dmap', 'colMap', 'splitList']
 
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
@@ -223,13 +223,16 @@ def dmap(func1, func2, iterable):
         yield (func1(ele), func2(ele))
 _dmap = unlazyed(dmap)
 
-def kmap(k, func, iterable):
-    """Lazyed: kmap(k, func, iterable)"""
+def colMap(k, func, iterable):
+    """Lazyed: colMap(cols, func, iterable)"""
     for ele in iterable:
         ele = list(ele)
-        ele[k] = func(ele[k])
+        if type(k) in [list, tuple]:
+            for ki in k: ele[ki] = func(ele[ki])
+        else:
+            ele[k] = func(ele[k])
         yield ele
-_kmap = unlazyed(kmap)
+_colMap = unlazyed(colMap)
 
 def filter(func, iterable):
     """filter(func, iterable)"""

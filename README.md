@@ -227,7 +227,7 @@ python3 repl.py test.psh params  # run a psh file, main function is entry point
 |id| functions | describe |
 |---| :------------: |:---------------:|
 |1| take, takeWhile, drop, dropWhile |  describe |
-|2| map,_map, filter, FM, MF, mmap, dmap, kmap | _map:非lazed, FM = filter&map, MF与FM相反, mmap = map&map, dmap = (map1, map2) , kmap= map kth element  | 
+|2| map,_map, filter, FM, MF, mmap, dmap, colMap | _map:非lazed, FM = filter&map, MF与FM相反, mmap = map&map, dmap = (map1, map2) , colMap= map selected cols element  | 
 |3| groupBy, groupMap, mapValues, flat, flatMap, foldl  |  foldl=reduce, flat= [[..],[..]..] -> [...]; flatMap=flat&map, mapValues对dict value的map，会修改原dict |
 |4| zip2, zip3, zipWithIndex, unzip, chunks, _splitList | zip functions |
 |5| gen, slf, repeat, _if, foreach, _while, _rSel, _colSel | slf返回自身, _colSel = L(x)：x[...]  |
@@ -245,10 +245,10 @@ func会遍历一个可迭代对象，并调用_func, `func = map@ _func(...)`;
 `grep, egrep, colSel, list_format, format, extract, replace, tojson, dumps, strip, split, rSel`
 
 
-` wrapList, take, takeWhile, drop, dropWhile, map, filter, filter_not, flat, flatMap, chunks, zip2,zip3, zipWithIndex, FM, MF, mmap, dmap, kmap`
+` wrapList, take, takeWhile, drop, dropWhile, map, filter, filter_not, flat, flatMap, chunks, zip2,zip3, zipWithIndex, FM, MF, mmap, dmap, colMap`
 这些函数是惰性求值的(lazyed)， 返回结果是一个生成器对象，有的时候希望立刻得到所有值，有两种方式，一种是 `map(..) | list`, 另一种方式是用带前缀下划线”_“的版本,如 `_map(..)`;  
 
-`_wrapList, _take, _takeWhile, _drop, _dropWhile, _map, _filter, filter_not, _flat, _flatMap, _chunks, _zip2, _zip3, _zipWithIndex, _FM, _MF, _mmap, _dmap, _kmap`
+`_wrapList, _take, _takeWhile, _drop, _dropWhile, _map, _filter, filter_not, _flat, _flatMap, _chunks, _zip2, _zip3, _zipWithIndex, _FM, _MF, _mmap, _dmap, _colMap`
             
 值得注意， 上面和下面的带下划线的函数与其对应不带下划线的函数间的关系是有差异的
 			
