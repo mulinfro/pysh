@@ -9,7 +9,7 @@ _pipe_func = ['grep', 'egrep', 'colSel', 'list_format', 'format',
             'extract', 'replace', 'tojson', 'dumps', 'strip', 
             'split', 'rSel' ]
 _other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more', 'head',
-            'join', 'findall', 'search', 'uniq', 'ksort']
+            'join', 'findall', 'search', 'uniq', 'ksort', 'sort']
 
 __all__ = _pipe_func + _other_func + list(map(lambda x: "_"+x, _pipe_func))
 
@@ -213,13 +213,23 @@ def _split(sep, string, cnt=-1, p=""):
 
 split = pipe_itertool(_split, 1)
 
-def ksort(k, lines, p=""):
-    """ksort(k, lines, p="")
-    k: kth element as key
+def ksort(k, lst, key=lambda x:x, p=""):
+    """ksort(k, lst, key, p="")
+    key(ele[k]): kth element as key
     p="r" -> reversed
     """
     rev_flag = True if "r" in p else False
-    return sorted(lines, key=lambda x:x[k], reverse = rev_flag)
+    lst.sort(key=lambda x:key(x[k]), reverse = rev_flag)
+    return lst
+
+def sort(lst, key=lambda x:x, p=""):
+    """sort(lst, key, p="")
+    key(ele): element as key
+    p="r" -> reversed
+    """
+    rev_flag = True if "r" in p else False
+    lst.sort(key=key, reverse = rev_flag)
+    return lst
 
 def uniq(iterable):
     """uniq(iterable)"""

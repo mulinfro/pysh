@@ -2,7 +2,9 @@
     builtin operators
 """
 import operator, os, config
-import types, json
+import json
+from collections import Iterable
+
 
 operators = {
     '+': 'ADD',
@@ -24,6 +26,9 @@ operators = {
     ".": "DOT",
     "is":"IS",
     "in":"IN",
+    "or":"OR",
+    "and":"AND",
+    "not":"NOT",
 }
 
 operator_val_dict = dict( [ (y,x) for x, y in operators.items() ])
@@ -123,7 +128,8 @@ def var2str(var):
 
 def _write_helper(var, filename, mode):
     with open(filename, mode) as f:
-        if isinstance(var, types.GeneratorType):
+        #if isinstance(var, types.GeneratorType):
+        if isinstance(var, Iterable) and type(var) != str:
             for e in var: f.write(var2str(e) + "\n")
         else:
             f.write(var2str(var))

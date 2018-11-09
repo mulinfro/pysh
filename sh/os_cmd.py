@@ -14,6 +14,10 @@ def doc(obj):
     """return python object's __doc__"""
     print(obj.__doc__)
 
+def path_expand(path):
+    if path.startswith("~"):
+        return os.path.expanduser("~") + path[1:]
+    return path
 
 def is_file(filename):
     return os.path.isfile(filename)
@@ -43,6 +47,7 @@ def ls(path=".", p=""):
     if "f" not in p and "d" not in p:
         p = p + "df"
     ans = []
+    path = path_expand(path) 
     for filename in os.listdir(path):
         new_path = os.path.join(path,filename)
         if os.path.isdir(new_path):
@@ -63,6 +68,7 @@ def mkdir(path, mode=0o777, p=""):
        mode:  permission default 0777
        p = [r]  r recursive mkdir
     """
+    path = path_expand(path) 
     if "r" in p:
         os.makedirs(path, mode);
     else:
@@ -73,6 +79,7 @@ def rm(fpath, p=""):
        p = [r]  
        r recursive remove
     """
+    fpath = path_expand(fpath) 
     if len(fpath) < 2: return
     if "r" not in p:
         os.remove(fpath)

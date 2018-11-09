@@ -209,15 +209,16 @@ class AST():
                 vals.append(e)
                 if e["type"] == "VAR" and e["name"] == "_": is_partial = True
         
+        nodemsg = "(" + get_nodes_val(vals, ", ") + ")"
         if is_partial or len(default_args) > 0:
             tp = "ARGS" if not is_partial else "PARTIAL"
             return {"type":tp, "val":vals, 
                  "default_args": default_args, "default_vals":default_vals, 
-                 "msg": get_nodes_val(vals, ", ")}
+                 "msg": nodemsg }
         elif len(vals) != 1:
-            return {"type":"TUPLE", "val":vals, "msg": get_nodes_val(vals, ", ")}
+            return {"type":"TUPLE", "val":vals, "msg": nodemsg }
         else:
-            return {"type":"PARN",  "val":vals, "msg": get_nodes_val(vals, ", ")}
+            return {"type":"PARN",  "val":vals, "msg": nodemsg }
                 
 
     def ast_parn_eles(self, stm):
@@ -262,7 +263,6 @@ class AST():
         syntax_assert(stm.peek(), "PARN", "need parenthese")
         t = self.ast_parn(stream(stm.next().val))
         t["type"] = "ARGS"
-        t["msg"] = "(" + t["msg"] + ")"
         return t
 
     def ast_body(self, stm, parse_func):
@@ -380,9 +380,9 @@ class AST():
                 stm.next()
                 tkn = stm.next()
                 syntax_cond_assert(tkn.val in ["IS", "IN"], "undefined OP: Not %s"%tkn.val)
-                return {"type":tkn.tp, "val": "NOT_" + tkn.val, "msg": "not " + operator_val_dict[tkn.val]}
+                return {"type":tkn.tp, "val": "NOT_" + tkn.val, "msg": "not " + operator_val_dict.get(tkn.val, tkn.val)}
             elif tkn.val in Binary:
-                return {"type":tkn.tp, "val":stm.next().val, "msg": operator_val_dict[tkn.val] }
+                return {"type":tkn.tp, "val":stm.next().val, "msg": operator_val_dict.get(tkn.val, tkn.val) }
         return None
 
     def ast_val(self, stm):
