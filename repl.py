@@ -91,7 +91,7 @@ def REPL():
             try:
                 parse_and_eval_with_env(script, env)
             except Exception as e:
-                print(repr(e))
+                print(str(e))
             except KeyboardInterrupt:
                 print("KeyboardInterrupt")
 

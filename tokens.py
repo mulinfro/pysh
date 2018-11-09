@@ -29,6 +29,7 @@ keywords = {
 "del" :  "DEL",
 "sh" :  "SH",
 "cd" :  "CD",
+"catch": "CATCH",
 }
 
 # 字符转义表， 字符串解析中使用

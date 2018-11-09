@@ -6,7 +6,7 @@ cdh = []
 # repl command history
 history = []
 # record repl commands length
-HISLENGTH = 20
+HISLENGTH = 200
 IN = "$> "
 
 

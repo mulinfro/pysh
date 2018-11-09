@@ -70,7 +70,8 @@ class AST():
             pipes.append({"type":tkn.tp, "val":tkn.val})
             exprs.append(self.ast_expr(stm))
         if len(pipes) > 0:
-            return {"type":"PIPE", "pipes":pipes, "exprs":exprs, "msg":get_nodes_val(exprs, " | ")}
+            nodemsg = " ".join([ x["msg"] + " " + y["msg"] for x, y in zip(exprs, pipes) ]) + " " + exprs[-1]["msg"]
+            return {"type":"PIPE", "pipes":pipes, "exprs":exprs, "msg":nodemsg }
         return left
 
     # 赋值；可连续赋值 x=y=z=1+1
@@ -384,6 +385,13 @@ class AST():
             elif tkn.val in Binary:
                 return {"type":tkn.tp, "val":stm.next().val, "msg": operator_val_dict.get(tkn.val, tkn.val) }
         return None
+
+
+    def ast_block(self, stm):
+        """ exprs defined in {...} """
+        pass
+
+
 
     def ast_val(self, stm):
         tkn = stm.next()

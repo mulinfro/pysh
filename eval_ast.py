@@ -2,45 +2,11 @@ from builtin import operators, op_order, Binary, Unary, op_right, os_call, cd
 import copy
 from env import Env
 from syntax_check import Error, syntax_cond_assert
-
+from exception import Return_exception, Assert_exception, Continue_exception, Break_exception, exception_warp
 PARTIAL_FLAG = lambda f: f  
 PARTIAL_FLAG_LAMBDA = lambda env: PARTIAL_FLAG
 
-# 使用异常来实现控制流跳转
-class Return_exception(Exception):
-    def __init__(self, value):
-        self.value = value
-    def __str__(self):
-        return "return"
 
-class Assert_exception(Exception):
-    def __init__(self, value, msg):
-        self.value = value
-        self.msg = msg
-    def __str__(self):
-        return "assert"
-
-class Continue_exception(Exception):
-    def __init__(self):
-        self.value = "continue"
-    def __str__(self):
-        return repr(self.value)
-
-class Break_exception(Exception):
-    def __init__(self):
-        self.value = "break"
-    def __str__(self):
-        return repr(self.value)
-
-
-def exception_warp(func, msg):
-    def _run_with_catch_exception(*args, **kargs):
-        try:
-            return func(*args, **kargs)
-        except Exception as r:
-            raise Exception(str(r) + " in '" + msg + "'")
-
-    return _run_with_catch_exception
 
 def parse(node):
     if  node["type"] == 'DEF': 
