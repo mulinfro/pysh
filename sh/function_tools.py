@@ -137,7 +137,7 @@ def unzip(iterable):
     it = iter(iterable)
     val = next(it)
     ans = [ [x] for x in val ]
-    for ele in enumerate(it):
+    for ele in it:
         for i,x in enumerate(ele):
             ans[i].append(x)
     return ans

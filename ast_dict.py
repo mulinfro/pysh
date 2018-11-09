@@ -408,7 +408,6 @@ class AST():
         args = self.ast_args(stm)
         syntax_assert(stm.next(), ("OP", "COLON"), "lambda missing :")
         body = self.ast_expr(stm)
-        print(body["msg"], args)
         return {"type":"LAMBDA", "args":args, "body":body, 
                 "msg": "lambda " + args["msg"] + ":" + body["msg"]}
 
