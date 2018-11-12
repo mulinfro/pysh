@@ -71,8 +71,19 @@ class AST():
             exprs.append(self.ast_expr(stm))
         if len(pipes) > 0:
             nodemsg = " ".join([ x["msg"] + " " + y["msg"] for x, y in zip(exprs, pipes) ]) + " " + exprs[-1]["msg"]
-            return {"type":"PIPE", "pipes":pipes, "exprs":exprs, "msg":nodemsg }
-        return left
+            pipe_expr = {"type":"PIPE", "pipes":pipes, "exprs":exprs, "msg":nodemsg }
+        ans_expr = pipe_expr if len(pipes) > 0 else left
+        while not stm.eof() and stm.peek().tp == "CATCHED":
+            stm.next()
+            tkn = stm.peek()
+            if tkn.tp == 'DICT':
+                exception_handle_body = self.ast_body(stream(tkn.val), self.ast_block_expr)
+            elif stm.peek().tp == "RAISE":
+                exception_handle_body = self.ast_return_raise(stm)
+            else:
+                exception_handle_body = self.ast_try_pipe(stm)
+            return {"type":"CATCHED",  "expr":ans_expr, "handle": exception_handle_body, "msg": "in line %d, col %d "%(tkn.line, tkn.col)}
+        return ans_expr
 
     # 赋值；可连续赋值 x=y=z=1+1
     def ast_try_assign(self, stm):
@@ -137,8 +148,8 @@ class AST():
             return self.ast_control(stm)
         elif stm.peek().tp in ["BREAK", "CONTINUE"]:
             return self.ast_bc(stm)
-        elif stm.peek().tp == "RETURN":
-            return self.ast_return_assert(stm, stm.peek().tp)
+        elif stm.peek().tp in ["RETURN", "RAISE"]:
+            return self.ast_return_raise(stm)
         else:
             return self.ast_assign_or_command(stm)
 
@@ -151,16 +162,15 @@ class AST():
         check_newline(stm)
         return {"type": tp, "cond": cond_expr, "msg": tp + " " + cond_expr["msg"]}
 
-    def ast_return_assert(self, stm, tp):
+    def ast_assert(self, stm):
         stm.next()
         expr = self.ast_try_pipe(stm)
-        msg = None
+        info = None
         if not stm.eof() and syntax_check(stm.peek(), ("SEP", "COMMA")):
             stm.next()
-            msg = self.ast_try_pipe(stm)
+            info = self.ast_try_pipe(stm)
         check_newline(stm)
-        syntax_cond_assert(tp == "ASSERT" or msg==None, "syntax error: return")
-        return {"type": tp, "rval": expr, "msg":msg}
+        return {"type": tp, "rval": expr, "info":info}
 
     def ast_del(self, stm):
         stm.next()
@@ -174,6 +184,14 @@ class AST():
         expr = self.ast_try_pipe(stm)
         check_newline(stm)
         return {"type": tkn.tp, "cmd": expr , "msg": tkn.val + " " + expr["msg"]}
+
+    def ast_return_raise(self, stm):
+        tkn = stm.next()
+        if stm.eof() or stm.peek().tp == "SEP":
+            return {"type": tkn.tp, "rval": None , "msg": tkn.val }
+        expr = self.ast_try_pipe(stm)
+        if tkn.tp == "RETURN": check_newline(stm)
+        return {"type": tkn.tp, "rval": expr , "msg": tkn.val + " " + expr["msg"]}
 
     def ast_control(self, stm):
         tkn = stm.peek()
@@ -231,7 +249,7 @@ class AST():
 
     def ast_assign_or_command(self, stm):
         if stm.peek().tp == "ASSERT":
-            return self.ast_return_assert(stm, "ASSERT")
+            return self.ast_assert(stm)
         elif stm.peek().tp == "DEL":
             return self.ast_del(stm)
         elif stm.peek().tp in [ "SH", 'CD']:

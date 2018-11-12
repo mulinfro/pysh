@@ -10,6 +10,6 @@ HISLENGTH = 200
 IN = "$> "
 
 
-repl_init_str = """  PYSH: sh & python & functional programming
+repl_init_str = """  PYSH: shell & python & functional programming
   repl commands: [history -> cmd list; exit -> exit;  clear -> clear environment]
 """

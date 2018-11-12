@@ -41,6 +41,34 @@ def parse_cd(node):
         return cd(cmd_val)
     return exception_warp(_cd, node["msg"])
 
+
+def parse_catched(node):
+    expr = parse_block_expr(node["expr"])
+    if type(node["handle"]) == list:
+        handle = parse_block(node["handle"])
+    else:
+        handle = parse_pipe_or_expr(node["handle"])
+
+    def _catched(env):
+        try:
+            return expr(env)
+        except:
+            return handle(expr)
+
+    return _catched
+
+def rasie(node):
+    if node["expr"]:
+        expr = parse_pipe_or_expr(node["rval"])
+    else:
+        expr = lambda env: None
+
+    def _raise(env):
+        val = expr(env)
+        raise Exception(val)
+
+    return _raise
+
 def parse_block_expr(node):
     if node["type"] == 'IF':
         val = parse_if(node)
@@ -76,12 +104,13 @@ def parse_pipe_or_expr(node):
         return parse_expr(node)
 
 def parse_pipe(node):
-    g_exprs = list(map(parse_expr, node["exprs"]))
+    tmp = list(map(parse_expr, node["exprs"]))
+    left, g_exprs = tmp[0], tmp[1:]
     g_ops  = list(map(parse_bi_oper, node["pipes"]))
 
-    def _eval_pipe(env):
+    def _eval_pipe(env, left=left):
         exprs, ops = copy.copy(g_exprs), copy.copy(g_ops)
-        return compute_expr(env, exprs, ops)
+        return compute_expr(env, exprs, ops, left(env))
 
     return exception_warp(_eval_pipe, node["msg"])
 
@@ -106,7 +135,7 @@ def parse_simple_expr(node):
 
 def parse_assert(node):
     rval = parse_pipe_or_expr(node["rval"])
-    msg = parse_pipe_or_expr(node["msg"]) if node["msg"] else None
+    msg = parse_pipe_or_expr(node["info"]) if node["info"] else None
 
     def _assert_condition(env):
         cond = rval(env)
@@ -260,7 +289,7 @@ def parse_bi_oper(node):
     return op_info
 
 
-def compute_expr(env, vals, ops):
+def compute_expr(env, vals, ops, left):
     def binary_order(left, preorder):
         if len(ops) <= 0: return left
         if preorder >= ops[0]["order"]: return left
@@ -280,7 +309,6 @@ def compute_expr(env, vals, ops):
         new_left = my_op["func"](left,right)
         return binary_order(new_left, preorder)
 
-    left = vals.pop(0)(env)
     val = binary_order(left, -1)
     del vals, ops
     return val
@@ -299,14 +327,14 @@ def parse_binary_expr(node):
             partial_idx = i
     
     def ori_warpper(env):
-        vals, ops = copy.copy(g_vals), copy.copy(g_ops)
-        return compute_expr(env, vals, ops)
+        vals, ops = copy.copy(g_vals[1:]), copy.copy(g_ops)
+        return compute_expr(env, vals, ops, vals[0](env))
 
     def partial_warpper(env):
         def warpper(v):
             vals, ops = copy.copy(g_vals), copy.copy(g_ops)
             vals[partial_idx] = lambda env: g_vals[partial_idx](env)(v)
-            return compute_expr(env, vals, ops)
+            return compute_expr(env, vals[1:], ops, vals[0](env))
         return warpper
 
     func = ori_warpper if partial_idx < 0 else partial_warpper
@@ -558,7 +586,8 @@ def parse_block(node):
     exprs = list(map(parse, node))
     def squence_do(env):
         for expr in exprs: 
-            expr(env)
+            val = expr(env)
+        return val    # last expr as val; same with scala
     return squence_do
 
 def parse_def(node):
