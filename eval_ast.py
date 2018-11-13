@@ -1,5 +1,6 @@
 from builtin import operators, op_order, Binary, Unary, op_right, os_call, cd
 import copy
+from types import GeneratorType
 from env import Env
 from syntax_check import Error, syntax_cond_assert
 from exception import Return_exception, Assert_exception, Continue_exception, Break_exception, exception_warp
@@ -51,13 +52,21 @@ def parse_catched(node):
 
     def _catched(env):
         try:
-            return expr(env)
-        except:
-            return handle(expr)
+            print("run catch")
+            val = expr(env)
+            print("run catch2")
+            return val
+        except Exception as e:
+            print("type error: " + str(e))
+            print("exception3")
+            handled_value = handle(env)
+            if node["expr"]["type"] == "PIPE" and "__pipe_continue_point" in env:
+                return expr(env, env["__pipe_continue_point"])
+            return handled_value
 
     return _catched
 
-def rasie(node):
+def parse_rasie(node):
     if node["expr"]:
         expr = parse_pipe_or_expr(node["rval"])
     else:
@@ -93,6 +102,8 @@ def parse_expr_or_command(node):
         val = parse_sh(node)
     elif node["type"] == "CD":
         val = parse_cd(node)
+    elif node["type"] == "RAISE":
+        val = parse_rasie(node)
     else:
         val = parse_pipe_or_expr(node)
     return val
@@ -100,6 +111,8 @@ def parse_expr_or_command(node):
 def parse_pipe_or_expr(node):
     if node["type"] == "PIPE":
         return parse_pipe(node)
+    elif node["type"] == "CATCHED":
+        return parse_catched(node)
     else:
         return parse_expr(node)
 
@@ -108,9 +121,17 @@ def parse_pipe(node):
     left, g_exprs = tmp[0], tmp[1:]
     g_ops  = list(map(parse_bi_oper, node["pipes"]))
 
-    def _eval_pipe(env, left=left):
+    def _eval_pipe(env, continue_point = None):
+        if continue_point is None:
+            left_val = left(env)
+            if isinstance(left_val, GeneratorType):
+                env["__pipe_continue_point"] = left_val
+        else:
+            left_val = continue_point
         exprs, ops = copy.copy(g_exprs), copy.copy(g_ops)
-        return compute_expr(env, exprs, ops, left(env))
+        ans_val =  compute_expr(env, exprs, ops, left_val)
+        if "__pipe_continue_point" in env:  del env["__pipe_continue_point"]
+        return ans_val
 
     return exception_warp(_eval_pipe, node["msg"])
 

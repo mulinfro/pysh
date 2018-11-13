@@ -67,7 +67,7 @@ class AST():
         pipes, exprs = [], [left]
         while not stm.eof() and stm.peek().tp == "PIPE":
             tkn = stm.next()
-            pipes.append({"type":tkn.tp, "val":tkn.val})
+            pipes.append({"type":tkn.tp, "val":tkn.val, "msg": tkn.val})
             exprs.append(self.ast_expr(stm))
         if len(pipes) > 0:
             nodemsg = " ".join([ x["msg"] + " " + y["msg"] for x, y in zip(exprs, pipes) ]) + " " + exprs[-1]["msg"]
@@ -82,6 +82,7 @@ class AST():
                 exception_handle_body = self.ast_return_raise(stm)
             else:
                 exception_handle_body = self.ast_try_pipe(stm)
+            print("type:catched")
             return {"type":"CATCHED",  "expr":ans_expr, "handle": exception_handle_body, "msg": "in line %d, col %d "%(tkn.line, tkn.col)}
         return ans_expr
 

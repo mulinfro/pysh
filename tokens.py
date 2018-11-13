@@ -31,7 +31,7 @@ keywords = {
 "cd" :  "CD",
 "catch": "CATCH",
 "catched": "CATCHED",
-"raise": "RAISE"，
+"raise": "RAISE",
 }
 
 # 字符转义表， 字符串解析中使用
