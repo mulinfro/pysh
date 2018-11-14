@@ -78,11 +78,11 @@ class AST():
             tkn = stm.peek()
             if tkn.tp == 'DICT':
                 exception_handle_body = self.ast_body(stream(tkn.val), self.ast_block_expr)
-            elif stm.peek().tp == "RAISE":
+                stm.next()
+            elif tkn.tp == "RAISE":
                 exception_handle_body = self.ast_return_raise(stm)
             else:
                 exception_handle_body = self.ast_try_pipe(stm)
-            print("type:catched")
             return {"type":"CATCHED",  "expr":ans_expr, "handle": exception_handle_body, "msg": "in line %d, col %d "%(tkn.line, tkn.col)}
         return ans_expr
 
@@ -289,7 +289,7 @@ class AST():
         body = []
         while True:
             self.newlines(stm)
-            if stm.peek().tp in ("ELSE", "END", "ELIF"): return body
+            if stm.eof() or stm.peek().tp in ("ELSE", "END", "ELIF"): return body
             body.append(parse_func(stm))
     
     def ast_func_body(self, stm):

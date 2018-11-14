@@ -88,7 +88,7 @@ def REPL():
         if block_num == 0:
             script = char_stream("\n".join(cmdlines) +"\n")
             cmdlines.clear()
-            parse_and_eval_with_env(script, env)
+            #parse_and_eval_with_env(script, env)
             try:
                 parse_and_eval_with_env(script, env)
             except Exception as e:

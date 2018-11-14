@@ -31,8 +31,6 @@ operators = {
     "not":"NOT",
 }
 
-operator_val_dict = dict( [ (y,x) for x, y in operators.items() ])
-
 special_op = {
     '::': 'PASSIGN',
     '=': 'ASSIGN',
@@ -45,6 +43,10 @@ pipe_op = {
     '&>>': 'APPEND',
     "@" :"COMB",
 }
+
+operator_val_dict = dict( [ (y,x) for x, y in operators.items() ] +
+                        [ (y,x) for x, y in special_op.items() ] +
+                        [ (y,x) for x, y in pipe_op.items() ])
 
 op_order = {
     'WRITE':1,
