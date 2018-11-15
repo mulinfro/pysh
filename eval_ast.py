@@ -349,7 +349,7 @@ def parse_binary_expr(node):
     
     def ori_warpper(env):
         vals, ops = copy.copy(g_vals[1:]), copy.copy(g_ops)
-        return compute_expr(env, vals, ops, vals[0](env))
+        return compute_expr(env, vals, ops, g_vals[0](env))
 
     def partial_warpper(env):
         def warpper(v):
