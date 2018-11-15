@@ -3,7 +3,7 @@ import copy
 from types import GeneratorType
 from env import Env
 from syntax_check import Error, syntax_cond_assert
-from exception import Return_exception, Assert_exception, Continue_exception, Break_exception, exception_warp
+from exception import Return_exception, Assert_exception, Continue_exception, Break_exception, exception_warp, Pipe_generator
 PARTIAL_FLAG = lambda f: f  
 PARTIAL_FLAG_LAMBDA = lambda env: PARTIAL_FLAG
 
@@ -38,7 +38,7 @@ def parse_cd(node):
     cmd = parse_pipe_or_expr(node["cmd"])
     def _cd(env):
         cmd_val = cmd(env)
-        syntax_cond_assert(type(cmd_val) in [ str, int], "Value Error: cd accept a string or int")
+        syntax_cond_assert(type(cmd_val) in [str, int], "Value Error: cd accept a string or int")
         return cd(cmd_val)
     return exception_warp(_cd, node["msg"])
 
@@ -52,13 +52,10 @@ def parse_catched(node):
 
     def _catched(env):
         try:
-            print("run catch")
             val = expr(env)
-            print("run catch2")
-            return val
+            return Pipe_generator(val, handle, env)
         except Exception as e:
             print("type error: " + str(e))
-            print("exception3")
             handled_value = handle(env)
             if node["expr"]["type"] == "PIPE" and "__pipe_continue_point" in env:
                 return expr(env, env["__pipe_continue_point"])

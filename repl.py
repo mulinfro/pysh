@@ -5,6 +5,7 @@ from ast_dict import AST
 from tokens import token_list
 from env import get_builtin_env, Env
 from config import IN, HISLENGTH, repl_init_str
+from exception import Pipe_generator
 import os, types, sys, glob
 PSH_DIR = sys.path[0]
 
@@ -104,7 +105,7 @@ def parse_and_eval_with_env(script, env):
         #print(node)
         ans = parse(node)(env)
         if ans is None or node["type"] == "ASSIGN": continue
-        if isinstance(ans, types.GeneratorType):
+        if isinstance(ans, types.GeneratorType) or isinstance(ans, Pipe_generator):
             for e in ans: 
                 print(":> ", e)
         else:

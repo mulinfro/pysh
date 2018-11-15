@@ -45,3 +45,21 @@ def exception_warp(func, msg):
             raise Trace_exception(repr(r), "-> " + msg)
             
     return _run_with_catch_exception
+
+
+class Pipe_generator:
+    def __init__(self, gen, handle, env):
+        self.generator = gen
+        self.handle = handle
+        self.env = env
+
+    def __next__(self):
+        try:
+            return self.generator.__next__()
+        except StopIteration:
+            raise StopIteration
+        except:
+            return self.handle(self.env)
+
+    def __iter__(self):
+        return self
