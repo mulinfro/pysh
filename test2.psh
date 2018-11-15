@@ -1,0 +1,9 @@
+
+  # pysh PYSH
+
+">>> pipe multiline"
+ a = [1,2,3] | gen
+ a |
+   map@ _ +1 | 
+   map@_*3
+

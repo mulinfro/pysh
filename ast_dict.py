@@ -68,6 +68,7 @@ class AST():
         while not stm.eof() and stm.peek().tp == "PIPE":
             tkn = stm.next()
             pipes.append({"type":tkn.tp, "val":tkn.val, "msg": tkn.val})
+            self.newlines(stm)
             exprs.append(self.ast_expr(stm))
         if len(pipes) > 0:
             nodemsg = " ".join([ x["msg"] + " " + y["msg"] for x, y in zip(exprs, pipes) ]) + " " + exprs[-1]["msg"]
