@@ -63,12 +63,8 @@ def parse_catched(node):
 
     return _catched
 
-def parse_rasie(node):
-    if node["expr"]:
-        expr = parse_pipe_or_expr(node["rval"])
-    else:
-        expr = lambda env: None
-
+def parse_raise(node):
+    expr = expr_or_default(node["rval"], None)
     def _raise(env):
         val = expr(env)
         raise Exception(val)
@@ -100,7 +96,7 @@ def parse_expr_or_command(node):
     elif node["type"] == "CD":
         val = parse_cd(node)
     elif node["type"] == "RAISE":
-        val = parse_rasie(node)
+        val = parse_raise(node)
     else:
         val = parse_pipe_or_expr(node)
     return val
@@ -150,6 +146,10 @@ def parse_simple_expr(node):
         val = parse_unary(node)[1]
     return val
 
+def expr_or_default(node, default_val):
+    if node:
+        return parse_pipe_or_expr(node)
+    return lambda env: default_val
 
 def parse_assert(node):
     rval = parse_pipe_or_expr(node["rval"])
@@ -167,18 +167,14 @@ def parse_flow_goto(node):
         raise val
 
     if node["type"] == "RETURN":
-        rval = parse_pipe_or_expr(node["rval"])
+        rval = expr_or_default(node["rval"], None)
         return lambda env: _raise_error(Return_exception(rval))
     elif node["type"] == "BREAK":
         val = Break_exception()
     else:
         val = Continue_exception()
 
-    if node["cond"]:
-        cond = parse_pipe_or_expr(node["cond"])
-    else:
-        cond = lambda env: True
-
+    cond = expr_or_default(node["cond"], True)
     return lambda env: _raise_error(val) if cond(env) else None
 
 def parse_import(node):

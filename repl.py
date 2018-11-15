@@ -102,7 +102,6 @@ def parse_and_eval_with_env(script, env, not_print=False):
     #print("tokens", tokens)
     ast_tree = AST(stream(tokens))
     for node in ast_tree.ast:
-        #print(node)
         ans = parse(node)(env)
         if not_print or ans is None or node["type"] == "ASSIGN": continue
         if isinstance(ans, types.GeneratorType) or isinstance(ans, Pipe_generator):

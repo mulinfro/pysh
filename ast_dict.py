@@ -254,6 +254,8 @@ class AST():
             return self.ast_assert(stm)
         elif stm.peek().tp == "DEL":
             return self.ast_del(stm)
+        elif stm.peek().tp == "RAISE":
+            return self.ast_return_raise(stm)
         elif stm.peek().tp in [ "SH", 'CD']:
             return self.ast_sh_or_cd(stm)
         else:
