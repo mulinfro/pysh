@@ -96,27 +96,27 @@ def REPL():
             except KeyboardInterrupt:
                 print("KeyboardInterrupt")
 
-def parse_and_eval_with_env(script, env):
+def parse_and_eval_with_env(script, env, not_print=False):
     tokens = token_list(script).tokens
     #print("tokens", tokens)
     ast_tree = AST(stream(tokens))
     for node in ast_tree.ast:
         #print(node)
         ans = parse(node)(env)
-        if ans is None or node["type"] == "ASSIGN": continue
+        if not_print or ans is None or node["type"] == "ASSIGN": continue
         if isinstance(ans, types.GeneratorType):
             for e in ans: 
                 print(":> ", e)
         else:
             print(":> ", ans)
     
-def pysh(psh_file, run=True):
+def pysh(psh_file, run=True, not_print=True):
     with open(psh_file, encoding="utf-8") as f:
         script = char_stream(f.read())
     env = get_builtin_env(builtins)
     #parse_and_eval_with_env(script, env)
     try:
-        parse_and_eval_with_env(script, env)
+        parse_and_eval_with_env(script, env, not_print=not_print)
     except Exception as e:
         print(repr(e))
         return None
