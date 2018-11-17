@@ -5,8 +5,9 @@ from ast_dict import AST
 from tokens import token_list
 from env import get_builtin_env, Env
 from config import IN, HISLENGTH, repl_init_str
-from exception import Pipe_generator
-import os, types, sys, glob
+from exception import Generator_with_catch
+import os, sys, glob
+from types import GeneratorType
 PSH_DIR = sys.path[0]
 
 def pathCompleter(self,text,state):
@@ -104,7 +105,7 @@ def parse_and_eval_with_env(script, env, not_print=False):
     for node in ast_tree.ast:
         ans = parse(node)(env)
         if not_print or ans is None or node["type"] == "ASSIGN": continue
-        if isinstance(ans, types.GeneratorType) or isinstance(ans, Pipe_generator):
+        if isinstance(ans, GeneratorType) or isinstance(ans, Generator_with_catch):
             for e in ans: 
                 print(":> ", e)
         else:
@@ -128,7 +129,8 @@ def pysh(psh_file, run=True, not_print=True):
 
 
 def test_psh_file():
-    pysh(os.path.join(PSH_DIR,"test.psh"))
+    pysh(os.path.join(PSH_DIR,"test.psh"), run=True, not_print=False)
+    pysh(os.path.join(PSH_DIR,"test2.psh"), run=True, not_print=False)
         
 if __name__ == "__main__":
     #test_psh_file()

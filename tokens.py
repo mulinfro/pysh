@@ -32,6 +32,8 @@ keywords = {
 "catch": "CATCH",
 "catched": "CATCHED",
 "raise": "RAISE",
+"case" : "CASE",
+"otherwise" : "OTHERWISE",
 }
 
 # 字符转义表， 字符串解析中使用

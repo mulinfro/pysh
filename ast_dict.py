@@ -98,6 +98,7 @@ class AST():
             check_expr_end(stm)
             return left
         
+
     def ast_var_list(self, stm):
         var_list = []
         while not line_eof(stm) and stm.peek().tp == "VAR" :
@@ -161,11 +162,11 @@ class AST():
         if not stm.eof() and stm.peek().tp == "IF":
             stm.next()
             cond_expr = self.ast_try_pipe(stm)
-        check_newline(stm)
+        check_expr_end(stm)
         return {"type": tp, "cond": cond_expr, "msg": tp + " " + cond_expr["msg"]}
 
     def ast_assert(self, stm):
-        stm.next()
+        tp = stm.next().tp
         expr = self.ast_try_pipe(stm)
         info = None
         if not stm.eof() and syntax_check(stm.peek(), ("SEP", "COMMA")):
@@ -178,13 +179,13 @@ class AST():
         stm.next()
         syntax_assert(stm.peek(), "VAR", "Usage: del var")
         var = self.ast_a_var(stm)
-        check_newline(stm)
+        check_expr_end(stm)
         return {"type": "DEL", "var": var["name"], "msg":"del " + var["name"] }
 
     def ast_sh_or_cd(self, stm):
         tkn = stm.next()
         expr = self.ast_try_pipe(stm)
-        check_newline(stm)
+        check_expr_end(stm)
         return {"type": tkn.tp, "cmd": expr , "msg": tkn.val + " " + expr["msg"]}
 
     def ast_return_raise(self, stm):
@@ -193,6 +194,7 @@ class AST():
             return {"type": tkn.tp, "rval": None , "msg": tkn.val }
         expr = self.ast_try_pipe(stm)
         if tkn.tp == "RETURN": check_newline(stm)
+        else: check_expr_end(stm)
         return {"type": tkn.tp, "rval": expr , "msg": tkn.val + " " + expr["msg"]}
 
     def ast_control(self, stm):
@@ -281,6 +283,66 @@ class AST():
         syntax_assert(stm.next(), "END", "missing END")
         return {"type":'DEF', "funcname":funcname["name"], 
                 "args":args, "body":body, "msg":"def " + funcname["name"]}
+
+    def ast_case_expr(self, stm):
+        """
+         num / string -> expr
+         variable -> expr   # any  num or string
+         (a,(b,c))
+         [a,b,[c,d],[]]
+         x,y
+         if cond_expr -> expr
+        """
+        tkn = stm.peek()
+        if tkn.tp == "IF":
+            stm.next()
+            cond = self.ast_try_pipe(stm)
+            syntax_assert(stm.next(), ("OP", "INFER"), "need parenthese")
+            val_expr = self.ast_try_pipe(stm)
+            return {"type":"CASE_IF", "cond":cond, "val": val_expr}
+        elif tkn.tp == "OTHERWISE":
+            stm.next()
+            syntax_assert(stm.next(), "INFER", "need parenthese")
+            val_expr = self.ast_try_pipe(stm)
+            return {"type":"CASE_OTHERWISE", "tp": tkn.tp, "val": val_expr}
+        else:
+            multicase= self.ast_multicase(stm)
+            syntax_assert(stm.next(), "INFER", "need parenthese")
+            val_expr = self.ast_try_pipe(stm)
+            return {"type":"CASE_MULTI", "cases": multicase }
+
+    """
+    def sep_syntax_helper(self, stm, sep):
+        var_list = []
+        while True:
+            v = self.ast_val(stm)
+            syntax_cond_assert(v["type"] not in ["PARN", "SYSCALL", "LAMBDA"],  "unexpected token type %s in case expr"%v["type"])
+            var_list.append(v)
+            if line_eof(stm) or stm.peek().tp != sep: break
+            stm.next()
+        return var_list
+    """
+            
+    def ast_multicase(self, stm):
+        variable_matched_list = []
+        while True:
+            v = self.ast_val(stm)
+            syntax_cond_assert(v["type"] not in ["ARGS", "PARN", "SYSCALL", "LAMBDA"],  "unexpected token type %s in case expr"%v["type"])
+            if syntax_check(stm.peek(), "INFER" ):  break
+            #syntax_cond_assert( not line_eof(stm),  "Unexpected EOL: need =>")
+            syntax_assert(stm.next(), ("SEP", "COMMA"), "expecte , or =>")
+            variable_matched_list.append(lst)
+        return variable_matched_list
+
+    def ast_case(self, stm):
+        stm.next()
+        casename = self.ast_a_var(stm, "need pattern match function name")
+        syntax_assert(stm.peek(), "PARN", "need parenthese")
+        args = self.ast_var_list(stream(stm.next().val))
+        body = self.ast_body(stm, self.ast_case_expr)
+        syntax_assert(stm.next(), "END", "missing END")
+        return {"type":'CASE', "casename":casename["name"], 
+                "args":args, "body":body, "msg":"case " + casename["name"]}
         
     def ast_args(self, stm):
         syntax_assert(stm.peek(), "PARN", "need parenthese")

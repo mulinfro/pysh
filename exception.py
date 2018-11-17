@@ -47,7 +47,7 @@ def exception_warp(func, msg):
     return _run_with_catch_exception
 
 
-class Pipe_generator:
+class Generator_with_catch:
     def __init__(self, gen, handle, env):
         self.generator = gen
         self.handle = handle

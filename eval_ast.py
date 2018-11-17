@@ -3,7 +3,7 @@ import copy
 from types import GeneratorType
 from env import Env
 from syntax_check import Error, syntax_cond_assert
-from exception import Return_exception, Assert_exception, Continue_exception, Break_exception, exception_warp, Pipe_generator
+from exception import Return_exception, Assert_exception, Continue_exception, Break_exception, exception_warp, Generator_with_catch
 PARTIAL_FLAG = lambda f: f  
 PARTIAL_FLAG_LAMBDA = lambda env: PARTIAL_FLAG
 
@@ -48,18 +48,17 @@ def parse_catched(node):
     if type(node["handle"]) == list:
         handle = parse_block(node["handle"])
     else:
-        handle = parse_pipe_or_expr(node["handle"])
+        handle = parse_expr_or_command(node["handle"])
 
     def _catched(env):
         try:
             val = expr(env)
-            return Pipe_generator(val, handle, env)
+            if isinstance(val, GeneratorType) or isinstance(val, Generator_with_catch):
+                return Generator_with_catch(val, handle, env)
+            return val
         except Exception as e:
-            print("type error: " + str(e))
-            handled_value = handle(env)
-            if node["expr"]["type"] == "PIPE" and "__pipe_continue_point" in env:
-                return expr(env, env["__pipe_continue_point"])
-            return handled_value
+            print(repr(e))
+            return handle(env)
 
     return _catched
 
@@ -80,8 +79,10 @@ def parse_block_expr(node):
         val = parse_for(node)
     elif node["type"] in ["BREAK", "CONTINUE", "RETURN"]:
         val = parse_flow_goto(node)
-    elif node["type"] == "PIPE":
-        val = parse_pipe(node)
+    elif node["type"] in ("ASSIGN", "GASSIGN"):
+        val = parse_assign(node)
+    elif node["type"] == "MULTI_ASSIGN":
+        val = parse_multi_assign(node)
     else:
         val = parse_expr_or_command(node)
     return val
@@ -107,35 +108,17 @@ def parse_pipe_or_expr(node):
     elif node["type"] == "CATCHED":
         return parse_catched(node)
     else:
-        return parse_expr(node)
+        return parse_simple_expr(node)
 
 def parse_pipe(node):
-    tmp = list(map(parse_expr, node["exprs"]))
-    left, g_exprs = tmp[0], tmp[1:]
+    g_exprs = list(map(parse_simple_expr, node["exprs"]))
     g_ops  = list(map(parse_bi_oper, node["pipes"]))
 
-    def _eval_pipe(env, continue_point = None):
-        if continue_point is None:
-            left_val = left(env)
-            if isinstance(left_val, GeneratorType):
-                env["__pipe_continue_point"] = left_val
-        else:
-            left_val = continue_point
+    def _eval_pipe(env):
         exprs, ops = copy.copy(g_exprs), copy.copy(g_ops)
-        ans_val =  compute_expr(env, exprs, ops, left_val)
-        if "__pipe_continue_point" in env:  del env["__pipe_continue_point"]
-        return ans_val
+        return compute_expr(env, exprs, ops)
 
     return exception_warp(_eval_pipe, node["msg"])
-
-def parse_expr(node):
-    if node["type"] in ("ASSIGN", "GASSIGN"):
-        val = parse_assign(node)
-    elif node["type"] == "MULTI_ASSIGN":
-        val = parse_multi_assign(node)
-    else:
-        val = parse_simple_expr(node)
-    return val
 
 def parse_simple_expr(node):
     if node["type"] == "SIMPLEIF":
@@ -176,6 +159,110 @@ def parse_flow_goto(node):
 
     cond = expr_or_default(node["cond"], True)
     return lambda env: _raise_error(val) if cond(env) else None
+
+def parse_case(node):
+    case_patterns = list(map(parse_case_expr, node["body"]))
+    casename, argnames = node["casename"], node["args"]
+
+    def _case(env):
+        def _match(*args):
+            ans = None
+            new_env = Env(outer = env)
+            new_env.update(zip(argnames, args))
+            for cond, val, match_variable in case_patterns:
+                if cond(new_env):
+                    matched_variables = match_variable(new_env)
+                    new_env.update(matched_variables)
+                    ans = val(new_env)
+                    break
+
+            del new_env
+            return ans
+        env[casename] = _match
+    return _case
+
+
+def parse_case_expr(node):
+
+    val = parse_pipe_or_expr(node["val_expr"])
+    match_variable = lambda args: []
+    if node["type"] == "CASE_IF":
+        cond_expr = parse_pipe_or_expr(node["cond"])
+        cond = lambda env: lambda x: cond_expr(env)
+    elif node["type"] == "CASE_MULTI":
+        syntax_cond_assert(len(node["args"]) >= len(node["cases"]), "args less than case patterns")
+        match_cases = list(map(parse_case_match_expr, node["cases"]))
+        cond = lambda env: lambda vals: match_multi_cases( [m(env) for m in match_cases] , vals)
+        #match_variable = lambda args: 
+    else:  
+        # CASE_OTHERWISE
+        cond = lambda env: lambda x: True
+
+    return (cond, val, match_variable)
+
+def parse_case_match_expr(node):
+    if node["type"] == "LIST":
+        if len(node["val"]) == 0:
+            match_expr = lambda env: lambda x: (x == () or x == [], [])
+        else:
+            match_expr = parse_case_list(node)
+    elif node["type"] == "TUPLE":
+        match_expr = parse_case_tuple(node)
+    else:
+        match_expr = parse_case_atom(node)
+    return match_expr
+
+def parse_case_atom(node):
+    def _match_atom(env):
+        def _to_match_atom(to_match_value):
+            if node["type"] == "VAR":
+                return (True, [(node["name"], to_match_value)] )
+            return (to_match_value == node["val"], ("_",[]))
+    return _match_atom
+
+def parse_case_list(node):
+    left, last = node["val"][0:-1], node["val"][-1]
+    left_length = len(left)
+    left_matched = parse_case_tuple(left)
+    last_matched = parse_case_match_expr(last)
+    def _match_list(env):
+        left_matched_env = left_matched(env)
+        last_matched_env = last_matched(env)
+        def _to_match_list(to_match_value):
+            if type(to_match_value) not in [list, tuple]:  return (False, None)  # now only support list, tuple
+            flag = left_matched_env(to_match_value[0: left_length])
+            if not flag[0]: return (False, None)
+            flag_last = last_matched_env(to_match_value[left_length:])
+            if not flag[0]: return (False, None)
+            return (True, flag[1] + flag_last[1])
+        
+        return _to_match_list
+
+    if left_length == 0:
+        return last_matched
+    return _match_tuple
+
+def match_multi_cases(match_pattern_cases, vals):
+    matched_variable = []
+    for m,v in zip(match_pattern_cases, vals):
+        flag = m(v)
+        if not flag[0]: return (False, None)
+        matched_variable += flag[1]
+    return (True, matched_variable)
+
+def parse_case_tuple(node):
+    to_match_pattern = list(map(parse_case_match_expr, node["val"]))
+
+    def _match_tuple(env):
+        to_match_pattern_env = list(map( lambda x: x(env),  to_match_pattern))
+        def _to_match_tuple(to_match_value):
+            if type(to_match_value) not in [list, tuple]:  return (False, None)  # now only support list, tuple
+            if len(to_match_value) != len(to_match_pattern_env): return (False, None)
+            return match_multi_cases(to_match_pattern_env, to_match_value)
+        return _to_match_tuple
+
+    return _match_tuple
+    
 
 def parse_import(node):
 
@@ -247,7 +334,10 @@ def parse_import(node):
     return update_env
 
 def parse_assign(node):
-    val = parse_pipe_or_expr(node["val"])
+    if node["val"]["type"] in ("ASSIGN", "GASSIGN"):
+        val = parse_assign(node["val"])
+    else:
+        val = parse_pipe_or_expr(node["val"])
     var_idx_val = None
     def _assign_var(env):
         v = val(env)
@@ -303,7 +393,7 @@ def parse_bi_oper(node):
     return op_info
 
 
-def compute_expr(env, vals, ops, left):
+def compute_expr(env, vals, ops):
     def binary_order(left, preorder):
         if len(ops) <= 0: return left
         if preorder >= ops[0]["order"]: return left
@@ -323,7 +413,7 @@ def compute_expr(env, vals, ops, left):
         new_left = my_op["func"](left,right)
         return binary_order(new_left, preorder)
 
-    val = binary_order(left, -1)
+    val = binary_order(vals.pop(0)(env), -1)
     del vals, ops
     return val
 
@@ -341,14 +431,14 @@ def parse_binary_expr(node):
             partial_idx = i
     
     def ori_warpper(env):
-        vals, ops = copy.copy(g_vals[1:]), copy.copy(g_ops)
-        return compute_expr(env, vals, ops, g_vals[0](env))
+        vals, ops = copy.copy(g_vals), copy.copy(g_ops)
+        return compute_expr(env, vals, ops)
 
     def partial_warpper(env):
         def warpper(v):
             vals, ops = copy.copy(g_vals), copy.copy(g_ops)
             vals[partial_idx] = lambda env: g_vals[partial_idx](env)(v)
-            return compute_expr(env, vals[1:], ops, vals[0](env))
+            return compute_expr(env, vals, ops)
         return warpper
 
     func = ori_warpper if partial_idx < 0 else partial_warpper
@@ -577,7 +667,7 @@ def parse_sysfunc(node):
 def parse_lambda(node):
     arg_var_list = [e["name"] for e in node["args"]["val"]]
     def _lambda(env):
-        body_f = parse_expr(node["body"])
+        body_f = parse_simple_expr(node["body"])
         def proc(*arg_val_list):
             syntax_cond_assert(len(arg_var_list) == len(arg_val_list), "not enough arguments")
             new_env = Env(arg_var_list, arg_val_list, outer = env)

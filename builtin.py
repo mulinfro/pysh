@@ -35,6 +35,7 @@ special_op = {
     '::': 'PASSIGN',
     '=': 'ASSIGN',
     ':=': 'GASSIGN',
+    "=>": "INFER",
 }
 
 pipe_op = {

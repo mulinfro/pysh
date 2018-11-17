@@ -80,6 +80,8 @@ cat("source/*") | egrep("^def\s", _) | extract( "def\((\w+)\)", _) | format("{0}
  word_idx_dict = cat("words") | take@10000 | split@"\t" | dict      # 只使用top10000高频词
  cat("input.txt") | split@" " | mmap@int | mmap@ word_idx_dict.get(_, 2)  | list_format@"{0}"  &>  "output.txt"    #  不在10000个词中的词用2代替，
  
+ #### 模式匹配
+ 
 ```
 
 ## 数据结构
@@ -141,10 +143,12 @@ dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
 - `@`: 吸收一个参数返回函数，`f@m == f(m)(..)`
 
 
+## 异常机制
+`catched`
 
 #### 没有支持的python关键词
 
-- try, except, raise, finally, with, pass, yield, class
+- try, except, finally, with, pass, yield, class
 - exec用 **$** 代替; global赋值用 **:=** 代替, 还是避免全局变量与本地变量名称一致
 
 
