@@ -55,7 +55,7 @@ len(_) > 2  # L(x):len(x) > 2
 foo(x,_)    # L(y): foo(x, y)
 b = a@1     # 函数组合, L(1, y): 1 + y;  b(2) == 3
 map@ len # 给定list求每个元素的长度
-cat("nnn.txt") | map( _.split(), _) | flatMap( _.strip(',.!"'), _)  | uniq  # list of string 的词汇表
+cat("nnn.txt") | map( _.split(), _) | flatMap@ _.strip(',.!"')  | uniq  # list of string 的词汇表
 ```
 
 #### Pipe & IO
@@ -79,9 +79,20 @@ cat("source/*") | egrep("^def\s", _) | extract( "def\((\w+)\)", _) | format("{0}
  word_count | colSel@0 | zipWithIndex(_, 10) | format@ "{0}\t{1}" &> "words"      # word: index file;  maping start from 10
  word_idx_dict = cat("words") | take@10000 | split@"\t" | dict      # 只使用top10000高频词
  cat("input.txt") | split@" " | mmap@int | mmap@ word_idx_dict.get(_, 2)  | list_format@"{0}"  &>  "output.txt"    #  不在10000个词中的词用2代替，
+  
+```
  
- #### 模式匹配
- 
+#### 模式匹配
+```
+case data_match(x,y)
+    "hello", True => ”matched values" # 值匹配, 匹配Num, String, Bool, None等
+    99, _ => "a == 99, y == anything"   #  
+	[ax,bx,[]], (ay,by)  => {"len(x) == 2, len(y) == 2", (ax+ay, bx + by) } #  {} block expr, 最后一个表达式的值作为整个表达式的值
+    [1,[2,3],xs],("food", ("music", c)) => "x==[1,[2,3],...], y==("food", ("music", anything))"     #   xs = x[2:], c=y[1][1]
+	if x+y>100 => {"conditional statement match", x+y }
+    otherwise => {print("not matched"), None}     # 万能匹配
+end
+
 ```
 
 ## 数据结构
@@ -260,5 +271,4 @@ func会遍历一个可迭代对象，并调用_func, `func = map@ _func(...)`;
 1. 补充文档注释
 2. 路径补全 and 变量名自动补全
 3. import机制的完成测试
-4. pipe的异常捕捉机制
-5. 命令行模式下，可多行编辑
+4. 命令行模式下，可多行编辑
