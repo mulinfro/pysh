@@ -4,6 +4,7 @@
 import operator, os, config
 import json
 from collections import Iterable
+import subprocess
 
 
 operators = {
@@ -88,9 +89,8 @@ _zdiv = lambda x, y: x//y
 
 
 def os_call(sh):
-    import subprocess
     out_bytes = subprocess.run(sh, shell=True, stderr=subprocess.STDOUT)
-    return out_bytes.stdout
+    return out_bytes
 
 HOME_DIR = os.path.expanduser("~")
 CDHIST = [("~", os.getcwd() )]
