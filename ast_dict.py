@@ -178,9 +178,9 @@ class AST():
     def ast_del(self, stm):
         stm.next()
         syntax_assert(stm.peek(), "VAR", "Usage: del var")
-        var = self.ast_a_var(stm)
+        var_list = self.ast_var_list(stm)
         check_expr_end(stm)
-        return {"type": "DEL", "var": var["name"], "msg":"del " + var["name"] }
+        return {"type": "DEL", "vars": var_list, "msg":"del " + var["name"] }
 
     def ast_sh_or_cd(self, stm):
         tkn = stm.next()
@@ -334,8 +334,24 @@ class AST():
             variable_matched_list.append(lst)
         return variable_matched_list
 
+    def ast_block_or_expr(self, stm, body_func, expr_func):
+        if stm.peek().tp == "DICT":
+            body = self.ast_body(stm.next().val, body_func)
+        else:
+            body = expr_func(stm)
+        return body
+
+    def ast_case_lambda(self, stm):
+        args = self.ast_var_list(stream(stm.next().val))
+        syntax_assert(stm.next(), ("OP", "COLON"), "missing END")
+        body = ast_block_or_expr(stm, self.ast_case_expr, self.ast_case_expr)
+        return {"type":'CASE_LAMBDA', "args":args, 
+                "body":body, "msg":"case " + args["msg"] + ":" + "..." }
+
+
     def ast_case(self, stm):
         stm.next()
+        if stm.peek().tp == "PARN":  return self.ast_case_lambda(stm)
         casename = self.ast_a_var(stm, "need pattern match function name")
         syntax_assert(stm.peek(), "PARN", "need parenthese")
         args = self.ast_var_list(stream(stm.next().val))
@@ -470,13 +486,6 @@ class AST():
                 return {"type":tkn.tp, "val":stm.next().val, "msg": operator_val_dict.get(tkn.val, tkn.val) }
         return None
 
-
-    def ast_block(self, stm):
-        """ exprs defined in {...} """
-        pass
-
-
-
     def ast_val(self, stm):
         tkn = stm.next()
         if tkn.tp == "LAMBDA":
@@ -499,7 +508,7 @@ class AST():
     def ast_lambda(self, stm):
         args = self.ast_args(stm)
         syntax_assert(stm.next(), ("OP", "COLON"), "lambda missing :")
-        body = self.ast_expr(stm)
+        body = self.ast_block_or_expr(stm, self.ast_try_assign, self.ast_expr)
         return {"type":"LAMBDA", "args":args, "body":body, 
                 "msg": "lambda " + args["msg"] + ":" + body["msg"]}
 

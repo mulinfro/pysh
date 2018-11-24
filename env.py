@@ -27,3 +27,19 @@ def register(module, paras, args):
     for p in module.__all__:
         paras.append(p)
         args.append(module.__dict__.get(p))
+
+def dict2obj(env):
+    top = type('pysh', (object,), env)
+    seqs = tuple, list, set, frozenset
+    for i, j in d.items():
+        setattr(top, i, j)
+    return top
+
+    """
+    	if isinstance(j, dict):
+    	    setattr(top, i, dict2obj(j))
+    	elif isinstance(j, seqs):
+    	    setattr(top, i, 
+    		    type(j)(obj_dic(sj) if isinstance(sj, dict) else sj for sj in j))
+    	else:
+    """

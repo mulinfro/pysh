@@ -134,13 +134,7 @@ _zipWithIndex = unlazyed(zipWithIndex)
 
 def unzip(iterable):
     """unzip(iterable) """
-    it = iter(iterable)
-    val = next(it)
-    ans = [ [x] for x in val ]
-    for ele in it:
-        for i,x in enumerate(ele):
-            ans[i].append(x)
-    return ans
+    return list(zip(*iterable))
 
 def groupBy(key, iterable):
     """ iterable groupBy key function

@@ -19,11 +19,15 @@ def parse(node):
     return val
 
 def parse_del(node):
-    name = node["var"]
+    if node["vars"]["type"] == "VAR":
+        names = [ node["vals"]["name"] ]
+    else:
+        names = node["vals"]["names"]
     def _del(env):
-        t = env.find(name)
-        if t is None: Error("undefind variable %s"%name)
-        del t[name]
+        for name in names:
+            t = env.find(name)
+            if t is None: Error("undefind variable %s"%name)
+            del t[name]
     return exception_warp(_del, node["msg"])
 
 def parse_sh(node):
@@ -295,7 +299,7 @@ def parse_import(node):
         return SourceFileLoader(_as, path).load_module()
 
     def user_import_psh(path):
-        syntax_cond_assert(os.path.is_file(path),  "Error: path %s is not a file"%path)
+        syntax_cond_assert(os.path.isfile(path),  "Error: path %s is not a file"%path)
         import repl
         return repl.pysh(path, run=False)
 
@@ -726,7 +730,7 @@ def parse_def(node):
             except Return_exception as r:
                 return r.value(new_env)
             except Assert_exception as r:
-                assert r.value, r.msg + "error on here"
+                assert r.value, r.msg
             del new_env
 
         env[node["funcname"]] = proc
