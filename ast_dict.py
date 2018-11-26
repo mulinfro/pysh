@@ -77,13 +77,10 @@ class AST():
         while not stm.eof() and stm.peek().tp == "CATCHED":
             stm.next()
             tkn = stm.peek()
-            if tkn.tp == 'DICT':
-                exception_handle_body = self.ast_body(stream(tkn.val), self.ast_block_expr)
-                stm.next()
-            elif tkn.tp == "RAISE":
+            if tkn.tp == "RAISE":
                 exception_handle_body = self.ast_return_raise(stm)
             else:
-                exception_handle_body = self.ast_try_pipe(stm)
+                exception_handle_body = self.ast_block_or_expr(stm, self.ast_block_expr, self.ast_try_pipe)
             return {"type":"CATCHED",  "expr":ans_expr, "handle": exception_handle_body, "msg": "in line %d, col %d "%(tkn.line, tkn.col)}
         return ans_expr
 
@@ -180,7 +177,7 @@ class AST():
         syntax_assert(stm.peek(), "VAR", "Usage: del var")
         var_list = self.ast_var_list(stm)
         check_expr_end(stm)
-        return {"type": "DEL", "vars": var_list, "msg":"del " + var["name"] }
+        return {"type": "DEL", "vars": var_list, "msg":"del " + var_list["msg"] }
 
     def ast_sh_or_cd(self, stm):
         tkn = stm.next()
@@ -311,18 +308,6 @@ class AST():
             val_expr = self.ast_try_pipe(stm)
             return {"type":"CASE_MULTI", "cases": multicase }
 
-    """
-    def sep_syntax_helper(self, stm, sep):
-        var_list = []
-        while True:
-            v = self.ast_val(stm)
-            syntax_cond_assert(v["type"] not in ["PARN", "SYSCALL", "LAMBDA"],  "unexpected token type %s in case expr"%v["type"])
-            var_list.append(v)
-            if line_eof(stm) or stm.peek().tp != sep: break
-            stm.next()
-        return var_list
-    """
-            
     def ast_multicase(self, stm):
         variable_matched_list = []
         while True:
@@ -336,7 +321,12 @@ class AST():
 
     def ast_block_or_expr(self, stm, body_func, expr_func):
         if stm.peek().tp == "DICT":
-            body = self.ast_body(stm.next().val, body_func)
+            tkn = stm.next()
+            try:
+                body = self.ast_dict(stream(tkn.val))
+            except:
+                body = self.ast_body(stream(tkn.val), body_func)
+                return {"type":"S_BLOCK", "body": body, "msg":"curly block"}
         else:
             body = expr_func(stm)
         return body

@@ -20,9 +20,9 @@ def parse(node):
 
 def parse_del(node):
     if node["vars"]["type"] == "VAR":
-        names = [ node["vals"]["name"] ]
+        names = [ node["vars"]["name"] ]
     else:
-        names = node["vals"]["names"]
+        names = node["vars"]["names"]
     def _del(env):
         for name in names:
             t = env.find(name)
@@ -46,13 +46,17 @@ def parse_cd(node):
         return cd(cmd_val)
     return exception_warp(_cd, node["msg"])
 
+def parse_block_or_expr(node):
+    if node["type"] == "S_BLOCK":
+        b_expr = parse_block(node["body"])
+    else:
+        b_expr = parse_expr_or_command(node)
+    return b_expr
+
 
 def parse_catched(node):
     expr = parse_block_expr(node["expr"])
-    if type(node["handle"]) == list:
-        handle = parse_block(node["handle"])
-    else:
-        handle = parse_expr_or_command(node["handle"])
+    handle = parse_block_or_expr(node["handle"])
 
     def _catched(env):
         try:
@@ -188,7 +192,7 @@ def parse_case(node):
 
 def parse_case_expr(node):
 
-    val = parse_pipe_or_expr(node["val_expr"])
+    val = parse_block_or_expr(node["val_expr"])
     match_variable = lambda args: []
     if node["type"] == "CASE_IF":
         cond_expr = parse_pipe_or_expr(node["cond"])
@@ -670,10 +674,11 @@ def parse_sysfunc(node):
 # Q default args
 def parse_lambda(node):
     arg_var_list = [e["name"] for e in node["args"]["val"]]
+    body_f = parse_block_or_expr(node["body"])
     def _lambda(env):
-        body_f = parse_simple_expr(node["body"])
         def proc(*arg_val_list):
-            syntax_cond_assert(len(arg_var_list) == len(arg_val_list), "not enough arguments")
+            syntax_cond_assert(len(arg_var_list) == len(arg_val_list), \
+                "unmatched arguments, need %d actually %d"%(len(arg_var_list), len(arg_val_list)))
             new_env = Env(arg_var_list, arg_val_list, outer = env)
             val = body_f(new_env)
             del new_env
