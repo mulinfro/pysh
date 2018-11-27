@@ -119,18 +119,12 @@ class token_list():
             self.chars.crack("unexpected char after line continuation")
         return self.read_a_token()
 
-    # 系统调用；$开头的单行命令;   $''' xxxx''''  多行命令函数，不立即执行，像函数那样调用
+    # 系统调用；$开头的单行命令
     def read_sys_call(self):
         line, col = self.chars.line, self.chars.col
         self.chars.next()
         self.read_white_space()
         command = ""
-        if self.chars.peek() in ("'", '"'):
-            terminal_char = self.chars.next()
-            if self.check_multi_string(terminal_char):
-                command = self.read_string()
-                return token("SYSFUNC", command, line, col)
-            self.chars.back()
         while not self.chars.eof() and self.chars.peek() != '\n':
             command += self.chars.next()
         return token("SYSCALL", command, line, col)

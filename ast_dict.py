@@ -153,6 +153,15 @@ class AST():
         else:
             return self.ast_assign_or_command(stm)
 
+    def ast_try_curly_braces(self, stm):
+        """ dict or block expr"""
+        tkn = stm.peek()
+        try:
+            val = self.ast_dict(stream(tkn.val))
+        except:
+            val = self.ast_body(stream(tkn.val), self.ast_block_expr)
+        return val
+
     def ast_bc(self, stm):
         tp = stm.next().tp
         cond_expr = None
@@ -488,7 +497,7 @@ class AST():
             val = self.ast_dict(stream(tkn.val))
         elif tkn.tp == "VAR":
             val = {"type":"VAR", "name":tkn.val, "msg": tkn.val}
-        elif tkn.tp in ('NUM', 'STRING', 'BOOL', "SYSCALL" ,"SYSFUNC", "NONE"):
+        elif tkn.tp in ('NUM', 'STRING', 'BOOL', "SYSCALL", "NONE"):
             val = {"type":tkn.tp, "val":tkn.val, "msg": str(tkn.val)}
         else:
             Error("Parse Error:%s,%s"%(tkn.tp, str(tkn.val)), tkn.line, tkn.col)
