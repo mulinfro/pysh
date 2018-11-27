@@ -169,7 +169,11 @@ def parse_flow_goto(node):
     cond = expr_or_default(node["cond"], True)
     return lambda env: _raise_error(val) if cond(env) else None
 
-def parse_case(node):
+def parse_case_lambda(node):
+    node["casename"] = "_"
+    return parse_case(node, is_lambda=True)
+
+def parse_case(node, is_lambda=False):
     casename, argnames = node["casename"], node["args"]
     args_num = len(argnames)
     case_patterns = list(map(lambda x:parse_case_expr(x,args_num), node["body"]))
@@ -188,7 +192,11 @@ def parse_case(node):
 
             del new_env
             return ans
-        env[casename] = _match
+
+        if not is_lambda:
+            env[casename] = _match
+        else:
+            return _match
     return _case
 
 
@@ -215,7 +223,7 @@ def parse_case_match_expr(node):
             match_expr = lambda x: (x == () or x == [], [])
         else:
             match_expr = parse_case_list(node["val"])
-    elif node["type"] == "TUPLE":
+    elif node["type"] in ["TUPLE", "PARN"]:
         match_expr = parse_case_tuple(node["val"])
     else:
         match_expr = parse_case_atom(node)

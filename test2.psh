@@ -31,3 +31,14 @@ case(x): _ => x + 1
 case(x,y): { a=>b, c=>d}
 
 """
+
+" list reverse "
+case list_reverse(lst)
+  [] => []
+  (x) => [x] 
+  [x,xs] => list_reverse(xs) + [x]
+end
+
+list_reverse([0:10])
+
+" case lambda "

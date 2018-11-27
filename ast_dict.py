@@ -318,7 +318,7 @@ class AST():
         while True:
             v = self.ast_val(stm)
             variable_matched_list.append(v)
-            syntax_cond_assert(v["type"] not in ["ARGS", "PARN", "SYSCALL", "LAMBDA"],  "unexpected token type %s in case expr"%v["type"])
+            syntax_cond_assert(v["type"] not in ["ARGS", "SYSCALL", "LAMBDA"],  "unexpected token type %s in case expr"%v["type"])
             if syntax_check(stm.peek(), "INFER" ): break
             syntax_assert(stm.next(), ("SEP", "COMMA"), "expecte , or =>")
         #print(variable_matched_list)
@@ -338,8 +338,13 @@ class AST():
 
     def ast_case_lambda(self, stm):
         args = self.ast_var_list(stream(stm.next().val))
-        syntax_assert(stm.next(), ("OP", "COLON"), "missing END")
+        args = self.get_varlist_names(args)
+        syntax_assert(stm.next(), ("OP", "COLON"), "missing :")
         body = ast_block_or_expr(stm, self.ast_case_expr, self.ast_case_expr)
+        if body["type"] == "S_BLOCK":
+            body = body["body"]
+        else:
+            body = [body]
         return {"type":'CASE_LAMBDA', "args":args, 
                 "body":body, "msg":"case " + args["msg"] + ":" + "..." }
 
