@@ -8,10 +8,11 @@ PARTIAL_FLAG = lambda f: f
 PARTIAL_FLAG_LAMBDA = lambda env: PARTIAL_FLAG
 
 
-
 def parse(node):
     if  node["type"] == 'DEF': 
         val = parse_def(node)
+    elif node["type"] == 'CASE': 
+        val = parse_case(node)
     elif node["type"] == 'IMPORT': 
         val = parse_import(node)
     else:
@@ -169,17 +170,18 @@ def parse_flow_goto(node):
     return lambda env: _raise_error(val) if cond(env) else None
 
 def parse_case(node):
-    case_patterns = list(map(parse_case_expr, node["body"]))
     casename, argnames = node["casename"], node["args"]
+    args_num = len(argnames)
+    case_patterns = list(map(lambda x:parse_case_expr(x,args_num), node["body"]))
 
     def _case(env):
         def _match(*args):
             ans = None
             new_env = Env(outer = env)
             new_env.update(zip(argnames, args))
-            for cond, val, match_variable in case_patterns:
-                if cond(new_env):
-                    matched_variables = match_variable(new_env)
+            for cond, val in case_patterns:
+                cond_flag, matched_variables = cond(new_env, args)
+                if cond_flag:
                     new_env.update(matched_variables)
                     ans = val(new_env)
                     break
@@ -190,84 +192,77 @@ def parse_case(node):
     return _case
 
 
-def parse_case_expr(node):
+def parse_case_expr(node, args_num = 0):
 
-    val = parse_block_or_expr(node["val_expr"])
-    match_variable = lambda args: []
+    val = parse_block_or_expr(node["val"])
+
     if node["type"] == "CASE_IF":
         cond_expr = parse_pipe_or_expr(node["cond"])
-        cond = lambda env: lambda x: cond_expr(env)
+        cond = lambda env, args: (cond_expr(env), [])
     elif node["type"] == "CASE_MULTI":
-        syntax_cond_assert(len(node["args"]) >= len(node["cases"]), "args less than case patterns")
+        syntax_cond_assert( args_num >= len(node["cases"]), "args less than case patterns")
         match_cases = list(map(parse_case_match_expr, node["cases"]))
-        cond = lambda env: lambda vals: match_multi_cases( [m(env) for m in match_cases] , vals)
-        #match_variable = lambda args: 
+        cond = lambda env, args: match_multi_cases(match_cases, args)
     else:  
         # CASE_OTHERWISE
-        cond = lambda env: lambda x: True
+        cond = lambda env, args: (True, [])
 
-    return (cond, val, match_variable)
+    return (cond, val)
 
 def parse_case_match_expr(node):
     if node["type"] == "LIST":
         if len(node["val"]) == 0:
-            match_expr = lambda env: lambda x: (x == () or x == [], [])
+            match_expr = lambda x: (x == () or x == [], [])
         else:
-            match_expr = parse_case_list(node)
+            match_expr = parse_case_list(node["val"])
     elif node["type"] == "TUPLE":
-        match_expr = parse_case_tuple(node)
+        match_expr = parse_case_tuple(node["val"])
     else:
         match_expr = parse_case_atom(node)
     return match_expr
 
 def parse_case_atom(node):
-    def _match_atom(env):
-        def _to_match_atom(to_match_value):
-            if node["type"] == "VAR":
-                return (True, [(node["name"], to_match_value)] )
-            return (to_match_value == node["val"], ("_",[]))
-    return _match_atom
+    if node["type"] == "VAR":
+        var_name = node["name"]
+        return lambda to_match_value: (True, [(var_name, to_match_value)])
+    else:
+        val = node["val"]
+        return lambda to_match_value: (to_match_value == val, [])
 
 def parse_case_list(node):
-    left, last = node["val"][0:-1], node["val"][-1]
+    left, last = node[0:-1], node[-1]
     left_length = len(left)
     left_matched = parse_case_tuple(left)
     last_matched = parse_case_match_expr(last)
-    def _match_list(env):
-        left_matched_env = left_matched(env)
-        last_matched_env = last_matched(env)
-        def _to_match_list(to_match_value):
-            if type(to_match_value) not in [list, tuple]:  return (False, None)  # now only support list, tuple
-            flag = left_matched_env(to_match_value[0: left_length])
-            if not flag[0]: return (False, None)
-            flag_last = last_matched_env(to_match_value[left_length:])
-            if not flag[0]: return (False, None)
-            return (True, flag[1] + flag_last[1])
-        
-        return _to_match_list
 
+    def _match_list(to_match_value):
+        if type(to_match_value) not in [list, tuple]:  return (False, None)  # now only support list, tuple
+        flag = left_matched(to_match_value[0: left_length])
+        if not flag[0]: return (False, None)
+        flag_last = last_matched(to_match_value[left_length:])
+        if not flag[0]: return (False, None)
+        return (True, flag[1] + flag_last[1])
+    
     if left_length == 0:
         return last_matched
-    return _match_tuple
+    return _match_list
 
 def match_multi_cases(match_pattern_cases, vals):
-    matched_variable = []
+    matched_variables = []
     for m,v in zip(match_pattern_cases, vals):
         flag = m(v)
-        if not flag[0]: return (False, None)
-        matched_variable += flag[1]
-    return (True, matched_variable)
+        if not flag[0]: return (False, [])
+        matched_variables += flag[1]
+    return (True, matched_variables)
 
 def parse_case_tuple(node):
-    to_match_pattern = list(map(parse_case_match_expr, node["val"]))
+    to_match_patterns = list(map(parse_case_match_expr, node))
 
-    def _match_tuple(env):
-        to_match_pattern_env = list(map( lambda x: x(env),  to_match_pattern))
-        def _to_match_tuple(to_match_value):
-            if type(to_match_value) not in [list, tuple]:  return (False, None)  # now only support list, tuple
-            if len(to_match_value) != len(to_match_pattern_env): return (False, None)
-            return match_multi_cases(to_match_pattern_env, to_match_value)
-        return _to_match_tuple
+    def _match_tuple(to_match_value):
+        # now only support list, tuple
+        if type(to_match_value) not in [list, tuple]:  return (False, [])  
+        if len(to_match_value) != len(to_match_patterns): return (False, [])
+        return match_multi_cases(to_match_patterns, to_match_value)
 
     return _match_tuple
     

@@ -88,10 +88,20 @@ _not_is  = lambda x,y: x is not y
 _power = lambda x,y: x**y
 _zdiv = lambda x, y: x//y
 
+class os_return_obj:
+    def __init__(self, stdout, returncode):
+        self.stdout = stdout if stdout else ""
+        self.returncode = returncode
+
+    def __str__(self):
+        if self.returncode == 0:
+            return self.stdout
+        else:
+            return "shell error code %d\n"%self.returncode
 
 def os_call(sh):
     out_bytes = subprocess.run(sh, shell=True, stderr=subprocess.STDOUT)
-    return out_bytes
+    return os_return_obj(out_bytes.stdout, out_bytes.returncode)
 
 HOME_DIR = os.path.expanduser("~")
 CDHIST = [("~", os.getcwd() )]
