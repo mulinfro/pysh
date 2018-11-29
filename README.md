@@ -50,8 +50,9 @@ ls("/home/user/", "f")   # "f" is flag, will return only files
 匿名函数，偏函数, 函数组合, 高阶函数的使用，能写出高效简洁的代码, 常用高阶函数如 `map, mmap, filter, flat, flatMap, fold` 等 
 ```python
 a = L(x, y): x + y  # 匿名函数 L == lambda
-_ > 2 ** 3  # L(x):x>2**3
-len(_) > 2  # L(x):len(x) > 2
+L(x, y, z): {t = x*2, t > y and t < z}   # block expr, last expr value as output
+_ > 2 ** 3  # L(x): x>2**3
+len(_) > 2  # L(x): len(x) > 2
 foo(x,_)    # L(y): foo(x, y)
 b = a@1     # 函数组合, L(1, y): 1 + y;  b(2) == 3
 map@ len # 给定list求每个元素的长度
@@ -83,13 +84,13 @@ cat("source/*") | egrep("^def\s", _) | extract( "def\((\w+)\)", _) | format("{0}
 ```
  
 #### 模式匹配
-```
+```python
 case data_match(x,y)
     "hello", True => ”matched values" # 值匹配, 匹配Num, String, Bool, None等
     99, _ => "a == 99, y == anything"   #  
-	[ax,bx,[]], (ay,by)  => {"len(x) == 2, len(y) == 2", (ax+ay, bx + by) } #  {} block expr, 最后一个表达式的值作为整个表达式的值
+    [ax,bx,[]], (ay,by)  => {"len(x) == 2, len(y) == 2", (ax+ay, bx + by) } #  {} block expr, 最后一个表达式的值作为整个表达式的值
     [1,[2,3],xs],("food", ("music", c)) => "x==[1,[2,3],...], y==("food", ("music", anything))"     #   xs = x[2:], c=y[1][1]
-	if x+y>100 => {"conditional statement match", x+y }
+    if x+y>100 => {"conditional statement match", x+y }
     otherwise => {print("not matched"), None}     # 万能匹配
 end
 
@@ -252,7 +253,7 @@ python3 repl.py test.psh params  # run a psh file, main function is entry point
 |---| :------------: |:---------------:|
 |1 | _format, _list_format, _tojson, _dumps |  字符串格式化; 建议直接将python对象dump成可解析的json格式  |
 |2 | _grep, _egrep , _extract, _replace, _strip, _split  |  文本处理函数，p参数中带"v"则使用正则匹配 |
-|3 | wc, cat, more, head, uniq, ksort  |  功能和对应的shell命令相似|
+|3 | wc, cat, more, head, uniq, uniqBy, ksort  |  功能和对应的shell命令相似|
 |4 | pwd, is_file, is_dir, ls, mkdir, rm, cp, mv, find | 功能和对应的shell命令相似, 参数p="r"代表递归子目录；建议可以使用$或sh直接调用shell命令 |
 
 "_"开头的函数(除了`_if`, `_map`与map不是对应)都有一个对应的不带下划线的函数，方便批量处理，
