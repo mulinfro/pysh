@@ -1,4 +1,5 @@
-from builtin import operators, op_order, Binary, Unary, op_right, os_call, cd
+from builtin import operators, op_order, Binary, Unary, op_right
+from sh.os_cmd import cd, os_call
 import copy
 from types import GeneratorType
 from env import Env

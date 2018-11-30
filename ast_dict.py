@@ -338,14 +338,14 @@ class AST():
 
     def ast_case_lambda(self, stm):
         args = self.ast_var_list(stream(stm.next().val))
-        args = self.get_varlist_names(args)
+        arg_names = self.get_varlist_names(args)
         syntax_assert(stm.next(), ("OP", "COLON"), "missing :")
-        body = ast_block_or_expr(stm, self.ast_case_expr, self.ast_case_expr)
+        body = self.ast_block_or_expr(stm, self.ast_case_expr, self.ast_case_expr)
         if body["type"] == "S_BLOCK":
             body = body["body"]
         else:
             body = [body]
-        return {"type":'CASE_LAMBDA', "args":args, 
+        return {"type":'CASE_LAMBDA', "args":arg_names, 
                 "body":body, "msg":"case " + args["msg"] + ":" + "..." }
 
 

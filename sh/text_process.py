@@ -2,12 +2,12 @@ import re, random
 from types import GeneratorType
 from sh.os_cmd import is_dir, replace_if_star_dir
 from collections.abc import Iterable
-import json
+import json, collections
 from sh.utils import pipe_itertool
 
 _pipe_func = ['grep', 'egrep', 'colSel', 'list_format', 'format', 
             'extract', 'replace', 'tojson', 'dumps', 'strip', 
-            'split', 'rSel' ]
+            'split', 'rSel', "uniqBy" ]
 _other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more', 'head',
             'join', 'findall', 'search', 'uniq', 'ksort', 'sort']
 
@@ -38,6 +38,7 @@ def pipe_text_itertool(func):
                 ans = func(*new_args, **kw)
                 if ans is not None: yield ans
     return wrapper
+
 
 def sample(sample_rate, iterable):
     """Lazyed: sample(sample_rate, iterable)"""
@@ -80,11 +81,11 @@ def _colSel(idxes, iterable):
     return [iterable[idx] for idx in idxes]
 colSel = pipe_itertool(_colSel, 1)
 
-def _list_format(pat, iterable, sep=" "):
-    """_list_format(pat, iterable, sep=" ")"""
+def _list_format(iterable, pat="{0}", sep=" "):
+    """_list_format(iterable, pat, sep=" ")"""
     return sep.join( [pat.format(ele) for ele in iterable] )
 
-list_format = pipe_itertool(_list_format, 1)
+list_format = pipe_itertool(_list_format, 0)
 
 def _format(pat, x):
     """_format(pat, x): 
@@ -232,10 +233,17 @@ def sort(lst, key=lambda x:x, p=""):
     return lst
 
 def uniq(iterable):
-    """uniq(iterable)"""
-    ans = set()
-    for x in iterable:
-        if x not in ans:
-            ans.add(x)
-    return list(ans)
+    """uniq(iterable) = list(set(iterable))"""
+    return list(set(iterable))
 
+def uniqBy(iterable, key=lambda x:x):
+    """uniqBy(iterable, key=func)"""
+    dic = collections.OrderedDict()
+    for x in iterable:
+        key_v = key(x)
+        if key_v not in ans:
+            dic[key_v] = x
+    return dic.values()
+
+def _uniqBy(iterable, key=lambda x:x):
+    return list(uniqBy(iterable, key))

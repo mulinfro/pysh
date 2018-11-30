@@ -2,9 +2,11 @@
 import shutil
 import os
 from sh.utils import normal_leven
+import subprocess
+#import ..config
 
 __all__ =  ['pwd', 'is_file', 'is_dir', 'replace_if_star_dir', 'ls', 'll', 
-            'mkdir', 'rm', 'cp', 'mv', 'find', 'doc']
+            'mkdir', 'rm', 'cp', 'mv', 'find', 'doc', 'os_call', 'dirMap', 'dirsMap']
 
 def pwd():
     """Current work directory"""
@@ -15,6 +17,7 @@ def doc(obj):
     print(obj.__doc__)
 
 def path_expand(path):
+    path = path.strip()
     if path.startswith("~"):
         return os.path.expanduser("~") + path[1:]
     return path
@@ -35,6 +38,38 @@ def replace_if_star_dir(path):
             ans.append(os.path.join(path,filename))
         return ans
     return [path]
+
+HOME_DIR = os.path.expanduser("~")
+CDHIST = [("~", os.getcwd() )]
+
+def cd(path = ".."):
+    """cd: int -> hitory cd path in cdh; string -> cd to this path""" 
+
+    def _cd_helper():
+        #config.cdh.clear()
+        #config.cdh.extend([  (x[0], i) for i, x in enumerate(CDHIST) ])
+        os.chdir(CDHIST[0][1])
+
+    if type(path) == int:
+        cd_path = CDHIST.pop(path)
+        CDHIST.insert(0, cd_path)
+        _cd_helper()
+        return
+
+    path_expand(path)
+    if not os.path.isdir(path):
+        print("Error Not_a_dir: %s" % path )
+        return
+    abspath = os.path.abspath(path)
+    CDHIST.insert(0, (path, abspath))
+    # LRU
+    for i in range(1, len(CDHIST)):
+        if CDHIST[i][0] == CDHIST[0][0]:
+            CDHIST.pop(i)
+            break
+    if len(CDHIST) > 20: CDHIST.pop(-1)
+    _cd_helper()
+
 
 def ls(path=".", p=""):
     """shell: ls 
@@ -60,8 +95,48 @@ def ls(path=".", p=""):
             ans.append(filename)
     return ans
 
-def ll():
-    pass
+def dirMap(func, dir_path, p="f"):
+    """dirMap( func, dir_path, p="f" )
+    ans = func(f) => eg: func(ls(dirs_path[0])[0])
+    given a dir_path, apply func to all files in this dir 
+    p is same flag para in ls function"""
+    ans = []
+    for f in ls(dir_path, p):
+        val = func(f)
+        if val is not None:
+            ans.append(val)
+    return ans
+
+def dirsMap(func, dirs_path, p="f"):
+    """dirsMap( func, dirs_path, p="f" )
+    ans = func(dir_path, f) => eg: func(dirs_path[0], ls(dirs_path[0])[0])
+    given dirs_path, apply func to all files in all dirs
+    p is same flag para in ls function"""
+    ans = []
+    for dir_path in dirs_path:
+        for f in ls(dir_path, p):
+            val = func(dir_path, f)
+            if val is not None:
+                ans.append(val)
+    return ans
+
+class os_return_obj:
+    def __init__(self, stdout, returncode):
+        self.stdout = stdout if stdout else ""
+        self.returncode = returncode
+
+    def __str__(self):
+        if self.returncode == 0:
+            return self.stdout
+        else:
+            return "shell error code %d\n"%self.returncode
+
+def os_call(sh):
+    out_bytes = subprocess.run(sh, shell=True, stderr=subprocess.STDOUT)
+    return os_return_obj(out_bytes.stdout, out_bytes.returncode)
+
+def ll(path):
+    os_call("ls -al %s"%path)
 
 def mkdir(path, mode=0o777, p=""):
     """shell: mkdir

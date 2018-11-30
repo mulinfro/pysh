@@ -1,11 +1,9 @@
 """
     builtin operators
 """
-import operator, os, config
+import operator
 import json
 from collections import Iterable
-import subprocess
-
 
 operators = {
     '+': 'ADD',
@@ -88,53 +86,6 @@ _not_is  = lambda x,y: x is not y
 _power = lambda x,y: x**y
 _zdiv = lambda x, y: x//y
 
-class os_return_obj:
-    def __init__(self, stdout, returncode):
-        self.stdout = stdout if stdout else ""
-        self.returncode = returncode
-
-    def __str__(self):
-        if self.returncode == 0:
-            return self.stdout
-        else:
-            return "shell error code %d\n"%self.returncode
-
-def os_call(sh):
-    out_bytes = subprocess.run(sh, shell=True, stderr=subprocess.STDOUT)
-    return os_return_obj(out_bytes.stdout, out_bytes.returncode)
-
-HOME_DIR = os.path.expanduser("~")
-CDHIST = [("~", os.getcwd() )]
-
-def cd(path = ".."):
-    """cd: int -> hitory cd path in cdh; string -> cd to this path""" 
-
-    def _cd_helper():
-        config.cdh.clear()
-        config.cdh.extend([  (x[0], i) for i, x in enumerate(CDHIST) ])
-        os.chdir(CDHIST[0][1])
-
-    if type(path) == int:
-        cd_path = CDHIST.pop(path)
-        CDHIST.insert(0, cd_path)
-        _cd_helper()
-        return
-
-    path = path.strip()
-    if path.startswith("~"):
-        path = HOME_DIR + path[1:]
-    if not os.path.isdir(path):
-        print("Error Not_a_dir: %s" % path )
-    abspath = os.path.abspath(path)
-    CDHIST.insert(0, (path, abspath))
-    # LRU
-    for i in range(1, len(CDHIST)):
-        if CDHIST[i][0] == CDHIST[0][0]:
-            CDHIST.pop(i)
-            break
-    if len(CDHIST) > 20: CDHIST.pop(-1)
-    _cd_helper()
-
 def var2str(var):
     if type(var) != str:
         return json.dumps(var, ensure_ascii=False)
@@ -157,21 +108,32 @@ def _append(var, filename):
 def _call(f, arg):
     return f(*arg[0], **arg[1])
 
-def _get_dict(v, k):
-    r = [v[ki] if ki in v else None for ki in k]
-    if len(r) == 1: return r[0]
-    return r
-
 def _get(v, k):
-    if type(v) is dict: return _get_dict(v,k)
-    if len(k) == 1: 
-        return v[k[0]]
+    if type(v) is dict: 
+        r = [v.get(ki, None) for ki in k]
     else: 
         r = [v[ki] for ki in k]
         if type(v) == str:
             return "".join(r)
-        return r
+    if len(r) == 1: 
+        return r[0]
+    return r
 
+def _get_list(v, k):
+    if type(v) is dict: 
+        r = [v.get(ki, None) for ki in k]
+    else: 
+        r = [v[ki] for ki in k]
+        if type(v) == str:
+            return "".join(r)
+    if len(r) == 1: 
+        return r[0]
+    return r
+
+def _get_ele(v, k):
+    if type(v) is dict:
+        return v.get(k, None)
+    return v[k]
 
 def _assign(var, val, env):
     env[var] = val
@@ -213,7 +175,6 @@ Binary = {
     "EQUAL":  operator.eq,
     "COMB" :  _comb,
 }
-
 
 Unary = {
     'OSCALL': None,
