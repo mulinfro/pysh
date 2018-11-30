@@ -40,6 +40,7 @@ special_op = {
 
 pipe_op = {
     "|": 'PIPE',
+    "<|": 'LEFT_PIPE',
     '&>': 'WRITE',
     '&>>': 'APPEND',
     "@" :"COMB",
@@ -53,11 +54,12 @@ op_order = {
     'WRITE':1,
     'APPEND':1,
     "PIPE": 2,
-    'COMB':3,
-    "OR": 4,
-    "AND": 5,
-    "IS": 6, "IN": 6, "NOT_IS":6, "NOT_IN":6,
-    "LT": 7, "GT": 7, "LE": 7, "GE": 7, "EQUAL": 7, "NEQ": 7,
+    "LEFT_PIPE": 3,
+    'COMB':5,
+    "OR": 6,
+    "AND": 7,
+    "IS": 8, "IN": 8, "NOT_IS":8, "NOT_IN":8,
+    "LT": 9, "GT": 9, "LE": 9, "GE": 9, "EQUAL": 9, "NEQ": 9,
     "ADD": 10, "MINUS": 10,
     "MOD": 15,
     "MUL": 20, "DIV": 20, "ZDIV": 20,
@@ -79,6 +81,7 @@ _and = lambda x,y: x and y
 _or = lambda x,y: x or y 
 _not = lambda x: not x
 _pipe = lambda x,f: f(x)
+_left_pipe = lambda f,x: f(x)
 _in  = lambda x,y: x in y
 _not_in  = lambda x,y: x not in y
 _is  = lambda x,y: x is y
@@ -150,6 +153,7 @@ def _comb(f, comb_arg):
 
 Binary = {
     'PIPE':   _pipe,
+    'LEFT_PIPE': _left_pipe,
     'WRITE':  _write,
     'APPEND': _append,
     'ADD':    _add,
