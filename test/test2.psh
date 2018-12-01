@@ -10,7 +10,7 @@
 ">>> case "
 case match_case(x,y)
     1,"a" => {print("case 1", x, y), 1}
-    2  => y
+    2, ys:bool  => y
     _, [1,2,[]] => {print("case list"), 3}
     True, ("c", 0.01, [x0,x1,xs] ) => xs
     if x => print("If case")

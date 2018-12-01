@@ -2,7 +2,7 @@ from builtin import operators, op_order, Binary, Unary, op_right
 from sh.os_cmd import cd, os_call
 import copy
 from types import GeneratorType
-from env import Env
+from env import Env, dict2obj
 from syntax_check import Error, syntax_cond_assert
 from exception import Return_exception, Assert_exception, Continue_exception, Break_exception, exception_warp, Generator_with_catch
 PARTIAL_FLAG = lambda f: f  
@@ -54,7 +54,6 @@ def parse_block_or_expr(node):
     else:
         b_expr = parse_expr_or_command(node)
     return b_expr
-
 
 def parse_catched(node):
     expr = parse_block_expr(node["expr"])
@@ -316,7 +315,7 @@ def parse_import(node):
     def user_import_psh(path):
         syntax_cond_assert(os.path.isfile(path),  "Error: path %s is not a file"%path)
         import repl
-        return repl.pysh(path, run=False)
+        return dict2obj(repl.pysh(path, run=False))
 
     """  not neccssily
     def user_import_package(path, file_suffix):

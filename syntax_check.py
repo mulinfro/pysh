@@ -27,7 +27,7 @@ def syntax_check(tkn, need_tkn, not_ = False):
 
 def syntax_assert(tkn, need_tkn,  errstr = "", not_ = False):
     if not syntax_check(tkn, need_tkn, not_):
-        Error(tkn.val + ": " + errstr, tkn.line, tkn.col)
+        Error(str(tkn.val) + ": " + errstr, tkn.line, tkn.col)
     return True
 
 def syntax_cond_assert(cond,  errstr = "", not_ = False):

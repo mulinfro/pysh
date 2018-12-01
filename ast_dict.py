@@ -489,7 +489,7 @@ class AST():
 
     def try_case_var(self, stm):
         tkn = stm.next()
-        if syntax_check(stm.peek(), ("OP", "COLON")):
+        if not stm.eof() and syntax_check(stm.peek(), ("OP", "COLON")):
             stm.next()
             syntax_assert(stm.peek(), "VAR", "expected var type, accully %s"%tkn.val)
             var_tp = stm.next()
@@ -506,14 +506,15 @@ class AST():
         return {"type":tp, "val": vals, "msg": expr_msg}
 
     def ast_case_val(self, stm):
-        tkn = stm.next()
-        if tkn.tp in ["LIST", "PARN"]:
-            tp = "LIST" if tkn.tp == "LIST" else "TUPLE"
-            val = self.ast_case_list(stream(tkn.val), tp)
-        elif tkn.tp == "VAR":
+        tkn = stm.peek()
+        if tkn.tp == "VAR":
             val = self.try_case_var(stm)
+        elif tkn.tp in ["LIST", "PARN"]:
+            tp = "LIST" if tkn.tp == "LIST" else "TUPLE"
+            val = self.ast_case_list(stream(stm.next().val), tp)
         elif tkn.tp in ('NUM', 'STRING', 'BOOL', "NONE"):
             val = {"type":tkn.tp, "val":tkn.val, "msg": str(tkn.val)}
+            stm.next()
         else:
             Error("Syntax Error:%s,%s"%(tkn.tp, str(tkn.val)), tkn.line, tkn.col)
         return val
