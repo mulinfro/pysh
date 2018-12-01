@@ -129,8 +129,8 @@ def pysh(psh_file, run=True, not_print=True):
 
 
 def test_psh_file():
-    pysh(os.path.join(PSH_DIR,"test.psh"), run=True, not_print=False)
-    pysh(os.path.join(PSH_DIR,"test2.psh"), run=True, not_print=False)
+    pysh(os.path.join(PSH_DIR,"test/test.psh"),  run=True, not_print=False)
+    pysh(os.path.join(PSH_DIR,"test/test2.psh"), run=True, not_print=False)
         
 if __name__ == "__main__":
     test_psh_file()
