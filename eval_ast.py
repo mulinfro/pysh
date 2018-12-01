@@ -233,6 +233,13 @@ def parse_case_atom(node):
     if node["type"] == "VAR":
         var_name = node["name"]
         return lambda to_match_value: (True, [(var_name, to_match_value)])
+    elif node["type"] == "TYPE_VAR":
+        var_name = node["name"]
+        try:
+            var_tp = eval(node["var_type"])
+        except:
+            Error("undefined type %s"%node["var_type"])
+        return lambda to_match_value: (type(to_match_value) == var_tp, [(var_name, to_match_value)])
     else:
         val = node["val"]
         return lambda to_match_value: (to_match_value == val, [])

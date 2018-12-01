@@ -316,9 +316,8 @@ class AST():
     def ast_multicase(self, stm):
         variable_matched_list = []
         while True:
-            v = self.ast_val(stm)
+            v = self.ast_case_val(stm)
             variable_matched_list.append(v)
-            syntax_cond_assert(v["type"] not in ["ARGS", "SYSCALL", "LAMBDA"],  "unexpected token type %s in case expr"%v["type"])
             if syntax_check(stm.peek(), "INFER" ): break
             syntax_assert(stm.next(), ("SEP", "COMMA"), "expecte , or =>")
         #print(variable_matched_list)
@@ -486,6 +485,38 @@ class AST():
             elif tkn.val in Binary:
                 return {"type":tkn.tp, "val":stm.next().val, "msg": operator_val_dict.get(tkn.val, tkn.val) }
         return None
+
+
+    def try_case_var(self, stm):
+        tkn = stm.next()
+        if syntax_check(stm.peek(), ("OP", "COLON")):
+            stm.next()
+            syntax_assert(stm.peek(), "VAR", "expected var type, accully %s"%tkn.val)
+            var_tp = stm.next()
+            return {"type":"TYPE_VAR", "name":tkn.val, "var_type": var_tp.val, "msg": tkn.val + ":" + var_tp.val}
+        return {"type":"VAR", "name":tkn.val, "msg": tkn.val}
+
+    def ast_case_list(self, stm, tp):
+        vals = []
+        while not stm.eof():
+            vals.append(self.ast_case_val(stm))
+            check_comma(stm)
+        base_msg = get_nodes_val(vals, ",")
+        expr_msg = "[ " + base_msg + " ]" if tp == "LIST" else "( " + base_msg + " )"
+        return {"type":tp, "val": vals, "msg": expr_msg}
+
+    def ast_case_val(self, stm):
+        tkn = stm.next()
+        if tkn.tp in ["LIST", "PARN"]:
+            tp = "LIST" if tkn.tp == "LIST" else "TUPLE"
+            val = self.ast_case_list(stream(tkn.val), tp)
+        elif tkn.tp == "VAR":
+            val = self.try_case_var(stm)
+        elif tkn.tp in ('NUM', 'STRING', 'BOOL', "NONE"):
+            val = {"type":tkn.tp, "val":tkn.val, "msg": str(tkn.val)}
+        else:
+            Error("Syntax Error:%s,%s"%(tkn.tp, str(tkn.val)), tkn.line, tkn.col)
+        return val
 
     def ast_val(self, stm):
         tkn = stm.next()
