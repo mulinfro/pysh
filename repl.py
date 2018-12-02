@@ -1,13 +1,7 @@
-from stream import stream
-from char_stream import char_stream
-from eval_ast import parse
-from ast_dict import AST
-from tokens import token_list
-from env import get_builtin_env, Env
+from env import get_builtin_env
+from eval_ast import parse_and_eval_with_env
 from config import IN, HISLENGTH, repl_init_str
-from exception import Generator_with_catch
 import os, sys, glob
-from types import GeneratorType
 PSH_DIR = sys.path[0]
 
 def pathCompleter(self,text,state):
@@ -88,36 +82,24 @@ def REPL():
         cmd = ""
             
         if block_num == 0:
-            script = char_stream("\n".join(cmdlines) +"\n")
+            raw_script = "\n".join(cmdlines) +"\n"
             cmdlines.clear()
-            #parse_and_eval_with_env(script, env)
+            #parse_and_eval_with_env(raw_script, env)
             try:
-                parse_and_eval_with_env(script, env)
+                parse_and_eval_with_env(raw_script, env)
             except Exception as e:
                 print(repr(e))
             except KeyboardInterrupt:
                 print("KeyboardInterrupt")
 
-def parse_and_eval_with_env(script, env, not_print=False):
-    tokens = token_list(script).tokens
-    #print("tokens", tokens)
-    ast_tree = AST(stream(tokens))
-    for node in ast_tree.ast:
-        ans = parse(node)(env)
-        if not_print or ans is None or node["type"] == "ASSIGN": continue
-        if isinstance(ans, GeneratorType) or isinstance(ans, Generator_with_catch):
-            for e in ans: 
-                print(":> ", e)
-        else:
-            print(":> ", ans)
-    
+
 def pysh(psh_file, run=True, not_print=True):
     with open(psh_file, encoding="utf-8") as f:
-        script = char_stream(f.read())
+        raw_script = f.read()
     env = get_builtin_env(builtins)
-    #parse_and_eval_with_env(script, env)
+    #parse_and_eval_with_env(raw_script, env)
     try:
-        parse_and_eval_with_env(script, env, not_print=not_print)
+        parse_and_eval_with_env(raw_script, env, not_print=not_print)
     except Exception as e:
         print(repr(e))
         return None
@@ -133,7 +115,7 @@ def test_psh_file():
     pysh(os.path.join(PSH_DIR,"test/test2.psh"), run=True, not_print=False)
         
 if __name__ == "__main__":
-    #test_psh_file()
+    test_psh_file()
     if len(sys.argv) > 1:
         pysh(sys.argv[1])
     else:

@@ -42,3 +42,5 @@ end
 list_reverse([0:10])
 
 " case lambda "
+
+b = 1
