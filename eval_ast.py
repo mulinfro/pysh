@@ -1,7 +1,7 @@
 from ast_dict import AST
 from tokens import token_list
 from char_stream import char_stream
-from env import get_builtin_env, Env, dict2obj, obj
+from env import get_builtin_env, Env, obj
 from types import GeneratorType
 from parse_ast import parse
 from stream import stream
