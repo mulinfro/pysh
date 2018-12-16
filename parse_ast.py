@@ -145,7 +145,7 @@ def expr_or_default(node, default_val):
 
 def parse_assert(node):
     rval = parse_pipe_or_expr(node["rval"])
-    msg = parse_pipe_or_expr(node["info"]) if node["info"] else None
+    msg = parse_pipe_or_expr(node["info"]) if node["info"] else lambda env:None
 
     def _assert_condition(env):
         cond = rval(env)
