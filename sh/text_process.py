@@ -5,9 +5,9 @@ from collections.abc import Iterable
 import json, collections
 from sh.utils import pipe_itertool
 
-_pipe_func = ['grep', 'egrep', 'colSel', 'list_format', 'format', 
+_pipe_func = ['grep', 'egrep', 'colSel', 'listFormat', 'format', 
             'extract', 'replace', 'tojson', 'dumps', 'strip', 
-            'split', 'rSel', "uniqBy" ]
+            'split', 'rSel', "uniqBy", "toUtf8" ]
 _other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more', 'head',
             'join', 'findall', 'search', 'uniq', 'ksort', 'sort']
 
@@ -59,6 +59,13 @@ def _grep(pat, line):
 
 grep = pipe_itertool(_grep, 1)
 
+
+def _toUtf8(s, encoding="gbk"):
+    """_toUtf8(s, encoding="gbk"): s to utf8"""
+    return s.decode(encoding).encode("utf-8")
+
+toUtf8 = pipe_itertool(_toUtf8, 0)
+
 def _egrep(pat, line, p="i"):
     """_egrep(pat, line, p="i")"""
     if "i" in p: pattern = re.compile(pat, re.I)
@@ -81,11 +88,11 @@ def _colSel(idxes, iterable):
     return [iterable[idx] for idx in idxes]
 colSel = pipe_itertool(_colSel, 1)
 
-def _list_format(iterable, pat="{0}", sep=" "):
-    """_list_format(iterable, pat, sep=" ")"""
+def _listFormat(iterable, pat="{0}", sep=" "):
+    """_listFormat(iterable, pat, sep=" ")"""
     return sep.join( [pat.format(ele) for ele in iterable] )
 
-list_format = pipe_itertool(_list_format, 0)
+listFormat = pipe_itertool(_listFormat, 0)
 
 def _format(pat, x):
     """_format(pat, x): 
@@ -150,7 +157,7 @@ def cat(iterable):
             if is_dir(file_name): continue
             f = open(file_name, "r", encoding="utf-8")
             for line in f:
-                yield line.rstrip("\n")
+                yield line.rstrip("\n\r")
             f.close()
 
 def _tojson(line):
