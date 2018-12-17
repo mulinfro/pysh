@@ -725,16 +725,17 @@ def parse_def(node):
         default_vals = [parse_pipe_or_expr(v) for v in args_node["default_vals"]]
         default_args = args_node["default_args"]
     body_f = parse_block(node["body"])
+    fname = node["funcname"]
 
     def _def(env):
         r_default_vals = [a(env) for a in default_vals]
         def proc(*args_vals, **kwargs):
             new_env = Env(outer = env)
             if len(args_vals) < len(args) or len(args_vals) > len(args) + len(default_args):
-                Error("%s() unexpected argument number"% node["name"])
+                Error("%s() unexpected argument number"% fname)
             for k,v in kwargs.items():
                 if k not in default_args:
-                    Error("%s() not defined argument %s"%(node["name"], k))
+                    Error("%s() not defined argument %s"%(fname, k))
             # default args
             new_env.update(zip(default_args, r_default_vals))
             new_env.update(zip(args + default_args, args_vals))
@@ -748,6 +749,6 @@ def parse_def(node):
                 assert r.value, r.msg
             del new_env
 
-        env[node["funcname"]] = proc
+        env[fname] = proc
         #return "function: " + node["funcname"]
     return _def
