@@ -9,7 +9,7 @@ _pipe_func = ['grep', 'egrep', 'colSel', 'listFormat', 'format',
             'extract', 'replace', 'tojson', 'dumps', 'strip', 
             'split', 'rSel', "uniqBy", "toUtf8" ]
 _other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more', 'head',
-            'join', 'findall', 'search', 'uniq', 'ksort', 'sort']
+            'findall', 'search', 'uniq', 'ksort', 'sort']
 
 __all__ = _pipe_func + _other_func + list(map(lambda x: "_"+x, _pipe_func))
 

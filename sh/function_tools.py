@@ -9,7 +9,7 @@ _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile',
 
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
-__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', '_while', 
+__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', '_while', 'join', 
             'foldl', 'repeat', 'slf', '_if', "sequence", "swapListEle"] + _pipe_func + _pipe_func_ori
 
 def slf(x):
@@ -295,6 +295,27 @@ def flatMap(func, listOfLists):
             yield func(x)
 
 _flatMap = unlazyed(flatMap)
+
+
+def join(key_func, lst1, lst2):
+    """join(key_func, iter1, iter2)
+      return a dict with {key_func(ele): (ele1, ele2)}
+      None if one key is not in a lst
+       """
+    ans = {}
+    for ele in lst1:
+        key = key_func(ele)
+        ans[key] = (ele, None)
+    for ele in lst2:
+        key = key_func(ele)
+        if key in ans:
+            l1key = ans[key][0]
+            ans[key] = (l1key, ele)
+        else:
+            ans[key] = (None, ele)
+
+    return ans
+
 
 if __name__ == "__main__":
     pass

@@ -344,7 +344,7 @@ def parse_import(node):
             module_name = os.path.split(path)[1].split(".")[0]
 
         if path.endswith(".py"):
-            module_context = user_import_py(path)
+            module_context = user_import_py(path, module_name)
             return lambda env: env.update({module_name: module_context})
         elif path.endswith(".psh"):
             return user_import_psh(path, module_name)
