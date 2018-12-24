@@ -69,7 +69,7 @@ class AST():
         pipes, exprs = [], [left]
         while not stm.eof() and stm.peek().tp == "PIPE":
             tkn = stm.next()
-            pipes.append({"type":tkn.tp, "val":tkn.val, "msg": tkn.val})
+            pipes.append({"type":tkn.tp, "val":tkn.val, "msg": operator_val_dict[tkn.val]})
             self.newlines(stm)
             exprs.append(self.ast_expr(stm))
         if len(pipes) > 0:
