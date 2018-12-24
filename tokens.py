@@ -163,9 +163,12 @@ class token_list():
         op = ""
         if self.chars.peek() in '+-':
             op += self.chars.next()
-            return token("OP", operators[op], line, col)
-        while self.chars.peek() in '!=<>|&@%*/.:$':
-            op += self.chars.next()
+            if self.chars.peek() in [">"]:
+                op += self.chars.next()
+        else:
+            while self.chars.peek() in '!=<>|&@%*/.:$':
+                op += self.chars.next()
+
         if op in special_op:
             return token(special_op[op], op, line, col)
         elif op in pipe_op: 

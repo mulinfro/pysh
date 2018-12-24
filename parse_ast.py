@@ -428,7 +428,8 @@ def compute_expr(env, vals, ops):
                 (his_op["order"] == my_op["order"] and his_op["right"]):
                 right = binary_order(right, my_op["order"])
 
-        new_left = my_op["func"](left,right)
+        op_func = my_op["func"](env) if my_op["name"] == "PIPE_ASSIGN" else my_op["func"]
+        new_left = op_func(left,right)
         return binary_order(new_left, preorder)
 
     val = binary_order(vals.pop(0)(env), -1)

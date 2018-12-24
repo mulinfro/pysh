@@ -41,6 +41,7 @@ special_op = {
 pipe_op = {
     "|": 'PIPE',
     "<|": 'LEFT_PIPE',
+    "->": 'PIPE_ASSIGN',
     '&>': 'WRITE',
     '&>>': 'APPEND',
     "@" :"COMB",
@@ -53,7 +54,7 @@ operator_val_dict = dict( [ (y,x) for x, y in operators.items() ] +
 op_order = {
     'WRITE':1,
     'APPEND':1,
-    "PIPE": 2,
+    "PIPE": 2, 'PIPE_ASSIGN': 2,
     "LEFT_PIPE": 3,
     'COMB':5,
     "OR": 6,
@@ -88,6 +89,17 @@ _is  = lambda x,y: x is y
 _not_is  = lambda x,y: x is not y
 _power = lambda x,y: x**y
 _zdiv = lambda x, y: x//y
+
+def _pipe_assign(env):
+    def _pipe_assign_env(val, var_name):
+        if isinstance(val, Iterable):
+            for e in val:
+                env[var_name] = e
+                yield e
+        else:
+            env[var_name] = val
+            yield val
+    return _pipe_assign_env
 
 def var2str(var):
     if type(var) != str:
@@ -154,6 +166,7 @@ def _comb(f, comb_arg):
 Binary = {
     'PIPE':   _pipe,
     'LEFT_PIPE': _left_pipe,
+    'PIPE_ASSIGN': _pipe_assign,
     'WRITE':  _write,
     'APPEND': _append,
     'ADD':    _add,
