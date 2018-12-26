@@ -292,20 +292,22 @@ def parse_import(node):
         _import_str, _import_val = "", [] 
         for tkn in _import:
             if tkn.tp == "SEP":
-                if _import_str:
-                    _import_val.append(_import_str)
-                    _import_str = ""
+                syntax_cond_assert(_import_str != "")
+                _import_val.append(_import_str)
+                _import_str = ""
             else:
                 _import_str += tkn.val
 
         if _import_str: _import_val.append(_import_str)
 
         env = {}
+        syntax_cond_assert( len(_as) == 0 or len(_as) == len(_import_val) )
         as_name = _as + [None]*len(_import_val)
         for t,g in zip(_import_val, as_name):
-            nm = g if g else t.split(".")[0]
+            sub_modules = t.split(".")
+            nm = g if g else sub_modules[-1]
             if _from: env[nm] = top_module.__getattribute__(t)
-            else:     env[nm] = __import__(t)
+            else:     env[nm] = __import__(t, fromlist=sub_modules)
         return env
             
     def user_import_py(path, _as):

@@ -1,5 +1,4 @@
 """Word completion for GNU readline.
-source:  https://github.com/secondtonone1/python-/blob/master/envs/lsbaws/Lib/rlcompleter.py
 
 The completer completes keywords, built-ins and globals in a selectable
 namespace (which defaults to __main__); when completing NAME.NAME..., it
@@ -33,6 +32,7 @@ Notes:
 import atexit
 import builtins
 import __main__
+import glob
 
 __all__ = ["Completer"]
 
@@ -88,6 +88,8 @@ class Completer:
         if state == 0:
             if "." in text:
                 self.matches = self.attr_matches(text)
+            elif "/" in text:
+                self.matches = self.path_matches(text)
             else:
                 self.matches = self.global_matches(text)
         try:
@@ -100,6 +102,19 @@ class Completer:
             word = word + "("
         return word
 
+    def _path_postfix(self, word):
+
+    def path_matches(self, text):
+        text
+
+    def pathCompleter(self,text,state):
+        """ 
+        This is the tab completer for systems paths.
+        Only tested on *nix systems
+        """
+        line   = readline.get_line_buffer().split()
+        return [x for x in glob.glob(text+'*')][state]
+
     def global_matches(self, text):
         """Compute matches when text is a simple name.
 
@@ -108,7 +123,8 @@ class Completer:
 
         """
         import keyword
-        matches = []
+        matches = glob.glob("*")
+        print("MATCHES", matches)
         seen = {"__builtins__"}
         n = len(text)
         for word in keyword.kwlist:
@@ -125,7 +141,8 @@ class Completer:
             for word, val in nspace.items():
                 if word[:n] == text and word not in seen:
                     seen.add(word)
-                    matches.append(self._callable_postfix(val, word))
+                    #matches.append(self._callable_postfix(val, word))
+                    matches.append(word)
         return matches
 
     def attr_matches(self, text):
@@ -192,15 +209,3 @@ def get_class_members(klass):
         for base in klass.__bases__:
             ret = ret + get_class_members(base)
     return ret
-
-try:
-    import readline
-except ImportError:
-    _readline_available = False
-else:
-    readline.set_completer(Completer().complete)
-    # Release references early at shutdown (the readline module's
-    # contents are quasi-immortal, and the completer function holds a
-    # reference to globals).
-    atexit.register(lambda: readline.set_completer(None))
-    _readline_available = True

@@ -4,19 +4,17 @@ from config import IN, HISLENGTH, repl_init_str
 import os, sys, glob
 PSH_DIR = sys.path[0]
 
-def pathCompleter(self,text,state):
-        """ 
-        This is the tab completer for systems paths.
-        Only tested on *nix systems
-        """
-        line   = readline.get_line_buffer().split()
-        return [x for x in glob.glob(text+'*')][state]
 
-def repl_readline_helper():
-    import readline, atexit #,rlcompleter
+def repl_readline_helper(env):
+    try:
+        import readline, atexit, rlcompleter
+    except ImportError:
+        print("readline module is not installed! use raw input")
     readline.parse_and_bind('tab: complete')
     readline.parse_and_bind('set editing-mode vi')
-    #readline.set_completer(pathCompleter)
+    completer = rlcompleter.Completer(env)
+    readline.set_completer(completer.complete)
+    #readline.set_completer(completer.pathCompleter)
     histfile = os.path.join(PSH_DIR, ".pyhist")
     try:
         readline.read_history_file(histfile)
@@ -38,12 +36,9 @@ def is_block(cmd):
 
 def REPL():
     cmd_history = []
-    try:
-        repl_readline_helper()
-    except ImportError:
-        print("readline module is not installed! use raw input")
     print(repl_init_str)
     env = get_builtin_env(builtins)
+    repl_readline_helper(env)
     env["history"] = cmd_history
 
     cmdlines, block_num, cmd = [], 0, ""
