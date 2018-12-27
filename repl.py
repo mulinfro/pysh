@@ -1,9 +1,8 @@
 from env import get_builtin_env
 from eval_ast import parse_and_eval_with_env
 from config import IN, HISLENGTH, repl_init_str
-import os, sys, glob
+import os, sys
 PSH_DIR = sys.path[0]
-
 
 def repl_readline_helper(env):
     try:
@@ -12,7 +11,8 @@ def repl_readline_helper(env):
         print("readline module is not installed! use raw input")
     readline.parse_and_bind('tab: complete')
     readline.parse_and_bind('set editing-mode vi')
-    completer = rlcompleter.Completer(env)
+    readline.set_completer_delims(' \t\n`~!@#$%^&*()-=+[{]}\\|;:\'",<>?')
+    completer = rlcompleter.Completer(env, readline)
     readline.set_completer(completer.complete)
     #readline.set_completer(completer.pathCompleter)
     histfile = os.path.join(PSH_DIR, ".pyhist")

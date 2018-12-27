@@ -9,13 +9,24 @@ _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile',
 
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
-__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', '_while', 'join', 
+__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', '_while', 'join', 'countBy',
             'foldl', 'repeat', 'slf', '_if', "sequence", "swapListEle"] + _pipe_func + _pipe_func_ori
 
 def slf(x):
     """ slf: return self"""
     return x
 
+def countBy(iterable, key=None):
+    """countBy(iterable, key=lambda x:x)"""
+    ans = {}
+    if key is None:
+        for x in iterable:
+            ans[x] = ans.get(x, 0) + 1
+    else:
+        for x in iterable:
+            kx = key(x)
+            ans[kx] = ans.get(kx, 0) + 1
+    return ans
 
 def swapListEle(list_obj, i=0, j=1):
     """ swapListEle(list_obj, i=0, j=1) """

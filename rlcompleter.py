@@ -29,15 +29,13 @@ Notes:
 
 """
 
-import atexit
-import builtins
 import __main__
-import glob
+import glob, os
 
 __all__ = ["Completer"]
 
 class Completer:
-    def __init__(self, namespace = None):
+    def __init__(self, namespace = None, rl = None):
         """Create a new completer for the command line.
 
         Completer([namespace]) -> completer instance.
@@ -63,6 +61,7 @@ class Completer:
         else:
             self.use_main_ns = 0
             self.namespace = namespace
+        self.readline = rl
 
     def complete(self, text, state):
         """Return the next possible completion for 'text'.
@@ -74,24 +73,16 @@ class Completer:
         if self.use_main_ns:
             self.namespace = __main__.__dict__
 
-        if not text.strip():
-            if state == 0:
-                if _readline_available:
-                    readline.insert_text('\t')
-                    readline.redisplay()
-                    return ''
-                else:
-                    return '\t'
-            else:
-                return None
+        if not text.strip(): return None
 
         if state == 0:
+            self.matches = []
+            if "/" in text:
+                self.matches.extend(self.path_matches(text))
             if "." in text:
-                self.matches = self.attr_matches(text)
-            elif "/" in text:
-                self.matches = self.path_matches(text)
+                self.matches.extend(self.attr_matches(text))
             else:
-                self.matches = self.global_matches(text)
+                self.matches.extend(self.global_matches(text))
         try:
             return self.matches[state]
         except IndexError:
@@ -103,17 +94,13 @@ class Completer:
         return word
 
     def _path_postfix(self, word):
+        if os.path.isdir(word):
+            word = word + "/"
+        return word
 
     def path_matches(self, text):
-        text
-
-    def pathCompleter(self,text,state):
-        """ 
-        This is the tab completer for systems paths.
-        Only tested on *nix systems
-        """
-        line   = readline.get_line_buffer().split()
-        return [x for x in glob.glob(text+'*')][state]
+        files =  [self._path_postfix(x) for x in glob.glob(text+'*')]
+        return files
 
     def global_matches(self, text):
         """Compute matches when text is a simple name.
@@ -123,8 +110,7 @@ class Completer:
 
         """
         import keyword
-        matches = glob.glob("*")
-        print("MATCHES", matches)
+        matches = []
         seen = {"__builtins__"}
         n = len(text)
         for word in keyword.kwlist:
@@ -137,12 +123,17 @@ class Completer:
                                   'else'}:
                     word = word + ' '
                 matches.append(word)
-        for nspace in [self.namespace, builtins.__dict__]:
+        for nspace in [self.namespace]:
             for word, val in nspace.items():
                 if word[:n] == text and word not in seen:
                     seen.add(word)
                     #matches.append(self._callable_postfix(val, word))
                     matches.append(word)
+
+        for word in glob.glob("*"):
+            if word.startswith(text):
+                matches.append(self._path_postfix(word))
+
         return matches
 
     def attr_matches(self, text):
