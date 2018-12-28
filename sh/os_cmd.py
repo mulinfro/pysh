@@ -6,7 +6,7 @@ import subprocess
 #import ..config
 
 __all__ =  ['pwd', 'is_file', 'is_dir', 'replace_if_star_dir', 'ls', 'll', 
-            'mkdir', 'rm', 'cp', 'mv', 'find', 'doc', 'os_call', 'dirMap', 'dirsMap']
+            'mkdir', 'rm', 'cp', 'mv', 'find', 'doc', 'os_call', 'dirMap', 'dirsMap', 'CDHIST']
 
 def pwd():
     """Current work directory"""

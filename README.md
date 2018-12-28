@@ -1,36 +1,48 @@
 
 # pysh
 
-pysh可以看作是兼具`shell`和`python`特点的解释器。主要目的是为了在交互模式下, 能同时使用到shell的方便和python的强大表达能力。
-在其中，我又加入了一些函数式编程的特性，使得pysh表达能力更强，能写出比python简短多的代码。 
+pysh是兼具`shell`, `python`和函数式编程特点的解释器。
+- `shell`的特点方便在交互模式下写命令, 方便与操作系统交互，比如cd, IO, vim等；
+- python有丰富的第三方库，同时语法灵活，是使用最多的脚本语言之一;
+- 函数式编程的特性，能够更加高效的组织代码，使pysh表达能力更强，能写出比python简短多的代码。
 依本人的实践经验，10到20行的python文本处理脚本，pysh常常只需要几行pipeline就能解决
 
- **如果你在开发过程中有大量的文本处理需求，花半小时了解下，你会发现pysh是一把利器！**
+ **如果你在开发过程中有大量的数据处理需求，花半小时了解下，你会发现pysh是一把利器！**
 
 
 ## 主要特性
 
+pysh语法和数据结构整体继承自python， 下面是一些新增的主要特性
+
 #### 调用shell命令
-"$"后面直接接bash命令; `sh`关键字调用命令
-```
-$ cd ~ | grep py
+"$"后面直接接bash命令; `sh`关键字调用命令; 
+```python
+$ cd /user/xxx/work | ls | grep py
 $ vim "test.psh"
 cmd = " rm %s"
-files = ls(".", 'rf') | grep @ ".tmp"
+files = ls(".", 'rf') | grep@".tmp"
 # sh 关键字
 for( f in files)
     sh cmd % f   # 删除目录,子目录下所有tmp文件
 end
 # cd 关键字
 cd "/home/user/" + "docs"
-cdh   # 全局变量，记录最近访问的目录列表
-cd 1  # cd 1 == cd cdh[1]
+CDHIST   # 全局变量，记录最近访问的目录列表
+cd 1  # cd 1 == cd CDHIST[1][1]
 ``` 
+
+`os_call`调用shell命令的函数，有返回值
+```python
+  r = os_call("python3 run.py")
+  if(r.returncode != 0)
+      print("Error in: run.py")
+  end
+```
 
 #### shell命令python函数化
 为了简化原始shell命令的参数记忆，重写的命令只实现了原shell命令的主要功能，再搭配上少量的常用可选参数; 尽量将用法简单化
 ```python
-grep("world", "hello world" )
+grep("world", "hello world")
 cat("/home/user/doc/*")  # lazy values 
 ls("/home/user/", "f")   # "f" is flag, will return only files
 ```
@@ -225,7 +237,7 @@ import "/home/user/ll/emath.py" as mh   # 用法mh.xxx
 ```
 
 ## Requirements
-- python 3
+- python 3.5+
 - readline[optional]
 
 ## Usage
@@ -236,7 +248,7 @@ python3 repl.py test.psh params  # run a psh file, main function is entry point
 ```
 命令行模式下支持Vi mode
 
-支持简单的Tab补全
+支持Tab自动补全
 
 ## 函数介绍
 
@@ -244,7 +256,7 @@ python3 repl.py test.psh params  # run a psh file, main function is entry point
 |---| :------------: |:---------------:|
 |1| take, takeWhile, drop, dropWhile |  describe |
 |2| map,_map, filter, FM, MF, mmap, dmap, colMap | _map:非lazed, FM = filter&map, MF与FM相反, mmap = map&map, dmap = (map1, map2) , colMap= map selected cols element  | 
-|3| groupBy, groupMap, mapValues, flat, flatMap, foldl  |  foldl=reduce, flat= [[..],[..]..] -> [...]; flatMap=flat&map, mapValues对dict value的map，会修改原dict |
+|3| groupBy, countBy, groupMap, mapValues, flat, flatMap, foldl  |  foldl=reduce, flat= [[..],[..]..] -> [...]; flatMap=flat&map, mapValues对dict value的map，会修改原dict |
 |4| zip2, zip3, zipWithIndex, unzip, chunks, _splitList | zip functions |
 |5| gen, slf, repeat, _if, foreach, _while, _rSel, _colSel | slf返回自身, _colSel = L(x)：x[...]  |
 |6 | pbar, sample, shuf , doc, wrapList   | pbar每N个对象display下,用于监控处理进度, doc可以查看每个函数的定义 |
@@ -270,6 +282,4 @@ func会遍历一个可迭代对象，并调用_func, `func = map@ _func(...)`;
 			
 ## TODO
 1. 补充文档注释
-2. 路径补全 and 变量名自动补全
-3. import机制的完成测试
-4. 命令行模式下，可多行编辑
+2. 命令行模式下，可多行编辑

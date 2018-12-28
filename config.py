@@ -1,7 +1,5 @@
 
-__all__ = [ "cdh", "history" ]
-# cdl dir ist
-cdh = []
+__all__ = [ "history" ]
 
 # repl command history
 history = []

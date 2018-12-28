@@ -73,9 +73,9 @@ class Completer:
         if self.use_main_ns:
             self.namespace = __main__.__dict__
 
-        if not text.strip(): return None
-
-        if state == 0:
+        if not text.strip():
+            self.matches =  [self._path_postfix(f) for f in glob.glob("*")]
+        elif state == 0:
             self.matches = []
             if "/" in text:
                 self.matches.extend(self.path_matches(text))
