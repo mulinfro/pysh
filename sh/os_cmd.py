@@ -5,12 +5,25 @@ from sh.utils import normal_leven
 import subprocess
 #import ..config
 
-__all__ =  ['pwd', 'is_file', 'is_dir', 'replace_if_star_dir', 'ls', 'll', 
+__all__ =  ['pwd', 'is_file', 'is_dir', 'ls', 'll', 'read',
             'mkdir', 'rm', 'cp', 'mv', 'find', 'doc', 'os_call', 'dirMap', 'dirsMap', 'CDHIST']
 
 def pwd():
     """Current work directory"""
     return os.getcwd()
+
+def read(files, p="rb"):
+    """ read file p = read mode
+        input: a single path or a list of pathes
+    """
+    if type(files) == str: files = [files]
+    for path in files:
+        pathes = replace_if_star_dir(path)
+        for file_name in pathes:
+            if is_dir(file_name): continue
+            f = open(file_name, p)
+            yield f.read()
+            f.close()
     
 def doc(obj):
     """return python object's __doc__"""

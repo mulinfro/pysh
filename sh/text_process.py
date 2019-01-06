@@ -146,7 +146,7 @@ def _replace(pat, repl, line, cnt=-1, p=""):
 
 replace = pipe_itertool(_replace, 2)
 
-def cat(iterable):
+def cat(iterable, p="utf-8"):
     """ shell: cat
         input: a single path or a list of pathes
     """
@@ -155,7 +155,7 @@ def cat(iterable):
         pathes = replace_if_star_dir(path)
         for file_name in pathes:
             if is_dir(file_name): continue
-            f = open(file_name, "r", encoding="utf-8")
+            f = open(file_name, "r", encoding=p)
             for line in f:
                 yield line.rstrip("\n\r")
             f.close()
