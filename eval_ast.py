@@ -1,10 +1,9 @@
 from ast_dict import AST
 from tokens import token_list
-from char_stream import char_stream
 from env import get_builtin_env, Env, obj
 from types import GeneratorType
 from parse_ast import parse
-from stream import stream
+from stream import stream, char_stream
 from exception import Generator_with_catch
 
 def parse_and_eval_with_env(raw_script, env, not_print=False):

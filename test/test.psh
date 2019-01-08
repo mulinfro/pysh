@@ -80,13 +80,13 @@ print("@#@#@#@#@##@#@#@#@")
 1+ 2/3 -5 + 2 * (3+1/2)
 1+ 2/3 -(5 + 2 * (3+1/2))
 2/2 + 2/3 -(5 + 2 * fl(1,2) + fl2(2,3))
-1==2 and 2==2 or 1>2
+(1==2 and 2==2 or 1>2) == False
 
 ss = "hello" + 'world'
 1 + 1 == 2
 -+-2
 fl3(lst[0])
-fl3(lst[0]-1)
+fl3(lst[0]-1) == False
 
 ">>> IF FOR WHILE"
 True if len(ss) > 1 else False

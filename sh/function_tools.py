@@ -9,9 +9,9 @@ _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile',
 
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
-__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', '_while', 'join', 'joinMap',
-            'count', 'countBy', 'foldl', 'repeat', 'slf', '_if', "sequence", "swapListEle"]
-            + _pipe_func + _pipe_func_ori
+__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach',
+            '_while', 'join', 'joinMap', 'count', 'countBy', 'foldl', 'repeat',
+            'slf', '_if', "sequence", "swapListEle"] + _pipe_func + _pipe_func_ori
 
 def slf(x):
     """ slf: return self"""
