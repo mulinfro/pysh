@@ -9,23 +9,27 @@ _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile',
 
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
-__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', '_while', 'join', 'countBy',
-            'foldl', 'repeat', 'slf', '_if', "sequence", "swapListEle"] + _pipe_func + _pipe_func_ori
+__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', '_while', 'join', 'joinMap',
+            'count', 'countBy', 'foldl', 'repeat', 'slf', '_if', "sequence", "swapListEle"]
+            + _pipe_func + _pipe_func_ori
 
 def slf(x):
     """ slf: return self"""
     return x
 
-def countBy(iterable, key=None):
-    """countBy(iterable, key=lambda x:x)"""
+def count(iterable):
+    """count(iterable)"""
     ans = {}
-    if key is None:
-        for x in iterable:
-            ans[x] = ans.get(x, 0) + 1
-    else:
-        for x in iterable:
-            kx = key(x)
-            ans[kx] = ans.get(kx, 0) + 1
+    for x in iterable:
+        ans[x] = ans.get(x, 0) + 1
+    return ans
+
+def countBy(key, iterable):
+    """countBy(key, iterable)"""
+    ans = {}
+    for x in iterable:
+        kx = key(x)
+        ans[kx] = ans.get(kx, 0) + 1
     return ans
 
 def swapListEle(list_obj, i=0, j=1):
@@ -327,6 +331,21 @@ def join(key_func, lst1, lst2):
 
     return ans
 
+def joinMap(key_func, value_func, lst1, lst2):
+    """join(key_func, value_func, iter1, iter2)
+      return a dict with {key_func(ele): (value_func(ele1), value_func(ele2))}
+      None if one key is not in a lst
+       """
+    ans = {}
+    for ele in lst1:
+        key = key_func(ele)
+        ans[key] = (ele, None)
+    for ele in lst2:
+        key = key_func(ele)
+        if key in ans:
+            l1key = ans[key][0]
+            ans[key] = (l1key, value_func(ele))
+        else:
+            ans[key] = (None, value_func(ele))
 
-if __name__ == "__main__":
-    pass
+    return ans

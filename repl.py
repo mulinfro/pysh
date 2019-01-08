@@ -100,7 +100,7 @@ def pysh(psh_file, run=True, not_print=True):
         return None
 
     if run and "main" in env:
-        return env["main"](*sys.argv[2:])
+        return env["main"](sys.argv[2:])
 
     return env
 
