@@ -1,8 +1,7 @@
 from env import get_builtin_env
 from eval_ast import parse_and_eval_with_env
-from config import IN, HISLENGTH, repl_init_str
-import os, sys
-PSH_DIR = sys.path[0]
+from config import *
+import os
 
 def repl_readline_helper(env):
     try:
@@ -69,7 +68,7 @@ def REPL():
         cmdlines.append(cmd)
         if cmd not in ["end", "", "exit", "history","clear"] and cmd not in cmd_history:
             cmd_history.append(cmd)
-            if len(cmd_history) > HISLENGTH: cmd_history.pop(0)
+            if len(cmd_history) > HIS_LENGTH: cmd_history.pop(0)
         if is_block(cmd): block_num = block_num + 1
         if cmd.endswith("end"): 
             if len(cmd) == 3 or cmd[-4] in [" ", "\t"]:
@@ -100,18 +99,18 @@ def pysh(psh_file, run=True, not_print=True):
         return None
 
     if run and "main" in env:
-        return env["main"](sys.argv[2:])
+        return env["main"](ARGV[1:])
 
     return env
-
 
 def test_psh_file():
     pysh(os.path.join(PSH_DIR,"test/test.psh"),  run=True, not_print=False)
     pysh(os.path.join(PSH_DIR,"test/test2.psh"), run=True, not_print=False)
         
 if __name__ == "__main__":
-    #test_psh_file()
-    if len(sys.argv) > 1:
-        pysh(sys.argv[1])
-    else:
+    if len(ARGV) == 0:
         REPL()
+    elif ARGV[0] == "-test":
+        test_psh_file()
+    else:
+        pysh(ARGV[0])

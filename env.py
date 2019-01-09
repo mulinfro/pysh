@@ -28,6 +28,18 @@ def register(module, paras, args):
         paras.append(p)
         args.append(module.__dict__.get(p))
 
+def module_add(module_name, file_name, as_name, env):
+    from config import PSH_DIR
+    from importlib.machinery import SourceFileLoader
+    if module_name == "image":
+        return SourceFileLoader(_as, path).load_module()
+        #from image
+        pass
+    elif module_name == "db":
+        pass
+    else:
+        print("Error: unknown module")
+
 class obj(object):
     def __init__(self, d):
         for a, b in d.items():
