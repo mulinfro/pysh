@@ -61,7 +61,7 @@ def num(s):
 一个token包含: 类型(tp), 值, 位于文件行数及列数 
 """
 class token():
-    def __init__(self, tkn_type, tkn_val, line, col=0):
+    def __init__(self, tkn_type, tkn_val, line=0, col=0):
         self.tp   = tkn_type
         self.val  = tkn_val
         self.line = line
@@ -78,12 +78,13 @@ class token_list():
     
     def __init__(self, chars):
         self.chars = chars
+        self.pre_token = token("SEP", "NEWLINE")
         self.tokens = self.read_tokens()
 
     def read_tokens(self):
         tokens = []
         while True:
-            tkn = self.read_a_token()
+            self.pre_token = tkn = self.read_a_token()
             if tkn is None:
                 return tokens
             tokens.append(tkn)
@@ -98,7 +99,7 @@ class token_list():
         elif ch == '{': tkn = self.read_hashmap()
         elif ch == '(': tkn = self.read_parn()
         elif ch == '.': tkn = self.read_dot()
-        elif ch == '$': tkn = self.read_sys_call()
+        elif ch == '$': tkn = self.read_dollar()
         elif str.isdigit(ch): tkn = self.read_num()
         elif str.isalpha(ch) or ch == '_': tkn = self.read_var()
         elif ch in ',\n':     tkn = self.read_sep()
@@ -106,6 +107,12 @@ class token_list():
         else: tkn = self.read_op()   # throw exception
         return tkn
 
+    def read_dollar(self):
+        if self.pre_token.tp == "SEP" and self.pre_token.val == "NEWLINE":
+            return self.read_sys_call()
+        else:
+            return self.read_op()
+           
    # 注释
     def read_note(self):
         while not self.chars.eof() and self.chars.peek() != "\n":

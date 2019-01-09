@@ -416,7 +416,9 @@ def parse_bi_oper(node):
 def compute_expr(env, vals, ops):
     def binary_order(left, preorder):
         if len(ops) <= 0: return left
-        if preorder >= ops[0]["order"]: return left
+        if preorder > ops[0]["order"] or \
+             (preorder == ops[0]["order"] and not ops[0]["right"]): 
+             return left
         my_op = ops.pop(0)
 
         # Logic short circuit

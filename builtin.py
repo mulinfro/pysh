@@ -13,7 +13,6 @@ operators = {
     '//': 'ZDIV',
     '-': 'MINUS',
     '%': 'MOD',
-    '$': 'OSCALL',
     '=': 'ASSIGN',
     ':': 'COLON',
     "<": "LT",
@@ -40,10 +39,10 @@ special_op = {
 
 pipe_op = {
     "|": 'PIPE',
-    "<|": 'LEFT_PIPE',
+    "$": 'LEFT_PIPE',
     "->": 'PIPE_ASSIGN',
     '&>': 'WRITE',
-    '~>': 'BIN_WRITE',
+    '$>': 'BIN_WRITE',
     '&>>': 'APPEND',
     "@" :"COMB",
 }
@@ -70,6 +69,7 @@ op_order = {
 # 结合性; 右结合
 op_right = {
     "EQUAL": 2,
+    "LEFT_PIPE":3,
 }
 
 _add = lambda x,y: x + y
@@ -199,7 +199,6 @@ Binary = {
 }
 
 Unary = {
-    'OSCALL': None,
     'ADD': lambda x:x,
     'MINUS': lambda x:-x,
     'NOT': _not,
