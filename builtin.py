@@ -43,6 +43,7 @@ pipe_op = {
     "<|": 'LEFT_PIPE',
     "->": 'PIPE_ASSIGN',
     '&>': 'WRITE',
+    '~>': 'BIN_WRITE',
     '&>>': 'APPEND',
     "@" :"COMB",
 }
@@ -52,8 +53,7 @@ operator_val_dict = dict( [ (y,x) for x, y in operators.items() ] +
                         [ (y,x) for x, y in pipe_op.items() ])
 
 op_order = {
-    'WRITE':1,
-    'APPEND':1,
+    'WRITE':1, 'APPEND':1,'BIN_WRITE':1,
     "PIPE": 2, 'PIPE_ASSIGN': 2,
     "LEFT_PIPE": 3,
     'COMB':5,
@@ -114,6 +114,10 @@ def _write_helper(var, filename, mode):
         else:
             f.write(var2str(var))
         
+def _bin_write(var, filename):
+    with open(filename, "wb") as f:
+        f.write(bytearray(var))
+        
 def _write(var, filename):
     _write_helper(var, filename, 'w')
 
@@ -168,6 +172,7 @@ Binary = {
     'LEFT_PIPE': _left_pipe,
     'PIPE_ASSIGN': _pipe_assign,
     'WRITE':  _write,
+    'BIN_WRITE': _bin_write,
     'APPEND': _append,
     'ADD':    _add,
     'MUL':    _mul,

@@ -9,7 +9,7 @@ _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile',
 
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
-__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach',
+__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', 'items',
             '_while', 'join', 'joinMap', 'count', 'countBy', 'foldl', 'repeat',
             'slf', '_if', "sequence", "swapListEle"] + _pipe_func + _pipe_func_ori
 
@@ -31,6 +31,10 @@ def countBy(key, iterable):
         kx = key(x)
         ans[kx] = ans.get(kx, 0) + 1
     return ans
+
+def items(dct):
+    """ return items list of a dict """
+    return list(dct.items())
 
 def swapListEle(list_obj, i=0, j=1):
     """ swapListEle(list_obj, i=0, j=1) """

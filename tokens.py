@@ -166,7 +166,7 @@ class token_list():
             if self.chars.peek() in [">"]:
                 op += self.chars.next()
         else:
-            while self.chars.peek() in '!=<>|&@%*/.:$':
+            while self.chars.peek() in '!=<>|&@%*/.:~$':
                 op += self.chars.next()
 
         if op in special_op:
