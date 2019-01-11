@@ -23,10 +23,7 @@ def parse(node):
     return val
 
 def parse_del(node):
-    if node["vars"]["type"] == "VAR":
-        names = [ node["vars"]["name"] ]
-    else:
-        names = node["vars"]["names"]
+    names = node["vars"]
     def _del(env):
         for name in names:
             t = env.find(name)
@@ -650,17 +647,17 @@ def parse_if(node):
 
 def parse_in(node):
     v = parse_pipe_or_expr(node["val"])
+    var = node["var"][0] if len(node["var"]) == 1 else node["var"]
+
     def _in(env):
-        var = node["var"]["name"]
         for ele in v(env):
             yield [(var, ele)]
 
     def _p_in(env):
-        var = node["var"]["names"]
         for ele in v(env):
             yield lst_combine(var, ele)
 
-    func =  _p_in if node["var"]["type"] == "VAR_LIST" else _in
+    func =  _p_in if type(var) == list else _in
     return exception_warp(func, node["msg"])
 
 def parse_for(node):
@@ -703,7 +700,7 @@ def parse_sysfunc(node):
 
 # Q default args
 def parse_lambda(node):
-    arg_var_list = [e["name"] for e in node["args"]["val"]]
+    arg_var_list = node["args"]
     body_f = parse_block_or_expr(node["body"])
     def _lambda(env):
         def proc(*arg_val_list):

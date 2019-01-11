@@ -55,6 +55,8 @@ class AST():
                 val = self.ast_def(self.tokens)
             elif tkn.tp == 'CASE':
                 val = self.ast_case(self.tokens)
+            elif tkn.tp == 'CASE_LAMBDA':
+                val = self.ast_case_lambda(self.tokens)
             elif tkn.tp in ["FROM", 'IMPORT']:
                 val = self.ast_import(self.tokens)
             elif tkn.tp == 'MODULE':
@@ -99,13 +101,6 @@ class AST():
             check_expr_end(stm)
             return left
         
-    def get_varlist_names(self, var_list):
-        if var_list["type"] == "VAR_LIST":
-            var_names_list = var_list["names"]
-        else:
-            var_names_list =  [ var_list["name"] ]
-        return var_names_list
-
     def ast_var_list(self, stm):
         var_list = []
         while not line_eof(stm) and stm.peek().tp == "VAR" :
@@ -113,8 +108,6 @@ class AST():
             if line_eof(stm) or stm.peek().tp != "SEP": break
             stm.next()
 
-        if len(var_list) == 1:
-            return {"type":"VAR", "name":var_list[0], "msg": var_list[0]}
         return {"type":"VAR_LIST", "names":var_list, "msg" : " ".join(var_list)}
 
     # python的import语法; 
@@ -133,8 +126,7 @@ class AST():
         syntax_cond_assert(len(_import) >0, "Empty import")
         if not line_eof(stm):
             syntax_assert(stm.next(), "AS", "expect as") 
-            var_list = self.ast_var_list(stm)
-            _as = self.get_varlist_names(var_list)
+            _as = self.ast_var_list(stm) ["names"]
             syntax_cond_assert(len(_as) >0, "Empty as")
         if not line_eof(stm): Error("Syntax error: unexpected words %s in import"%stm.peek().val)
         return {"type":"IMPORT", "from":"".join(_from), "import":_import, "as":_as}
@@ -146,14 +138,12 @@ class AST():
         _module = stm.next().val
         if stm.peek().tp == "IMPORT":
             stm.next()
-            var_list = self.ast_var_list(stm)
-            _import = self.get_varlist_names(var_list)
+            _import = self.ast_var_list(stm) ["names"]
             syntax_cond_assert(len(_import) >0, "Empty import")
 
         if not line_eof(stm):
             syntax_assert(stm.next(), "AS", "expect as") 
-            var_list = self.ast_var_list(stm)
-            _as = self.get_varlist_names(var_list)
+            _as = self.ast_var_list(stm) ["names"]
             syntax_cond_assert(len(_as) >0, "Empty as")
 
         if not line_eof(stm): Error("Syntax error: unexpected words %s in import"%stm.peek().val)
@@ -204,7 +194,7 @@ class AST():
         syntax_assert(stm.peek(), "VAR", "Usage: del var")
         var_list = self.ast_var_list(stm)
         check_expr_end(stm)
-        return {"type": "DEL", "vars": var_list, "msg":"del " + var_list["msg"] }
+        return {"type": "DEL", "vars": var_list["names"], "msg":"del " + var_list["msg"] }
 
     def ast_sh_or_cd(self, stm):
         tkn = stm.next()
@@ -358,8 +348,7 @@ class AST():
         return body
 
     def ast_case_lambda(self, stm):
-        args = self.ast_var_list(stream(stm.next().val))
-        arg_names = self.get_varlist_names(args)
+        args_names = self.ast_var_list(stm) ["names"]
         syntax_assert(stm.next(), ("OP", "COLON"), "missing :")
         body = self.ast_block_or_expr(stm, self.ast_case_expr, self.ast_case_expr)
         if body["type"] == "S_BLOCK":
@@ -369,14 +358,11 @@ class AST():
         return {"type":'CASE_LAMBDA', "args":arg_names, 
                 "body":body, "msg":"case " + args["msg"] + ":" + "..." }
 
-
     def ast_case(self, stm):
         stm.next()
-        if stm.peek().tp == "PARN":  return self.ast_case_lambda(stm)
         casename = self.ast_a_var(stm, "need pattern match function name")
         syntax_assert(stm.peek(), "PARN", "need parenthese")
-        args = self.ast_var_list(stream(stm.next().val))
-        args = self.get_varlist_names(args)
+        args = self.ast_var_list(stream(stm.next().val)) ["names"]
         body = self.ast_body(stm, self.ast_case_expr)
         syntax_assert(stm.next(), "END", "missing END")
         return {"type":'CASE', "casename":casename["name"], 
@@ -410,11 +396,9 @@ class AST():
     def ast_if(self, stm):
         condlist, do_list = [], []
         while stm.peek().tp in ["ELIF", "IF"]:
-            stm.next(); tkn = stm.next()
-            syntax_assert(tkn, "PARN", "need parn")
-            cond_stream = stream(tkn.val)
-            cond = self.ast_try_pipe(cond_stream)
-            check_eof(cond_stream)
+            stm.next()
+            cond = self.ast_try_pipe(stm)
+            check_newline(stm)
             true_part = self.ast_body(stm, self.ast_block_expr)
             condlist.append(cond)
             do_list.append(true_part)
@@ -428,29 +412,26 @@ class AST():
                 "msg": "if " + condlist[0]["msg"]}
         
     def ast_for(self, stm):
-        stm.next(); tkn = stm.next()
-        syntax_assert(tkn, "PARN",  "missing (")
-        _in = self.ast_in(stream(tkn.val))
+        stm.next()
+        _in = self.ast_for_in(stm)
         body = self.ast_body(stm, self.ast_block_expr)
         syntax_assert(stm.next(), "END", "missing END")
         return {"type":"FOR", "in":_in, "body":body, "msg": "for " + _in["msg"]}
 
     def ast_while(self, stm):
-        stm.next(); tkn = stm.next()
-        syntax_assert(tkn, "PARN",  "missing (")
-        cond_stream = stream(tkn.val)
-        cond = self.ast_try_pipe(cond_stream)
-        check_eof(cond_stream)
+        stm.next()
+        cond = self.ast_try_pipe(stm)
+        check_newline(stm)
         body = self.ast_body(stm, self.ast_block_expr)
         syntax_assert(stm.next(), "END", "missing END")
         return {"type":"WHILE", "cond":cond, "body":body, "msg":"while " + cond["msg"]}
 
-    def ast_in(self, stm):
+    def ast_for_in(self, stm):
         var = self.ast_var_list(stm)
         syntax_assert(stm.next(), ("OP", "IN"), "syntax error in for setence")
         val = self.ast_try_pipe(stm)
-        check_eof(stm)
-        return {"type":"IN", "var":var, "val":val , "msg": var["msg"] + "in" + val["msg"]}
+        check_newline(stm)
+        return {"type":"IN", "var":var["names"], "val":val , "msg": var["msg"] + "in" + val["msg"]}
 
     def ast_unary(self, stm):
         prefix = self.ast_prefix_op(stm)
@@ -561,10 +542,10 @@ class AST():
         return val
             
     def ast_lambda(self, stm):
-        args = self.ast_args(stm)
+        args = self.ast_var_list(stm)
         syntax_assert(stm.next(), ("OP", "COLON"), "lambda missing :")
         body = self.ast_block_or_expr(stm, self.ast_try_assign, self.ast_expr)
-        return {"type":"LAMBDA", "args":args, "body":body, 
+        return {"type":"LAMBDA", "args":args["names"], "body":body, 
                 "msg": "lambda " + args["msg"] + ":" + body["msg"]}
 
     def ast_list_comp(self, stm):
