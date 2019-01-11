@@ -89,8 +89,6 @@ def parse_block_expr(node):
         val = parse_flow_goto(node)
     elif node["type"] in ("ASSIGN", "GASSIGN"):
         val = parse_assign(node)
-    elif node["type"] == "MULTI_ASSIGN":
-        val = parse_multi_assign(node)
     else:
         val = parse_expr_or_command(node)
     return val
@@ -372,22 +370,38 @@ def parse_assign(node):
         val = parse_pipe_or_expr(node["val"])
     var_idx_val = None
     def _assign_var(env):
-        v = val(env)
+        right_val = val(env)
         if node["type"] == "GASSIGN":
             env = env.globals
-        env[var] = v
-        return v
+        env[var] = right_val
+        return right_val
     
     def _assign_expr_val(env):
         right_val = val(env)
-        left_val = var_val(env)
         left_idx =  var_idx_val(env)
+        if node["type"] == "GASSIGN":
+            env = env.globals
+        left_val = var_val(env)
         left_val[left_idx] = right_val
+        return right_val
+
+    def _assign_unpack(env):
+        right_val = val(env)
+        if node["type"] == "GASSIGN":
+            env = env.globals
+        env.update(lst_combine(vars_tuple, right_val))
         return right_val
 
     if node["var"]["type"] == "VAR":
         var = node["var"]["name"] 
         return _assign_var
+    elif node["var"]["type"] == "TUPLE":
+        vars_tuple = []
+        for ele in node["var"]["val"]:
+            if ele["type"] != "VAR":
+                Error("multi assign only support variables, like a,b,c")
+            vars_tuple.append(ele["name"])
+        return _assign_unpack
     else:
         var = node["var"]
         syntax_cond_assert(var["type"] == "UNARY" and len(var["suffix"]) > 0, "assign: left value is invalid")
@@ -403,14 +417,6 @@ def lst_combine(var, v):
     syntax_cond_assert(len(var) == len(v), "Value error: unpack %d values with %d variables"%(len(var), len(v)) )
     return list(zip(var, v))
 
-def parse_multi_assign(node):
-    val = parse_pipe_or_expr(node["val"])
-    var = node["var"]["names"]
-    
-    def _update(env):
-        env.update(lst_combine(var, val(env)))
-    return _update
-        
 def parse_simpleif_expr(node):
     cond = parse_simple_expr(node["cond"])
     then = parse_simple_expr(node["then"])

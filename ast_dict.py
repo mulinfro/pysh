@@ -310,20 +310,18 @@ class AST():
         tkn = stm.peek()
         if tkn.tp == "IF":
             stm.next()
-            cond = self.ast_try_pipe(stm)
-            syntax_assert(stm.next(), "INFER", "need =>")
-            val_expr = self.ast_block_or_expr(stm, self.ast_try_assign, self.ast_try_pipe)
-            return {"type":"CASE_IF", "cond":cond, "val": val_expr}
+            cases = self.ast_try_pipe(stm)
+            tp = "CASE_IF"
         elif tkn.tp == "OTHERWISE":
             stm.next()
-            syntax_assert(stm.next(), "INFER",  "need =>")
-            val_expr = self.ast_block_or_expr(stm, self.ast_try_assign, self.ast_try_pipe)
-            return {"type":"CASE_OTHERWISE", "tp": tkn.tp, "val": val_expr}
+            tp, cases = "CASE_OTHERWISE", None
         else:
-            multicase= self.ast_multicase(stm)
-            syntax_assert(stm.next(), "INFER",  "need =>")
-            val_expr = self.ast_block_or_expr(stm, self.ast_try_assign, self.ast_try_pipe)
-            return {"type":"CASE_MULTI", "cases": multicase, "val": val_expr }
+            cases= self.ast_multicase(stm)
+            tp = "CASE_MULTI"
+
+        syntax_assert(stm.next(), "INFER",  "need =>")
+        val_expr = self.ast_block_or_expr(stm, self.ast_try_assign, self.ast_try_pipe)
+        return {"type":tp , "cases": cases, "val": val_expr }
 
     def ast_multicase(self, stm):
         variable_matched_list = []
