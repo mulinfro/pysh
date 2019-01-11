@@ -55,8 +55,6 @@ class AST():
                 val = self.ast_def(self.tokens)
             elif tkn.tp == 'CASE':
                 val = self.ast_case(self.tokens)
-            elif tkn.tp == 'CASE_LAMBDA':
-                val = self.ast_case_lambda(self.tokens)
             elif tkn.tp in ["FROM", 'IMPORT']:
                 val = self.ast_import(self.tokens)
             elif tkn.tp == 'MODULE':
@@ -524,6 +522,8 @@ class AST():
         tkn = stm.next()
         if tkn.tp == "LAMBDA":
             val = self.ast_lambda(stm)
+        elif tkn.tp == 'CASE_LAMBDA':
+            val = self.ast_case_lambda(stm)
         elif tkn.tp == "LIST":
             val = self.ast_list(stream(tkn.val))
         elif tkn.tp == "PARN":
