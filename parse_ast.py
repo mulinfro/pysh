@@ -285,17 +285,18 @@ def parse_case_tuple(node):
     
 def parse_module(node):
     package_name, module_names, as_names = node["module_name"], node["import"], node["as"]
-
-    def module_add(module_name, file_names, as_names, env):
-        from config import PSH_DIR
-        from importlib.machinery import SourceFileLoader
-        for module in module_names:
-            SourceFileLoader(_as, path).load_module()
+    as_names = as_names + module_names + [package_name]
 
     def _load_module(env):
-        pass
+        package = __import__(package_name)
+        if len(module_names) == 0:
+            env[as_names[0]] = package
+        else:
+            for m,a in zip(module_names, as_names):
+                env[a] = package.__getattribute__(m)
 
-
+    return _load_module
+            
 def parse_import(node):
 
     import sys, os

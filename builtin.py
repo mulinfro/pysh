@@ -128,6 +128,7 @@ def _call(f, arg):
     return f(*arg[0], **arg[1])
 
 def _get(v, k):
+    if v is None: return None
     if type(v) is dict: 
         r = [v.get(ki, None) for ki in k]
     else: 
@@ -137,22 +138,6 @@ def _get(v, k):
     if len(r) == 1: 
         return r[0]
     return r
-
-def _get_list(v, k):
-    if type(v) is dict: 
-        r = [v.get(ki, None) for ki in k]
-    else: 
-        r = [v[ki] for ki in k]
-        if type(v) == str:
-            return "".join(r)
-    if len(r) == 1: 
-        return r[0]
-    return r
-
-def _get_ele(v, k):
-    if type(v) is dict:
-        return v.get(k, None)
-    return v[k]
 
 def _assign(var, val, env):
     env[var] = val
