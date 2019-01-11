@@ -11,7 +11,19 @@ _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
 __all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', 'items',
             '_while', 'join', 'joinMap', 'count', 'countBy', 'foldl', 'repeat',
-            'slf', '_if', "sequence", "swapListEle"] + _pipe_func + _pipe_func_ori
+            'slf', '_if', "sequence", "swapListEle", "fany", "fall"] + _pipe_func + _pipe_func_ori
+
+def fany(func, iterable):
+    """fany(func, iterable)"""
+    for x in iterable:
+        if func(x): return True
+    return False
+
+def fall(func, iterable):
+    """fall(func, iterable)"""
+    for x in iterable:
+        if not func(x): return False
+    return True
 
 def slf(x):
     """ slf: return self"""

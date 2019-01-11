@@ -139,7 +139,12 @@ def _replace(pat, repl, line, cnt=-1, p=""):
        p = [v] v: using python module re.sub
     """
     if "v" not in p:
-        return line.replace(pat, repl, cnt)
+        if type(pat) == str:
+            return line.replace(pp, repl, cnt)
+        else:
+            for pp in pat:
+                line = line.replace(pp, repl, cnt)
+            return line
     else:
         if cnt < 0: cnt = 0
         return re.sub(pat, repl, line, cnt)
