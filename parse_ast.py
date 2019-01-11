@@ -1,5 +1,5 @@
 from builtin import operators, op_order, Binary, Unary, op_right
-from sh.os_cmd import cd, os_call
+from libs.os_cmd import cd, os_call
 import copy
 from types import GeneratorType
 from env import Env
@@ -16,6 +16,8 @@ def parse(node):
         val = parse_case(node)
     elif node["type"] == 'IMPORT': 
         val = parse_import(node)
+    elif node["type"] == 'MODULE': 
+        val = parse_module(node)
     else:
         val = parse_block_expr(node)
     return val
@@ -281,6 +283,18 @@ def parse_case_tuple(node):
 
     return _match_tuple
     
+def parse_module(node):
+    package_name, module_names, as_names = node["module_name"], node["import"], node["as"]
+
+    def module_add(module_name, file_names, as_names, env):
+        from config import PSH_DIR
+        from importlib.machinery import SourceFileLoader
+        for module in module_names:
+            SourceFileLoader(_as, path).load_module()
+
+    def _load_module(env):
+        pass
+
 
 def parse_import(node):
 

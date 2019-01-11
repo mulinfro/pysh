@@ -25,6 +25,7 @@ keywords = {
 "import":  "IMPORT",
 "from" :  "FROM",
 "as" :  "AS",
+"module":  "MODULE",
 "assert" :  "ASSERT",
 "del" :  "DEL",
 "sh" :  "SH",

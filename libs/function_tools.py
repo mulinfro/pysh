@@ -1,7 +1,7 @@
 
 from functools import reduce
 from types import GeneratorType
-from sh.utils import pipe_itertool, unlazyed
+from libs.utils import pipe_itertool, unlazyed
 
 _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile', 
             'map', 'filter', 'filter_not', 'flat', 'flatMap', 'chunks', 

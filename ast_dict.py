@@ -57,6 +57,8 @@ class AST():
                 val = self.ast_case(self.tokens)
             elif tkn.tp in ["FROM", 'IMPORT']:
                 val = self.ast_import(self.tokens)
+            elif tkn.tp == 'MODULE':
+                val = self.ast_module(self.tokens)
             elif tkn.tp in ['IF', 'FOR', 'WHILE']:
                 val = self.ast_control(self.tokens)
             else:
@@ -136,6 +138,26 @@ class AST():
             syntax_cond_assert(len(_as) >0, "Empty as")
         if not line_eof(stm): Error("Syntax error: unexpected words %s in import"%stm.peek().val)
         return {"type":"IMPORT", "from":"".join(_from), "import":_import, "as":_as}
+
+    def ast_module(self, stm):
+        _import, _as = [], []
+        stm.next()
+        syntax_assert(stm.peek(), "VAR", "expect module name")
+        _module = stm.next().val
+        if stm.peek().tp == "IMPORT":
+            stm.next()
+            var_list = self.ast_var_list(stm)
+            _import = self.get_varlist_names(var_list)
+            syntax_cond_assert(len(_import) >0, "Empty import")
+
+        if not line_eof(stm):
+            syntax_assert(stm.next(), "AS", "expect as") 
+            var_list = self.ast_var_list(stm)
+            _as = self.get_varlist_names(var_list)
+            syntax_cond_assert(len(_as) >0, "Empty as")
+
+        if not line_eof(stm): Error("Syntax error: unexpected words %s in import"%stm.peek().val)
+        return {"type":"MODULE", "module_name":_module, "import":_import, "as":_as}
 
     def ast_same_type_seq(self, stm, is_valid):
         tps = []

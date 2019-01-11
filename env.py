@@ -15,7 +15,7 @@ class Env(dict):
 def get_builtin_env(builtins):
     paras = dir(builtins)
     args  = [builtins.__dict__.get(a) for a in paras]
-    from sh import os_cmd, text_process, function_tools
+    from libs import os_cmd, text_process, function_tools
     import config
     register(os_cmd, paras, args)
     register(text_process, paras, args)
@@ -27,18 +27,6 @@ def register(module, paras, args):
     for p in module.__all__:
         paras.append(p)
         args.append(module.__dict__.get(p))
-
-def module_add(module_name, file_name, as_name, env):
-    from config import PSH_DIR
-    from importlib.machinery import SourceFileLoader
-    if module_name == "image":
-        return SourceFileLoader(_as, path).load_module()
-        #from image
-        pass
-    elif module_name == "db":
-        pass
-    else:
-        print("Error: unknown module")
 
 class obj(object):
     def __init__(self, d):

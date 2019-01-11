@@ -1,9 +1,9 @@
 import re, random
 from types import GeneratorType
-from sh.os_cmd import is_dir, replace_if_star_dir
+from libs.os_cmd import is_dir, replace_if_star_dir
 from collections.abc import Iterable
 import json, collections
-from sh.utils import pipe_itertool
+from libs.utils import pipe_itertool
 
 _pipe_func = ['grep', 'egrep', 'colSel', 'listFormat', 'format', 
             'extract', 'replace', 'tojson', 'dumps', 'strip', 
