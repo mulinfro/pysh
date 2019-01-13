@@ -5,8 +5,8 @@ from libs.utils import normal_leven
 import subprocess
 #import ..config
 
-__all__ =  ['pwd', 'is_file', 'is_dir', 'ls', 'll', 'read',
-            'mkdir', 'rm', 'cp', 'mv', 'find', 'doc', 'os_call', 'dirMap', 'dirsMap', 'CDHIST']
+__all__ =  ['pwd', 'isFile', 'isDir', 'ls', 'll', 'read',
+            'mkdir', 'rm', 'cp', 'mv', 'find', 'doc', 'osCall', 'dirMap', 'dirsMap', 'CDHIST']
 
 def pwd():
     """Current work directory"""
@@ -35,10 +35,10 @@ def path_expand(path):
         return os.path.expanduser("~") + path[1:]
     return path
 
-def is_file(filename):
+def isFile(filename):
     return os.path.isfile(filename)
 
-def is_dir(path):
+def isDir(path):
     return os.path.isdir(path)
 
 def replace_if_star_dir(path):
@@ -144,7 +144,7 @@ class os_return_obj:
         else:
             return "shell error code %d\n"%self.returncode
 
-def os_call(sh):
+def osCall(sh):
     out_bytes = subprocess.run(sh, shell=True, stderr=subprocess.STDOUT)
     return os_return_obj(out_bytes.stdout, out_bytes.returncode)
 

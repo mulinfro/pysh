@@ -4,7 +4,7 @@ from types import GeneratorType
 from libs.utils import pipe_itertool, unlazyed
 
 _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile', 
-            'map', 'filter', 'filter_not', 'flat', 'flatMap', 'chunks', 
+            'map', 'filter', 'filterNot', 'flat', 'flatMap', 'chunks', 
             'zip2','zip3', 'zipWithIndex', 'FM', 'MF', 'mmap', 'dmap', 'colMap', 'splitList']
 
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
@@ -266,13 +266,13 @@ def filter(func, iterable):
             yield ele
 _filter = unlazyed(filter)
 
-def filter_not(func, iterable):
+def filterNot(func, iterable):
     """filter(func, iterable)"""
     for ele in iterable:
         if not func(ele):
             yield ele
 
-_filter_not = unlazyed(filter_not)
+_filterNot = unlazyed(filterNot)
 
 def foldl(func, iterable, init=None):
     """ foldl(func, iterable, init=None)
