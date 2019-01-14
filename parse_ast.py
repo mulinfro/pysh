@@ -1,5 +1,5 @@
 from builtin import operators, op_order, Binary, Unary, op_right
-from libs.os_cmd import cd, os_call
+from libs.os_cmd import cd, osCall
 import copy
 from types import GeneratorType
 from env import Env

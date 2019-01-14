@@ -1,6 +1,6 @@
 import re, random
 from types import GeneratorType
-from libs.os_cmd import is_dir, replace_if_star_dir
+from libs.os_cmd import isDir, replace_if_star_dir
 from collections.abc import Iterable
 import json, collections
 from libs.utils import pipe_itertool
