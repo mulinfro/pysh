@@ -159,7 +159,7 @@ def cat(iterable, p="utf-8"):
     for path in iterable:
         pathes = replace_if_star_dir(path)
         for file_name in pathes:
-            if is_dir(file_name): continue
+            if isDir(file_name): continue
             f = open(file_name, "r", encoding=p)
             for line in f:
                 yield line.rstrip("\n\r")

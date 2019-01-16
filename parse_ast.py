@@ -36,7 +36,7 @@ def parse_sh(node):
     def _sh(env):
         cmd_val = cmd(env)
         syntax_cond_assert(type(cmd_val) == str, "Value Error: sh handles a string")
-        return os_call(cmd_val)
+        return osCall(cmd_val)
     return exception_warp(_sh, node["msg"])
 
 def parse_cd(node):
@@ -699,10 +699,10 @@ def parse_while(node):
     return _while
 
 def parse_syscall(node):
-    return lambda env:os_call(node["val"])
+    return lambda env:osCall(node["val"])
 
 def parse_sysfunc(node):
-    return lambda env : lambda args: os_call(node["val"]% args)
+    return lambda env : lambda args: osCall(node["val"]% args)
 
 # Q default args
 def parse_lambda(node):

@@ -20,7 +20,7 @@ def read(files, p="rb"):
     for path in files:
         pathes = replace_if_star_dir(path)
         for file_name in pathes:
-            if is_dir(file_name): continue
+            if isDir(file_name): continue
             f = open(file_name, p)
             yield f.read()
             f.close()
@@ -149,7 +149,7 @@ def osCall(sh):
     return os_return_obj(out_bytes.stdout, out_bytes.returncode)
 
 def ll(path):
-    os_call("ls -al %s"%path)
+    osCall("ls -al %s"%path)
 
 def mkdir(path, mode=0o777, p=""):
     """shell: mkdir
@@ -188,7 +188,7 @@ def cp(src, dst, p=""):
        p = [r]  
        r recursive cp
     """
-    if "r" in p and is_dir(src):
+    if "r" in p and isDir(src):
         cptree(src, dst)
     else:
         shutil.copy2(src, dst)
