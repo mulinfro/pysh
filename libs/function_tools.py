@@ -9,9 +9,16 @@ _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile',
 
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
-__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', 'items',
+__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', 'items', 'mean',
             '_while', 'join', 'joinMap', 'count', 'countBy', 'foldl', 'repeat',
             'slf', '_if', "sequence", "swapListEle", "fany", "fall"] + _pipe_func + _pipe_func_ori
+
+def mean(iterable):
+    ss, i = 0, 0
+    for e in iterable:
+        i += 1
+        ss += e
+    return ss / i
 
 def fany(func, iterable):
     """fany(func, iterable)"""
