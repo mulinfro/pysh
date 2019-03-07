@@ -354,6 +354,18 @@ def join(key_func, lst1, lst2):
 
     return ans
 
+def joinDict(dict1, dict2):
+    ans = {}
+    for k,v in dict1.items():
+        ans[k] = (v, None)
+    for k,v in dict2.items():
+        if k in ans:
+            l1v = ans[k][0]
+            ans[k] = (l1v, v)
+        else:
+            ans[k] = (None, v)
+    return ans
+
 def joinMap(key_func, value_func, lst1, lst2):
     """join(key_func, value_func, iter1, iter2)
       return a dict with {key_func(ele): (value_func(ele1), value_func(ele2))}
