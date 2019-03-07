@@ -140,7 +140,7 @@ def _replace(pat, repl, line, cnt=-1, p=""):
     """
     if "v" not in p:
         if type(pat) == str:
-            return line.replace(pp, repl, cnt)
+            return line.replace(pat, repl, cnt)
         else:
             for pp in pat:
                 line = line.replace(pp, repl, cnt)
