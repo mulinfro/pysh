@@ -9,9 +9,15 @@ _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile',
 
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
-__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', 'items', 'mean',
-            '_while', 'join', 'joinMap', 'count', 'countBy', 'foldl', 'repeat',
+__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', 'items', 'mean', 'tail', 'head',
+            '_while', 'join', 'joinMap', 'joinDict', 'join3Map', 'count', 'countBy', 'foldl', 'repeat',
             'slf', '_if', "sequence", "swapListEle", "fany", "fall"] + _pipe_func + _pipe_func_ori
+
+def tail(lst):
+    return lst[1:]
+
+def head(lst):
+    return lst[0]
 
 def mean(iterable):
     ss, i = 0, 0
@@ -359,11 +365,8 @@ def joinDict(dict1, dict2):
     for k,v in dict1.items():
         ans[k] = (v, None)
     for k,v in dict2.items():
-        if k in ans:
-            l1v = ans[k][0]
-            ans[k] = (l1v, v)
-        else:
-            ans[k] = (None, v)
+        l1v = ans[key][0] if key in ans else None
+        ans[k] = (l1v, v)
     return ans
 
 def joinMap(key_func, value_func, lst1, lst2):
@@ -377,10 +380,27 @@ def joinMap(key_func, value_func, lst1, lst2):
         ans[key] = (value_func(ele), None)
     for ele in lst2:
         key = key_func(ele)
-        if key in ans:
-            l1key = ans[key][0]
-            ans[key] = (l1key, value_func(ele))
-        else:
-            ans[key] = (None, value_func(ele))
+        l1key = ans[key][0] if key in ans else None
+        ans[key] = (l1key, value_func(ele), None)
+
+    return ans
+
+def join3Map(key_func, value_func, lst1, lst2, lst3):
+    """join(key_func, value_func, iter1, iter2)
+      return a dict with {key_func(ele): (value_func(ele1), value_func(ele2))}
+      None if one key is not in a lst
+       """
+    ans = {}
+    for ele in lst1:
+        key = key_func(ele)
+        ans[key] = (value_func(ele), None, None)
+    for ele in lst2:
+        key = key_func(ele)
+        l1key = ans[key][0] if key in ans else None
+        ans[key] = (l1key, value_func(ele), None)
+    for ele in lst3:
+        key = key_func(ele)
+        l1key = ans[key] if key in ans else (None, None)
+        ans[key] = (l1key[0], l1key[1], value_func(ele))
 
     return ans
