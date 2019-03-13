@@ -8,7 +8,7 @@ from libs.utils import pipe_itertool
 _pipe_func = ['grep', 'egrep', 'colSel', 'listFormat', 'format', 
             'extract', 'replace', 'tojson', 'dumps', 'strip', 
             'split', 'rSel', "uniqBy", "toUtf8" ]
-_other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more', 'head',
+_other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more',
             'findall', 'search', 'uniq', 'ksort', 'sort']
 
 __all__ = _pipe_func + _other_func + list(map(lambda x: "_"+x, _pipe_func))
@@ -203,16 +203,6 @@ def _strip(string, p=" \t\n\r"):
     return string.strip(p)
 
 strip = pipe_itertool(_strip, 0)
-
-
-def head(iterable, n=10):
-    """ shell: head """
-    i = 0
-    for line in iterable:
-        i += 1
-        if i > n: break
-        yield line
-
 
 def _split(sep, string, cnt=-1, p=""):
     """_split(sep, string, cnt=-1, p="")

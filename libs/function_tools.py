@@ -9,12 +9,20 @@ _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile',
 
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
-__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', 'items', 'mean', 'tail', 'head',
-            '_while', 'join', 'joinMap', 'joinDict', 'join3Map', 'count', 'countBy', 'foldl', 'repeat',
+__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', 'items', 'mean', 'tail', 'tailN', 'head',
+            '_while', 'join', 'joinMap', 'joinDict', 'join3Map', 'count', 'countBy', 'foldl', 'repeat', 'matrix',
             'slf', '_if', "sequence", "swapListEle", "fany", "fall"] + _pipe_func + _pipe_func_ori
+
+def matrix(m,n, init=0):
+    return [[init for j in range(m)] for i in range(n)]
 
 def tail(lst):
     return lst[1:]
+
+def tailN(n, lst):
+    if n <= 0 or n>len(lst): n=0
+    else: n = -n
+    return list(lst)[n:]
 
 def head(lst):
     return lst[0]
@@ -359,6 +367,7 @@ def join(key_func, lst1, lst2):
             ans[key] = (None, ele)
 
     return ans
+
 
 def joinDict(dict1, dict2):
     ans = {}
