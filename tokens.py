@@ -34,6 +34,8 @@ keywords = {
 "catched": "CATCHED",
 "raise": "RAISE",
 "case" : "CASE",
+"match" : "MATCH",
+"do": "DO",
 "CL" : "CASE_LAMBDA",
 "caselambda" : "CASE_LAMBDA",
 "otherwise" : "OTHERWISE",

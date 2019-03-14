@@ -35,7 +35,7 @@ case(x,y): { a=>b, c=>d}
 " list reverse "
 case list_reverse(lst)
   [] => []
-  (x) => [x] 
+  (x) => [x]
   [x,xs] => list_reverse(xs) + [x]
 end
 

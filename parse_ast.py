@@ -166,6 +166,10 @@ def parse_flow_goto(node):
     cond = expr_or_default(node["cond"], True)
     return lambda env: _raise_error(val) if cond(env) else None
 
+def parse_match(node):
+    pass
+    
+
 def parse_case_lambda(node):
     node["casename"] = "_"
     return parse_case(node, is_lambda=True)
@@ -420,7 +424,8 @@ def lst_combine(var, v):
 def parse_simpleif_expr(node):
     cond = parse_simple_expr(node["cond"])
     then = parse_simple_expr(node["then"])
-    else_t = parse_simple_expr(node["else"])
+    if node["else"] != None: else_t = parse_simple_expr(node["else"])
+    else:                    else_t = lambda env: None
     return lambda env: then(env) if cond(env) else else_t(env)
 
 def parse_bi_oper(node):
@@ -639,6 +644,14 @@ def parse_dict(node):
         return dict(zip(keys(env), vals(env)))
     return exception_warp(_dict, node["msg"])
         
+def parse_doif(node):
+    cond_f = parse_simple_expr(node["cond"])
+    do_f = parse_pipe_or_expr(node["cmd"])
+    def do_switch(env):
+        if cond_f(env):
+            do_f(env)
+    return do_switch
+
 def parse_if(node):
     else_f = parse_block(node["else"]) if node["else"] else lambda env: None 
     cond_f = [parse_simple_expr(cond) for cond in node["cond"]] + [lambda env: True]

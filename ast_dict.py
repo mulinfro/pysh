@@ -226,7 +226,6 @@ class AST():
             check_comma(stm)
         return _vars
 
-            
     def ast_parn(self, stm):
         eles = self.ast_parn_eles(stm)
         vals, default_args, default_vals = [], [], []
@@ -255,6 +254,12 @@ class AST():
         else:
             return {"type":"PARN",  "val":vals, "msg": nodemsg }
                 
+    def ast_do(self, stm):
+        stm.next()
+        cmd = self.ast_assign_or_command(stm)
+        syntax_assert(stm.next(), "WHEN")
+        cond = self.ast_try_pipe(stm)
+        return {"type": "DO_IF", "cond": cond, "cmd":cmd, "msg":"do %s when %s"%(cmd["msg"], cond["msg"]) }
 
     def ast_parn_eles(self, stm):
         eles = []
@@ -280,11 +285,15 @@ class AST():
         if not stm.eof() and stm.peek().tp == "IF":
             stm.next()
             cond = self.ast_binary_expr(stm)
-            syntax_assert(stm.next(), "ELSE", "need else branch")
-            else_part = self.ast_binary_expr(stm)
-            return {"type":"SIMPLEIF", "then":true_part,
+            if syntax_check(stm.peek(), "ELSE"):
+                stm.next()
+                else_part = self.ast_binary_expr(stm)
+                return {"type":"SIMPLEIF", "then":true_part,
                     "cond":cond, "else":else_part, 
-                    "msg": true_part["msg"] + " if " + cond["msg"] + " then " + else_part["msg"] }
+                    "msg": true_part["msg"] + " if " + cond["msg"] + " else " + else_part["msg"] }
+            else:
+                return {"type":"SIMPLEIF", "then":true_part, "cond":cond, 
+                        "else":None, "msg": true_part["msg"] + " if " + cond["msg"]}
         return true_part
                 
     def ast_def(self, stm):
@@ -295,6 +304,22 @@ class AST():
         syntax_assert(stm.next(), "END", "missing END")
         return {"type":'DEF', "funcname":funcname["name"], 
                 "args":args, "body":body, "msg":"def " + funcname["name"]}
+
+    def ast_match(self, stm):
+        stm.next()
+        tkn = stm.peek()
+        if tkn.tp == "LIST":
+            pass
+        elif tkn.tp == "TUPLE":
+            pass
+        elif tkn.tp == "VAR":
+            variables = self.ast_var_list(stm)["names"]
+        else:
+            pass
+        syntax_assert(stm.next(), "ASSIGN", "missing =")
+        val_expr = self.ast_expr(stm)
+        return {"type":"MATCH" , "cases": cases, "val": val_expr }
+        
 
     def ast_case_expr(self, stm):
         """
