@@ -271,6 +271,8 @@ class AST():
     def ast_assign_or_command(self, stm):
         if stm.peek().tp == "ASSERT":
             return self.ast_assert(stm)
+        elif stm.peek().tp == "DO":
+            return self.ast_do(stm)
         elif stm.peek().tp == "DEL":
             return self.ast_del(stm)
         elif stm.peek().tp == "RAISE":
@@ -307,20 +309,11 @@ class AST():
 
     def ast_match(self, stm):
         stm.next()
-        tkn = stm.peek()
-        if tkn.tp == "LIST":
-            pass
-        elif tkn.tp == "TUPLE":
-            pass
-        elif tkn.tp == "VAR":
-            variables = self.ast_var_list(stm)["names"]
-        else:
-            pass
+        cases = self.ast_case_val(stm)
         syntax_assert(stm.next(), "ASSIGN", "missing =")
-        val_expr = self.ast_expr(stm)
+        val_expr = self.ast_try_pipe(stm)
         return {"type":"MATCH" , "cases": cases, "val": val_expr }
         
-
     def ast_case_expr(self, stm):
         """
          num / string -> expr

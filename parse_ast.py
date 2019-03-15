@@ -87,6 +87,8 @@ def parse_block_expr(node):
         val = parse_for(node)
     elif node["type"] in ["BREAK", "CONTINUE", "RETURN"]:
         val = parse_flow_goto(node)
+    elif node["type"] == "MATCH":
+        val = parse_match(node)
     elif node["type"] in ("ASSIGN", "GASSIGN"):
         val = parse_assign(node)
     else:
@@ -167,9 +169,15 @@ def parse_flow_goto(node):
     return lambda env: _raise_error(val) if cond(env) else None
 
 def parse_match(node):
-    pass
-    
+    val = parse_pipe_or_expr(node["val"])
+    match_cases = parse_case_match_expr(node["cases"])
+    case_patterns = parse_case_expr(x,args_num)
+    for cond, val in case_patterns:
+        pass
 
+    def _match(env):
+        env.update(zip(argnames, args))
+    
 def parse_case_lambda(node):
     node["casename"] = "_"
     return parse_case(node, is_lambda=True)
