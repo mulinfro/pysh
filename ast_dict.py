@@ -254,14 +254,6 @@ class AST():
         else:
             return {"type":"PARN",  "val":vals, "msg": nodemsg }
                 
-    def ast_do(self, stm):
-        stm.next()
-        cond = self.ast_try_pipe(stm)
-        #syntax_assert(stm.next(), "WHEN")
-        syntax_assert(stm.next(), ("OP", "COLON"), "missing :")
-        cmd = self.ast_assign_or_command(stm)
-        return {"type": "WHEN", "cond": cond, "cmd":cmd, "msg":"when %s: %s"%(cmd["msg"], cond["msg"]) }
-
     def ast_parn_eles(self, stm):
         eles = []
         while not stm.eof():
@@ -272,8 +264,6 @@ class AST():
     def ast_assign_or_command(self, stm):
         if stm.peek().tp == "ASSERT":
             return self.ast_assert(stm)
-        elif stm.peek().tp == "WHEN":
-            return self.ast_do(stm)
         elif stm.peek().tp == "MATCH":
             return self.ast_match(stm)
         elif stm.peek().tp == "DEL":
@@ -422,8 +412,16 @@ class AST():
         return {"type":"VAR", "name":tkn.val, "msg": tkn.val}
 
     def ast_if(self, stm):
-        condlist, do_list = [], []
-        while stm.peek().tp in ["ELIF", "IF"]:
+        stm.next()
+        condlist = [ self.ast_try_pipe(stm) ]
+        if syntax_check(stm.peek(), ("OP", "COLON")):
+            stm.next()
+            cmd = self.ast_assign_or_command(stm)
+            return {"type":'IF_ONELINE', "cond":condlist[0], "cmd":cmd, 
+                "msg": "if " + condlist[0]["msg"]}
+
+        do_list = [ self.ast_body(stm, self.ast_block_expr) ]
+        while stm.peek().tp == "ELIF":
             stm.next()
             cond = self.ast_try_pipe(stm)
             check_newline(stm)
@@ -437,7 +435,7 @@ class AST():
             else_part = self.ast_body(stm, self.ast_block_expr)
         syntax_assert(stm.next(), "END", "'%s' missing END"%tkn.val)
         return {"type":'IF', "cond":condlist, "then":do_list, "else":else_part, 
-                "msg": "if " + condlist[0]["msg"]}
+            "msg": "if " + condlist[0]["msg"]}
         
     def ast_for(self, stm):
         stm.next()

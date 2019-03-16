@@ -91,8 +91,8 @@ def parse_block_expr(node):
         val = parse_match(node)
     elif node["type"] in ("ASSIGN", "GASSIGN"):
         val = parse_assign(node)
-    elif node["type"] == 'WHEN':
-        val = parse_when(node)
+    elif node["type"] == 'IF_ONELINE':
+        val = parse_if_oneline(node)
     else:
         val = parse_expr_or_command(node)
     return val
@@ -658,9 +658,9 @@ def parse_dict(node):
         return dict(zip(keys(env), vals(env)))
     return exception_warp(_dict, node["msg"])
         
-def parse_when(node):
-    cond_f = parse_simple_expr(node["cond"])
-    do_f = parse_pipe_or_expr(node["cmd"])
+def parse_if_oneline(node):
+    cond_f = parse_pipe_or_expr(node["cond"])
+    do_f = parse_block_expr(node["cmd"])
     def do_switch(env):
         if cond_f(env):
             do_f(env)
@@ -668,7 +668,7 @@ def parse_when(node):
 
 def parse_if(node):
     else_f = parse_block(node["else"]) if node["else"] else lambda env: None 
-    cond_f = [parse_simple_expr(cond) for cond in node["cond"]] + [lambda env: True]
+    cond_f = [parse_pipe_or_expr(cond) for cond in node["cond"]] + [lambda env: True]
     then_f = [parse_block(then) for then in node["then"]]       + [else_f]
     cond_then_pair = list(zip(cond_f, then_f))
     def do_switch(env):

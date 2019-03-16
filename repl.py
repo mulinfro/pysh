@@ -28,9 +28,12 @@ builtins = locals()["__builtins__"]
 def is_block(cmd):
     def helper(line, keyword):
         return line.startswith(keyword) and len(line) > len(keyword) and line[len(keyword)] in " \t("
-    for kw in ["def", "if", "for", "while"]:
+    for kw in ["def", "for", "while"]:
         if helper(cmd, kw): 
             return True
+    # very trick and  have some bugs
+    if helper(cmd, "if") and ":" not in cmd: 
+        return True
     return False
 
 def REPL():
@@ -71,7 +74,7 @@ def REPL():
             if len(cmd_history) > HIS_LENGTH: cmd_history.pop(0)
         if is_block(cmd): block_num = block_num + 1
         if cmd.endswith("end"): 
-            if len(cmd) == 3 or cmd[-4] in [" ", "\t"]:
+            if block_num > 0 and (len(cmd) == 3 or cmd[-4] in [" ", "\t"]):
                 block_num = block_num - 1
         cmd = ""
             
