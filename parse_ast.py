@@ -91,6 +91,8 @@ def parse_block_expr(node):
         val = parse_match(node)
     elif node["type"] in ("ASSIGN", "GASSIGN"):
         val = parse_assign(node)
+    elif node["type"] == 'WHEN':
+        val = parse_when(node)
     else:
         val = parse_expr_or_command(node)
     return val
@@ -169,14 +171,18 @@ def parse_flow_goto(node):
     return lambda env: _raise_error(val) if cond(env) else None
 
 def parse_match(node):
-    val = parse_pipe_or_expr(node["val"])
-    match_cases = parse_case_match_expr(node["cases"])
-    case_patterns = parse_case_expr(x,args_num)
-    for cond, val in case_patterns:
-        pass
+    tomatch_val_func = parse_pipe_or_expr(node["val"])
+    match_cases_func = parse_case_match_expr(node["cases"])
 
     def _match(env):
-        env.update(zip(argnames, args))
+        tomatch_val = tomatch_val_func(env)
+        cond_flag, matched_variables = match_cases_func(tomatch_val)
+        if cond_flag:
+            env.update(matched_variables)
+        else:
+            print("Match Error")
+
+    return _match
     
 def parse_case_lambda(node):
     node["casename"] = "_"
@@ -652,7 +658,7 @@ def parse_dict(node):
         return dict(zip(keys(env), vals(env)))
     return exception_warp(_dict, node["msg"])
         
-def parse_doif(node):
+def parse_when(node):
     cond_f = parse_simple_expr(node["cond"])
     do_f = parse_pipe_or_expr(node["cmd"])
     def do_switch(env):

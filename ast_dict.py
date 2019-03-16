@@ -36,7 +36,7 @@ def check_eof(stm):
 def line_eof(stm):
     return stm.eof() or syntax_check(stm.peek(),  ("SEP", "NEWLINE"))
 
-def get_nodes_val(tkns, sep=" "):
+def get_nodes_msg(tkns, sep=" "):
     return sep.join([tkn["msg"] for tkn in tkns])
 
 class AST():
@@ -243,7 +243,7 @@ class AST():
                 vals.append(e)
                 if e["type"] == "VAR" and e["name"] == "_": is_partial = True
         
-        nodemsg = "(" + get_nodes_val(vals, ", ") + ")"
+        nodemsg = "(" + get_nodes_msg(vals, ", ") + ")"
         if is_partial or len(default_args) > 0:
             tp = "ARGS" if not is_partial else "PARTIAL"
             return {"type":tp, "val":vals, 
@@ -256,10 +256,11 @@ class AST():
                 
     def ast_do(self, stm):
         stm.next()
-        cmd = self.ast_assign_or_command(stm)
-        syntax_assert(stm.next(), "WHEN")
         cond = self.ast_try_pipe(stm)
-        return {"type": "DO_IF", "cond": cond, "cmd":cmd, "msg":"do %s when %s"%(cmd["msg"], cond["msg"]) }
+        #syntax_assert(stm.next(), "WHEN")
+        syntax_assert(stm.next(), ("OP", "COLON"), "missing :")
+        cmd = self.ast_assign_or_command(stm)
+        return {"type": "WHEN", "cond": cond, "cmd":cmd, "msg":"when %s: %s"%(cmd["msg"], cond["msg"]) }
 
     def ast_parn_eles(self, stm):
         eles = []
@@ -271,8 +272,10 @@ class AST():
     def ast_assign_or_command(self, stm):
         if stm.peek().tp == "ASSERT":
             return self.ast_assert(stm)
-        elif stm.peek().tp == "DO":
+        elif stm.peek().tp == "WHEN":
             return self.ast_do(stm)
+        elif stm.peek().tp == "MATCH":
+            return self.ast_match(stm)
         elif stm.peek().tp == "DEL":
             return self.ast_del(stm)
         elif stm.peek().tp == "RAISE":
@@ -308,11 +311,22 @@ class AST():
                 "args":args, "body":body, "msg":"def " + funcname["name"]}
 
     def ast_match(self, stm):
+        """
+           three format:  [], (),  for exact match, "( )" can omis
+           var1, var2, var3 == (var1, var2, var3 )
+        """
         stm.next()
-        cases = self.ast_case_val(stm)
+        vals = []
+        while not stm.eof():
+            vals.append(self.ast_case_val(stm))
+            if syntax_check(stm.peek(), "ASSIGN"): break
+            check_comma(stm)
         syntax_assert(stm.next(), "ASSIGN", "missing =")
+        msg = get_nodes_msg(vals, ",")
         val_expr = self.ast_try_pipe(stm)
-        return {"type":"MATCH" , "cases": cases, "val": val_expr }
+        if len(vals) == 1: cases = vals[0]
+        else:              cases = {"type":"TUPLE", "val": vals}
+        return {"type":"MATCH" , "cases": cases, "val": val_expr, "msg":msg }
         
     def ast_case_expr(self, stm):
         """
@@ -470,7 +484,7 @@ class AST():
                 tps.append(self.ast_dot(stm))
             else:
                 break
-        return {"type":"SUFFIXOP", "val":tps, "msg": get_nodes_val(tps, "")}
+        return {"type":"SUFFIXOP", "val":tps, "msg": get_nodes_msg(tps, "")}
 
     def ast_dot(self, stm):
         stm.next()
@@ -518,7 +532,7 @@ class AST():
         while not stm.eof():
             vals.append(self.ast_case_val(stm))
             check_comma(stm)
-        base_msg = get_nodes_val(vals, ",")
+        base_msg = get_nodes_msg(vals, ",")
         expr_msg = "[ " + base_msg + " ]" if tp == "LIST" else "( " + base_msg + " )"
         return {"type":tp, "val": vals, "msg": expr_msg}
 
@@ -579,7 +593,7 @@ class AST():
         vals = []
         while not stm.eof():
             vals.append(self.ast_list_comp(stm))
-        return {"type":"LIST", "val": vals, "msg":"[ " + get_nodes_val(vals, ",") +  " ]"}
+        return {"type":"LIST", "val": vals, "msg":"[ " + get_nodes_msg(vals, ",") +  " ]"}
 
     def ast_dict(self, stm):
         key,val = [],[]

@@ -36,6 +36,7 @@ keywords = {
 "case" : "CASE",
 "match" : "MATCH",
 "do": "DO",
+"when": "WHEN",
 "CL" : "CASE_LAMBDA",
 "caselambda" : "CASE_LAMBDA",
 "otherwise" : "OTHERWISE",
