@@ -11,7 +11,7 @@ _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
 __all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', 'items', 'mean', 'tail', 'tailN', 'head',
             '_while', 'join', 'joinMap', 'joinDict', 'join3Map', 'count', 'countBy', 'foldl', 'repeat', 'matrix',
-            'slf', '_if', "sequence", "swapListEle", "fany", "fall"] + _pipe_func + _pipe_func_ori
+            'slf', '_if', "seqDo","sequence", "swapListEle", "fany", "fall"] + _pipe_func + _pipe_func_ori
 
 def matrix(m,n, init=0):
     return [[init for j in range(m)] for i in range(n)]
@@ -76,10 +76,16 @@ def swapListEle(list_obj, i=0, j=1):
     list_obj[i] = list_obj[j]
     list_obj[j] = tmp
 
-
 def sequence(funcs, ele):
     """ sequence(funcs, ele)"""
     return [ func(ele) for func in funcs ] 
+
+def seqDo(funcs, ele):
+    """ seqDo(funcs, ele)"""
+    ele = None
+    for func in funcs:
+        ele = func(ele)
+    return ele
 
 def foreach(func, iterable):
     """foreach(func, iterable)"""

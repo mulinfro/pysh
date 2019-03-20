@@ -173,6 +173,7 @@ def parse_flow_goto(node):
 def parse_match(node):
     tomatch_val_func = parse_pipe_or_expr(node["val"])
     match_cases_func = parse_case_match_expr(node["cases"])
+    msg = node["msg"]
 
     def _match(env):
         tomatch_val = tomatch_val_func(env)
@@ -180,13 +181,36 @@ def parse_match(node):
         if cond_flag:
             env.update(matched_variables)
         else:
-            print("Match Error")
+            Error("Match Error: %s"%msg)
 
     return _match
     
 def parse_case_lambda(node):
-    node["casename"] = "_"
-    return parse_case(node, is_lambda=True)
+    cases = node["cases"]
+    case_patterns = list(map(parse_case_match_expr, cases))
+    body = parse_block_or_expr(node["body"])
+    msg = node["msg"]
+    def _case_lambda(env):
+        def _match(*args):
+            new_env = Env(outer = env)
+            matched_flag = True
+            if len(args) != len(case_patterns):
+                Error("need %d accully %d args"%(len(case_patterns), len(args)))
+            for f, v in zip(case_patterns, args):
+                cond_flag, matched_variables = f(v)
+                if cond_flag:
+                    new_env.update(matched_variables)
+                else:
+                    matched_flag = False
+                    break
+
+            ans = None
+            if matched_flag:
+                ans = body(new_env)
+            del new_env
+            return ans
+                    
+    return _case_lambda
 
 def parse_case(node, is_lambda=False):
     casename, argnames = node["casename"], node["args"]
@@ -220,7 +244,7 @@ def parse_case_expr(node, args_num = 0):
     val = parse_block_or_expr(node["val"])
 
     if node["type"] == "CASE_IF":
-        cond_expr = parse_pipe_or_expr(node["cond"])
+        cond_expr = parse_pipe_or_expr(node["cases"])
         cond = lambda env, args: (cond_expr(env), [])
     elif node["type"] == "CASE_MULTI":
         syntax_cond_assert( args_num >= len(node["cases"]), "args less than case patterns")

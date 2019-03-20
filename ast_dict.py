@@ -306,12 +306,7 @@ class AST():
            var1, var2, var3 == (var1, var2, var3 )
         """
         stm.next()
-        vals = []
-        while not stm.eof():
-            vals.append(self.ast_case_val(stm))
-            if syntax_check(stm.peek(), "ASSIGN"): break
-            check_comma(stm)
-        syntax_assert(stm.next(), "ASSIGN", "missing =")
+        vals = self.ast_multicase(stm, "ASSIGN", "=")
         msg = get_nodes_msg(vals, ",")
         val_expr = self.ast_try_pipe(stm)
         if len(vals) == 1: cases = vals[0]
@@ -343,14 +338,13 @@ class AST():
         val_expr = self.ast_block_or_expr(stm, self.ast_try_assign, self.ast_try_pipe)
         return {"type":tp , "cases": cases, "val": val_expr }
 
-    def ast_multicase(self, stm):
+    def ast_multicase(self, stm, sep="INFER", sep_ss = "=>"):
         variable_matched_list = []
         while True:
             v = self.ast_case_val(stm)
             variable_matched_list.append(v)
-            if syntax_check(stm.peek(), "INFER" ): break
-            syntax_assert(stm.next(), ("SEP", "COMMA"), "expecte , or =>")
-        #print(variable_matched_list)
+            if syntax_check(stm.peek(), sep): break
+            syntax_assert(stm.next(), ("SEP", "COMMA"), "expect , or %s"%sep_ss)
         return variable_matched_list
 
     def ast_block_or_expr(self, stm, body_func, expr_func):
@@ -366,15 +360,11 @@ class AST():
         return body
 
     def ast_case_lambda(self, stm):
-        args_names = self.ast_var_list(stm) ["names"]
-        syntax_assert(stm.next(), ("OP", "COLON"), "missing :")
-        body = self.ast_block_or_expr(stm, self.ast_case_expr, self.ast_case_expr)
-        if body["type"] == "S_BLOCK":
-            body = body["body"]
-        else:
-            body = [body]
-        return {"type":'CASE_LAMBDA', "args":arg_names, 
-                "body":body, "msg":"case " + args["msg"] + ":" + "..." }
+        vals = self.ast_multicase(stm, "COLON", ":")
+        msg = get_nodes_msg(vals, ",")
+        body = self.ast_block_or_expr(stm, self.ast_try_assign, self.ast_try_pipe)
+        return {"type":'CASE_LAMBDA', "cases": vals,
+                "body":body, "msg":"caselambda " + msg + ":" + "..." }
 
     def ast_case(self, stm):
         stm.next()
