@@ -209,7 +209,7 @@ def parse_case_lambda(node):
                 ans = body(new_env)
             del new_env
             return ans
-                    
+        return _match
     return _case_lambda
 
 def parse_case(node, is_lambda=False):
@@ -633,6 +633,8 @@ def parse_val_expr(node):
         atom = parse_sysfunc(node)
     elif t_type == 'LAMBDA':
         atom = parse_lambda(node)
+    elif t_type == 'CASE_LAMBDA':
+        atom = parse_case_lambda(node)
     elif t_type == 'PARN':
         atom = parse_parn(node)
     else:

@@ -307,6 +307,7 @@ class AST():
         """
         stm.next()
         vals = self.ast_multicase(stm, "ASSIGN", "=")
+        syntax_assert(stm.next(), "ASSIGN", "expected =")
         msg = get_nodes_msg(vals, ",")
         val_expr = self.ast_try_pipe(stm)
         if len(vals) == 1: cases = vals[0]
@@ -360,7 +361,8 @@ class AST():
         return body
 
     def ast_case_lambda(self, stm):
-        vals = self.ast_multicase(stm, "COLON", ":")
+        vals = self.ast_multicase(stm, ("OP", "COLON"), ":")
+        syntax_assert(stm.next(), ("OP", "COLON"), "expected :")
         msg = get_nodes_msg(vals, ",")
         body = self.ast_block_or_expr(stm, self.ast_try_assign, self.ast_try_pipe)
         return {"type":'CASE_LAMBDA', "cases": vals,
