@@ -5,7 +5,7 @@ from collections.abc import Iterable
 import json, collections
 from libs.utils import pipe_itertool
 
-_pipe_func = ['grep', 'egrep', 'colSel', 'listFormat', 'format', 
+_pipe_func = ['grep', 'egrep', 'colSel', 'colRm', 'listFormat', 'format', 
             'extract', 'replace', 'tojson', 'dumps', 'strip', 
             'split', 'rSel', "uniqBy", "toUtf8" ]
 _other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more',
@@ -87,6 +87,12 @@ def _colSel(idxes, iterable):
         return iterable[idxes]
     return [iterable[idx] for idx in idxes]
 colSel = pipe_itertool(_colSel, 1)
+
+def _colRm(idxes, iterable):
+    if type(idxes) not in (list, tuple):
+        idxes = [idxes]
+    return [ iterable[i] for i in range(len(iterable)) if i not in idxes]
+colRm = pipe_itertool(_colRm, 1)
 
 def _listFormat(iterable, pat="{0}", sep="\t"):
     """_listFormat(iterable, pat, sep=" ")"""

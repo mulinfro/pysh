@@ -175,7 +175,8 @@ class AST():
             stm.next()
             cond_expr = self.ast_try_pipe(stm)
         check_expr_end(stm)
-        return {"type": tp, "cond": cond_expr, "msg": tp + " " + cond_expr["msg"]}
+        msg  = tp + " " + cond_expr["msg"] if cond_expr else ""
+        return {"type": tp, "cond": cond_expr, "msg": msg }
 
     def ast_assert(self, stm):
         tp = stm.next().tp
