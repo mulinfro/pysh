@@ -9,7 +9,7 @@ _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile',
 
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
-__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'foreach', 'items', 'mean', 'tail', 'tailN', 'head',
+__all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'sliding', 'foreach', 'items', 'mean', 'tail', 'tailN', 'head',
             '_while', 'join', 'joinMap', 'joinDict', 'join3Map', 'count', 'countBy', 'foldl', 'repeat', 'matrix',
             'slf', '_if', "seqDo","sequence", "swapListEle", "fany", "fall"] + _pipe_func + _pipe_func_ori
 
@@ -189,6 +189,22 @@ def zipWithIndex(iterable, start=0):
         i = i + 1
 
 _zipWithIndex = unlazyed(zipWithIndex)
+
+def sliding(sz, iterable):
+    """sliding iterable to list of fixed size tuple """
+    if sz <= 0: sz = 1
+    ans = []
+    i = 0
+    for ele in iterable:
+        ans.append(ele)
+        i = i + 1
+        if i % sz == 0:
+            yield ans
+            ans = []
+
+    if len(ans):
+        yield ans
+
 
 def unzip(iterable):
     """unzip(iterable) """
