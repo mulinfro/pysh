@@ -1,10 +1,11 @@
 
 from functools import reduce
 from types import GeneratorType
+from collections import Iterable
 from libs.utils import pipe_itertool, unlazyed
 
 _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile', 
-            'map', 'filter', 'filterNot', 'flat', 'flatMap', 'chunks', 
+            'map', 'filter', 'filterNot', 'flat', 'flatMap', 'flatOnlyList', 'chunks', 
             'zip2','zip3', 'zipWithIndex', 'FM', 'MF', 'mmap', 'dmap', 'colMap', 'splitList']
 
 _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
@@ -119,6 +120,7 @@ def _if(cond, true_v, false_v):
         return false_v
 
 def splitList(cond, lst):
+    """splitList(cond, lst)"""
     ans = []
     for x in lst:
         if cond(x):
@@ -354,13 +356,27 @@ def mapValues(key, dict_obj):
         dict_obj[k] = key(v)
     return dict_obj
 
-def flat(listOfLists):
-    """flat(listOfLists)"""
+
+def flatOnlyList(listOfLists):
+    """flatOnlyList(listOfLists)"""
     for lst in listOfLists:
-        for x in lst:
-            yield x
+        if isinstance(lst, list):
+            for x in lst:
+                yield x
+        else:
+            yield lst
+
+def flat(listOfLists):
+    """flat(iterableOfiterable)"""
+    for lst in listOfLists:
+        if isinstance(lst,Iterable):
+            for x in lst:
+                yield x
+        else:
+            yield lst
 
 _flat = unlazyed(flat)
+_flatOnlyList = unlazyed(flatOnlyList)
 
 def flatMap(func, listOfLists):
     """ flatMap(func, listOfLists)"""

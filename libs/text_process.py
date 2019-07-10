@@ -8,7 +8,7 @@ from libs.utils import pipe_itertool
 _pipe_func = ['grep', 'egrep', 'colSel', 'colRm', 'listFormat', 'format', 
             'extract', 'replace', 'tojson', 'dumps', 'strip', 
             'split', 'rSel', "uniqBy", "toUtf8" ]
-_other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more',
+_other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more', 'readPair', 'readStringPair',
             'findall', 'search', 'uniq', 'ksort', 'sort']
 
 __all__ = _pipe_func + _other_func + list(map(lambda x: "_"+x, _pipe_func))
@@ -75,6 +75,46 @@ def _egrep(pat, line, p="i"):
         return line
 
 egrep = pipe_itertool(_egrep, 1)
+
+def readPair(iterable, beg_tkn, end_tkn):
+    t_iter = iter(iterable)
+    for ele in t_iter:
+        if ele != beg_tkn:
+            yield (ele, "SINGLE")
+        else:
+            ans, tp = [], "HALF_CLOSE" 
+            for ele in t_iter:
+                if ele == end_tkn:
+                    tp = "CLOSE"
+                    break
+                else:
+                    ans.append(ele)
+            yield (ans, tp)
+
+
+def readStringPair(str_input, beg_tkn, end_tkn):
+    ans, i = [], 0
+    while i < len(str_input):
+        if not str_input.startswith(beg_tkn, i):
+            ans.append(str_input[i])
+            i = i + 1
+        else:
+            k = i
+            i = i + len(beg_tkn)
+            tp = "HALF_CLOSE" 
+            while i < len(str_input):
+                if str_input.startswith(end_tkn, i):
+                    tp = "CLOSE"
+                    break
+                else:
+                    i = i + 1
+            if tp == "HALF_CLOSE":
+                ans.extend(list(str_input[k: i]))
+            else:
+                ans.append(str_input[k+len(beg_tkn): i])
+                i = i + len(end_tkn)
+
+    return ans
 
 def gen(iterable):
     """ for e in iterable: yield e """
