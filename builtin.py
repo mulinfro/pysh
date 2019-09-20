@@ -127,7 +127,7 @@ def _append(var, filename):
 def _call(f, arg):
     return f(*arg[0], **arg[1])
 
-def _get(v, k):
+def _get_multi(v, k):
     if v is None: return None
     if type(v) is dict: 
         r = [v.get(ki, None) for ki in k]
@@ -135,8 +135,14 @@ def _get(v, k):
         r = [v[ki] for ki in k]
         if type(v) == str:
             return "".join(r)
-    if len(r) == 1: 
-        return r[0]
+    return r
+
+def _get(v, k):
+    if v is None: return None
+    if type(v) is dict: 
+        r = v.get(k, None)
+    else: 
+        r = v[k]
     return r
 
 def _assign(var, val, env):
@@ -189,5 +195,6 @@ Unary = {
     'NOT': _not,
     "CALL": _call,
     "GET" : _get,
+    "GET_MULTI" : _get_multi,
     "RETURN": _return,
 }

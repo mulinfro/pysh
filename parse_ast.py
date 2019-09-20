@@ -566,8 +566,11 @@ def parse_suffix_op(op):
     elif op["type"] == "DOT":
         return lambda env: lambda x: x.__getattribute__(op["attribute"])
     else:
-        snv = parse_list(op["val"])
-        return lambda env: lambda v: Unary["GET"](v, snv(env))
+        tp, snv = parse_list_helper(op["val"])
+        if tp == "ELES":
+            return lambda env: lambda v: Unary["GET_MULTI"](v, snv(env))
+        else:
+            return lambda env: lambda v: Unary["GET"](v, snv(env)[0])
 
 def parse_partial(node):
     h_args, p_args_idx = parse_args(node)
@@ -656,7 +659,7 @@ def parse_list_comp(node):
 
     return  exception_warp(_list_range, node["msg"])
 
-def parse_list(node_list):
+def parse_list_helper(node_list):
     res = []
     for ele in node_list:
         if ele["type"] == "LISTCOM":
@@ -670,7 +673,12 @@ def parse_list(node_list):
             if r[0] == "COMP": v.extend(r[1](env))
             else:  v.append(r[1](env))
         return v
+    if len(node_list) != 1 or ( len(node_list) == 1 and node_list[0]["type"] == "LISTCOM"):
+        return "ELES", _p_list
+    return "ELE", _p_list
 
+def parse_list(node_list):
+    _, _p_list = parse_list_helper(node_list)
     return _p_list
 
 def parse_tuple(node):
