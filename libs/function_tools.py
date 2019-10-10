@@ -12,7 +12,24 @@ _pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
 
 __all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'sliding', 'foreach', 'items', 'mean', 'tail', 'tailN', 'head',
             '_while', 'join', 'joinMap', 'joinDict', 'join3Map', 'count', 'countBy', 'foldl', 'repeat', 'matrix',
-            'slf', '_if', "seqDo","sequence", "swapListEle", "fany", "fall"] + _pipe_func + _pipe_func_ori
+            'slf', '_if', "seqDo","sequence", "swapListEle", "fany", "fall", "diff", "comm"] + _pipe_func + _pipe_func_ori
+
+def diff(a, b):
+    ans = []
+    sb = set(b)
+    for e in a:
+        if e not in sb:
+            ans.append(e)
+
+    return ans
+
+def comm(a, b):
+    ans = []
+    sb = set(b)
+    for e in a:
+        if e in sb:
+            ans.append(e)
+    return ans
 
 def matrix(m,n, init=0):
     return [[init for j in range(m)] for i in range(n)]
