@@ -9,9 +9,16 @@ _pipe_func = ['grep', 'egrep', 'colSel', 'colRm', 'listFormat', 'format',
             'extract', 'replace', 'tojson', 'dumps', 'strip', 
             'split', 'rSel', "uniqBy", "toUtf8" ]
 _other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more', 'readPair', 'readStringPair',
-            'findall', 'search', 'uniq', 'ksort', 'sort']
+            'findall', 'search', 'uniq', 'ksort', 'sort', 'json_equal', 'replaceWithList']
 
 __all__ = _pipe_func + _other_func + list(map(lambda x: "_"+x, _pipe_func))
+
+def json_equal(ja, jb):
+    return json.dumps(ja, sort_keys=True) == json.dumps(jb, sort_keys=True)
+
+def replaceWithList(pats, iterable, cnt=-1):
+    ans = [ pats.get(i, i) for i in iterable ]
+    return "".join(ans)
 
 def pipe_gen_itertool(func, N=0):
     def wrapper(*args, **kw):
