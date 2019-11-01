@@ -3,15 +3,14 @@ from types import GeneratorType
 from libs.os_cmd import isDir, replace_if_star_dir
 from collections.abc import Iterable
 import json, collections
-from libs.utils import pipe_itertool
 
 _pipe_func = ['grep', 'egrep', 'colSel', 'colRm', 'listFormat', 'format', 
             'extract', 'replace', 'tojson', 'dumps', 'strip', 
-            'split', 'rSel', "uniqBy", "toUtf8" ]
+            'split', 'rSel', "uniqBy","uniqKvBy", "toUtf8" ]
 _other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more', 'readPair', 'readStringPair',
             'findall', 'search', 'uniq', 'ksort', 'sort', 'json_equal', 'replaceWithList']
 
-__all__ = _pipe_func + _other_func + list(map(lambda x: "_"+x, _pipe_func))
+__all__ = _pipe_func + _other_func
 
 def json_equal(ja, jb):
     return json.dumps(ja, sort_keys=True) == json.dumps(jb, sort_keys=True)
@@ -59,29 +58,22 @@ def shuf(iterable):
     return iterable
 
 
-def _grep(pat, line):
+def grep(pat, line):
     """_grep(pat, line)\npat in line?  """
     if pat in line:
         return line
 
-grep = pipe_itertool(_grep, 1)
-
-
-def _toUtf8(s, encoding="gbk"):
+def toUtf8(s, encoding="gbk"):
     """_toUtf8(s, encoding="gbk"): s to utf8"""
     return s.decode(encoding).encode("utf-8")
 
-toUtf8 = pipe_itertool(_toUtf8, 0)
-
-def _egrep(pat, line, p="i"):
+def egrep(pat, line, p="i"):
     """_egrep(pat, line, p="i")"""
     if "i" in p: pattern = re.compile(pat, re.I)
     else:        pattern = re.compile(pat)
     match = pattern.search(line)
     if match:
         return line
-
-egrep = pipe_itertool(_egrep, 1)
 
 def readPair(iterable, beg_tkn, end_tkn):
     t_iter = iter(iterable)
@@ -128,24 +120,20 @@ def gen(iterable):
     for e in iterable:
         yield e
 
-def _colSel(idxes, iterable):
+def colSel(idxes, iterable):
     """_colSel(idxes, iterable)"""
     if type(idxes) not in (list, tuple):
         return iterable[idxes]
     return [iterable[idx] for idx in idxes]
-colSel = pipe_itertool(_colSel, 1)
 
-def _colRm(idxes, iterable):
+def colRm(idxes, iterable):
     if type(idxes) not in (list, tuple):
         idxes = [idxes]
     return [ iterable[i] for i in range(len(iterable)) if i not in idxes]
-colRm = pipe_itertool(_colRm, 1)
 
-def _listFormat(iterable, pat="{0}", sep="\t"):
+def listFormat(iterable, pat="{0}", sep="\t"):
     """_listFormat(iterable, pat, sep=" ")"""
     return sep.join( [pat.format(ele) for ele in iterable] )
-
-listFormat = pipe_itertool(_listFormat, 0)
 
 """
 if isinstance(x, Iterable):
@@ -154,13 +142,11 @@ else:
     return pat.format(x)
 """
 
-def _format(pat, x):
+def format(pat, x):
     """_format(pat, x): 
    Iterable: pat.format(*x) else pat.format(x)
     """
     return pat.format(x)
-
-format = pipe_itertool(_format, 1)
 
 def wc(iterable):
     """ wc(iterable)\niterable count """
@@ -170,27 +156,23 @@ def wc(iterable):
     return i
 
 
-def _extract(pat, line):
-    """ _extract(pat, line)
+def extract(pat, line):
+    """ extract(pat, line)
         re.search(pat, line).groups()
     """
     match = re.search(pat, line)
     if match:
         return match.groups()
 
-extract = pipe_itertool(_extract, 1)
-
-def _rSel(iterable):
-    """ _rSel(iterable)\nrandom select a element"""
+def rSel(iterable):
+    """ rSel(iterable)\nrandom select a element"""
     if type(iterable) == dict:
         return random.choice(list(iterable.items()))
     else:
         idx = random.randint(0, len(iterable) - 1)
         return iterable[idx]
 
-rSel = pipe_itertool(_rSel, 0)
-
-def _replace(pat, repl, line, cnt=-1, p=""):
+def replace(pat, repl, line, cnt=-1, p=""):
     """string replace
        parms: pattern, replace_str, line, cnt=inf
        p = [v] v: using python module re.sub
@@ -206,8 +188,6 @@ def _replace(pat, repl, line, cnt=-1, p=""):
         if cnt < 0: cnt = 0
         return re.sub(pat, repl, line, cnt)
 
-replace = pipe_itertool(_replace, 2)
-
 def cat(iterable, p="utf-8"):
     """ shell: cat
         input: a single path or a list of pathes
@@ -222,17 +202,13 @@ def cat(iterable, p="utf-8"):
                 yield line.rstrip("\n\r")
             f.close()
 
-def _tojson(line):
+def tojson(line):
     """python json loads"""
     return json.loads(line.strip())
 
-tojson = pipe_itertool(_tojson, 0)
-
-def _dumps(var, indent=None):
+def dumps(var, indent=None):
     """python json dumps"""
     return json.dumps(var, indent=indent, ensure_ascii=False)
-
-dumps = pipe_itertool(_dumps, 0)
 
 def more(file_name):
     """shell: more
@@ -255,13 +231,11 @@ def more(file_name):
                 break
 
 
-def _strip(string, p=" \t\n\r"):
+def strip(string, p=" \t\n\r"):
     """_strip(string, p=" \t\n\r")"""
     return string.strip(p)
 
-strip = pipe_itertool(_strip, 0)
-
-def _split(sep, string, cnt=-1, p=""):
+def split(sep, string, cnt=-1, p=""):
     """_split(sep, string, cnt=-1, p="")
     p="v": use re.split
     """
@@ -270,8 +244,6 @@ def _split(sep, string, cnt=-1, p=""):
         return re.split(sep, string, cnt)
     else:
         return string.split(sep, cnt)
-
-split = pipe_itertool(_split, 1)
 
 def ksort(k, lst, key=lambda x:x, p=""):
     """ksort(k, lst, key, p="")
@@ -304,5 +276,5 @@ def uniqBy(iterable, key=lambda x:x):
             dic[key_v] = x
     return dic.values()
 
-def _uniqBy(iterable, key=lambda x:x):
+def uniqKvBy(iterable, key=lambda x:x):
     return list(uniqBy(iterable, key))

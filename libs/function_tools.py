@@ -2,17 +2,14 @@
 from functools import reduce
 from types import GeneratorType
 from collections import Iterable
-from libs.utils import pipe_itertool, unlazyed
 
 _pipe_func = ["wrapList", 'take', 'takeWhile', 'drop', 'dropWhile', 
             'map', 'filter', 'filterNot', 'flat', 'flatMap', 'flatOnlyList', 'chunks', 
             'zip2','zip3', 'zipWithIndex', 'FM', 'MF', 'mmap', 'dmap', 'colMap', 'splitList']
 
-_pipe_func_ori = list(map(lambda x: "_" + x, _pipe_func))
-
 __all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'sliding', 'foreach', 'items', 'mean', 'tail', 'tailN', 'head',
             '_while', 'join', 'joinMap', 'joinDict', 'join3Map', 'count', 'countBy', 'foldl', 'repeat', 'matrix',
-            'slf', '_if', "seqDo","sequence", "swapListEle", "fany", "fall", "diff", "comm"] + _pipe_func + _pipe_func_ori
+            'slf', '_if', "seqDo","sequence", "swapListEle", "fany", "fall", "diff", "comm"] + _pipe_func
 
 def diff(a, b):
     ans = []
@@ -148,24 +145,16 @@ def splitList(cond, lst):
     if ans:
         yield ans
 
-_splitList = unlazyed(splitList)
-
-def _map(func, iterable):
-    """ Not lazyed: map"""
-    return [ func(x) for x in iterable ]
-
 def repeat(func, n):
     i = 0
     while n < 0 or i < n:
         yield func()
         i += 1
 
-def _wrapList(item):
+def wrapList(item):
     if type(item) != list:
         return [item]
     return item
-
-wrapList = pipe_itertool(_wrapList, 0)
 
 def chunks(n, iterable):
     """Lazyed: chunks(n, iterable)
@@ -184,20 +173,16 @@ def chunks(n, iterable):
                 ans = list()
         if len(ans) > 0: yield ans
 
-_chunks = unlazyed(chunks)
-
 
 def zip2(l1, l2):
     """ Lazyed: zip two iterables, python zip return zip object, while zip2 return a generator """
     for x in zip(l1, l2):
         yield x
-_zip2 = unlazyed(zip2)
 
 def zip3(l1, l2, l3):
     """zip3(l1, l2, l3)\nLazyed: zip three iterables, python zip return zip object, while zip3 return a generator """
     for x in zip(l1, l2, l3):
         yield x
-_zip3 = unlazyed(zip3)
 
 def zipWithIndex(iterable, start=0):
     """ zipWithIndex(iterable, start=0)
@@ -207,7 +192,6 @@ def zipWithIndex(iterable, start=0):
         yield (x, i)
         i = i + 1
 
-_zipWithIndex = unlazyed(zipWithIndex)
 
 def sliding(sz, iterable):
     """sliding iterable to list of fixed size tuple """
@@ -261,16 +245,12 @@ def take(n, iterable):
         i+=1
         yield x
 
-_take = unlazyed(take)
-
 def takeWhile(key, iterable):
     """takeWhile(key, iterable)
        Lazyed: iterable take while condition is statisfied """
     for x in iterable:
         if not key(x): break
         yield x
-
-_takeWhile = unlazyed(takeWhile)
 
 def drop(n, iterable):
     """drop(n, iterable)
@@ -280,8 +260,6 @@ def drop(n, iterable):
         if i >= n: yield x
         i+=1
 
-_drop = unlazyed(drop)
-
 def dropWhile(key, iterable):
     """dropWhile(key, iterable)"""
     need_drop = True
@@ -290,8 +268,6 @@ def dropWhile(key, iterable):
         else: need_drop = False
         yield x
 
-_dropWhile = unlazyed(dropWhile)
-            
 def map(func, iterable):
     """Lazyed: map"""
     for ele in iterable:
@@ -301,14 +277,12 @@ def mmap(func, iterable):
     """Lazyed: map with map"""
     for ele in iterable:
         yield [func(e) for e in ele]
-_mmap = unlazyed(mmap)
 
 def dmap(func1, func2, iterable):
     """dmap(func1, func2, iterable)
     Lazyed: """
     for ele in iterable:
         yield (func1(ele), func2(ele))
-_dmap = unlazyed(dmap)
 
 def colMap(k, func, iterable):
     """Lazyed: colMap(cols, func, iterable)"""
@@ -319,14 +293,12 @@ def colMap(k, func, iterable):
         else:
             ele[k] = func(ele[k])
         yield ele
-_colMap = unlazyed(colMap)
 
 def filter(func, iterable):
     """filter(func, iterable)"""
     for ele in iterable:
         if func(ele):
             yield ele
-_filter = unlazyed(filter)
 
 def filterNot(func, iterable):
     """filter(func, iterable)"""
@@ -334,7 +306,6 @@ def filterNot(func, iterable):
         if not func(ele):
             yield ele
 
-_filterNot = unlazyed(filterNot)
 
 def foldl(func, iterable, init=None):
     """ foldl(func, iterable, init=None)
@@ -354,7 +325,6 @@ def MF(mfunc, ffunc, iterable):
         if ffunc(v):
             yield v
 
-_MF = unlazyed(MF)
 
 def FM(mfunc, ffunc, iterable):
     """FM(mfunc, ffunc, iterable)
@@ -365,7 +335,6 @@ def FM(mfunc, ffunc, iterable):
         if ffunc(ele):
             yield mfunc(ele)
 
-_FM = unlazyed(FM)
 
 def mapValues(key, dict_obj):
     """mapValues(key, dict_obj)"""
@@ -392,17 +361,12 @@ def flat(listOfLists):
         else:
             yield lst
 
-_flat = unlazyed(flat)
-_flatOnlyList = unlazyed(flatOnlyList)
 
 def flatMap(func, listOfLists):
     """ flatMap(func, listOfLists)"""
     for lst in listOfLists:
         for x in lst:
             yield func(x)
-
-_flatMap = unlazyed(flatMap)
-
 
 def join(key_func, lst1, lst2):
     """join(key_func, iter1, iter2)
