@@ -37,6 +37,10 @@ special_op = {
     "<<": "INFER_ASSIGN",
 }
 
+elevator_op = {
+    '~': "MAP",
+}
+
 pipe_op = {
     "|": 'PIPE',
     "$": 'LEFT_PIPE',
