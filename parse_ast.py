@@ -120,6 +120,20 @@ def parse_pipe_or_expr(node):
     else:
         return parse_simple_expr(node)
 
+def parse_elevator(node):
+    bin_ans = None
+
+    def _wrapper_map(env):
+        bin_op = bin_ans(env)
+        def _iter_map(iteralble):
+            for it in iteralble:
+                yield bin_op(it)
+        return _iter_map
+
+    if node["mode"] == "MAP":
+        bin_ans = parse_simple_expr(node["expr"])
+        return _wrapper_map
+
 def parse_pipe(node):
     g_exprs = list(map(parse_simple_expr, node["exprs"]))
     g_ops  = list(map(parse_bi_oper, node["pipes"]))
@@ -133,6 +147,8 @@ def parse_pipe(node):
 def parse_simple_expr(node):
     if node["type"] == "SIMPLEIF":
         val = parse_simpleif_expr(node)
+    elif node["type"] == "ELEVATOR":
+        val = parse_elevator(node)
     elif node["type"] == "BIEXPR":
         val = parse_binary_expr(node)
     else:

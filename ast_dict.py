@@ -482,8 +482,17 @@ class AST():
         var = self.ast_a_var(stm)
         return {"type":"DOT", "attribute": var["name"], "msg":"."}
 
+    def try_elevator(self, stm):
+        if stm.hasnext():
+            ch = stm.next()
+            if ch.tp == "ELEVATOR":
+                return {"type": ch.tp, "mode": ch.val, "msg":"~"}
+            else:
+                stm.back()
+
     def ast_binary_expr(self, stm):
         vals , ops = [], []
+        evt = self.try_elevator(stm)
         vals.append(self.ast_unary(stm))
         while not stm.eof():
             op = self.ast_try_op(stm)
@@ -491,10 +500,13 @@ class AST():
             ops.append(op)
             vals.append(self.ast_unary(stm))
         if len(ops) == 0:
-            return vals[0]
+            expr = vals[0]
         else:
             nodemsg = " ".join([ x["msg"] + " " + y["msg"] for x, y in zip(vals, ops) ]) + " " + vals[-1]["msg"]
-            return {"type":"BIEXPR", "val":vals, "op":ops, "msg": nodemsg}
+            expr = {"type":"BIEXPR", "val":vals, "op":ops, "msg": nodemsg}
+
+        if evt: return {"type": "ELEVATOR", "mode": evt["mode"], "expr": expr, "msg": "~ " + expr["msg"] }
+        else:   return expr
 
     def ast_try_op(self, stm):
         tkn = stm.peek()
