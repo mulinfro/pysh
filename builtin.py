@@ -22,6 +22,8 @@ operators = {
     '==':'EQUAL',
     "!=": "NEQ",
     ".": "DOT",
+    "$": 'LEFT_PIPE',
+    "@" :"COMB",
     "is":"IS",
     "in":"IN",
     "or":"OR",
@@ -43,12 +45,10 @@ elevator_op = {
 
 pipe_op = {
     "|": 'PIPE',
-    "$": 'LEFT_PIPE',
     "->": 'PIPE_ASSIGN',
     '&>': 'WRITE',
     '$>': 'BIN_WRITE',
     '&>>': 'APPEND',
-    "@" :"COMB",
 }
 
 operator_val_dict = dict( [ (y,x) for x, y in operators.items() ] +
