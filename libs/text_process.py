@@ -6,11 +6,14 @@ import json, collections
 
 _pipe_func = ['grep', 'egrep', 'colSel', 'colRm', 'listFormat', 'format', 
             'extract', 'replace', 'tojson', 'dumps', 'strip', 
-            'split', 'rSel', "uniqBy","uniqKvBy", "toUtf8" ]
+            'split', 'rSel', "uniqBy","uniqKvBy", "toUtf8", "jStr" ]
 _other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more', 'readPair', 'readStringPair',
             'findall', 'search', 'uniq', 'ksort', 'sort', 'json_equal', 'replaceWithList']
 
 __all__ = _pipe_func + _other_func
+
+def jStr(m):
+    return json.dumps(m, ensure_ascii =False, indent=2)
 
 def json_equal(ja, jb):
     return json.dumps(ja, sort_keys=True) == json.dumps(jb, sort_keys=True)
