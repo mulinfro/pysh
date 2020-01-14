@@ -409,7 +409,7 @@ def joinMap(key_func, value_func, lst1, lst2):
     for ele in lst2:
         key = key_func(ele)
         l1key = ans[key][0] if key in ans else None
-        ans[key] = (l1key, value_func(ele), None)
+        ans[key] = (l1key, value_func(ele))
 
     return ans
 
