@@ -41,6 +41,7 @@ special_op = {
 
 elevator_op = {
     '~': "MAP",
+    '@': "COMB",
 }
 
 pipe_op = {
@@ -162,6 +163,13 @@ def _comb(f, comb_arg):
         return f( *new_arg, **keyargs )
     return _comb_warper
 
+
+def _map(f):
+    def _map_warpper(iteralble):
+        for it in iteralble:
+            yield f(it)
+    return _map_warpper
+
 Binary = {
     'PIPE':   _pipe,
     'LEFT_PIPE': _left_pipe,
@@ -201,4 +209,5 @@ Unary = {
     "GET" : _get,
     "GET_MULTI" : _get_multi,
     "RETURN": _return,
+    "MAP": _map,
 }

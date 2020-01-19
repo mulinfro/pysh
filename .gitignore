@@ -1,0 +1,6 @@
+
+*.pyc
+.pyhist
+__pycache__/*
+*/__pycache__/*
+*.un~

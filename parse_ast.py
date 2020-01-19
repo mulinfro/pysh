@@ -120,20 +120,6 @@ def parse_pipe_or_expr(node):
     else:
         return parse_simple_expr(node)
 
-def parse_elevator(node):
-    bin_ans = None
-
-    def _wrapper_map(env):
-        bin_op = bin_ans(env)
-        def _iter_map(iteralble):
-            for it in iteralble:
-                yield bin_op(it)
-        return _iter_map
-
-    if node["mode"] == "MAP":
-        bin_ans = parse_simple_expr(node["expr"])
-        return _wrapper_map
-
 def parse_pipe(node):
     g_exprs = list(map(parse_simple_expr, node["exprs"]))
     g_ops  = list(map(parse_bi_oper, node["pipes"]))
@@ -147,8 +133,10 @@ def parse_pipe(node):
 def parse_simple_expr(node):
     if node["type"] == "SIMPLEIF":
         val = parse_simpleif_expr(node)
-    elif node["type"] == "ELEVATOR":
-        val = parse_elevator(node)
+    elif node["type"] == "ELEVATOR_UNARY":
+        val = parse_elevator_unary(node)
+    elif node["type"] == "BIELEVATOR":
+        val = parse_elevator_bin(node)
     elif node["type"] == "BIEXPR":
         val = parse_binary_expr(node)
     else:
@@ -518,6 +506,17 @@ def compute_expr(env, vals, ops):
     return val
 
 
+def parse_elevator_bin(node):
+    g_vals = list(map(parse_simple_expr, node["val"]))
+    g_ops  = list(map(parse_bi_oper, node["op"]))
+
+    def ori_warpper(env):
+        vals, ops = copy.copy(g_vals), copy.copy(g_ops)
+        return compute_expr(env, vals, ops)
+
+    return exception_warp(ori_warpper, node["msg"])
+
+
 def parse_binary_expr(node):
     g_flag_vals = list(map(parse_unary, node["val"]))
     g_ops  = list(map(parse_bi_oper, node["op"]))
@@ -601,6 +600,21 @@ def parse_partial(node):
             return f(*args, **default_args)
         return _do
     return lambda env: lambda f: _fdo(env, f)
+
+
+def parse_elevator_unary(node):
+    prefix_ops = [Unary[v] for v in node["prefix"] ]
+    obj = parse_simple_expr(node["obj"])
+
+    def _unary_helper(env, v):
+        for pf in prefix_ops: v = pf(v)
+        return v
+
+    def _unary(env):
+        v = obj(env)
+        return _unary_helper(env, v)
+
+    return exception_warp(_unary, node["msg"])
 
 
 def parse_unary(node):

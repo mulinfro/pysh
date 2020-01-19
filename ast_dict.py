@@ -277,13 +277,13 @@ class AST():
             return self.ast_try_assign(stm)
 
     def ast_expr(self, stm):
-        true_part = self.ast_binary_expr(stm)
+        true_part = self.ast_elevator_unary_expr(stm)
         if not stm.eof() and stm.peek().tp == "IF":
             stm.next()
-            cond = self.ast_binary_expr(stm)
+            cond = self.ast_elevator_unary_expr(stm)
             if syntax_check(stm.peek(), "ELSE"):
                 stm.next()
-                else_part = self.ast_binary_expr(stm)
+                else_part = self.ast_elevator_unary_expr(stm)
                 return {"type":"SIMPLEIF", "then":true_part,
                     "cond":cond, "else":else_part, 
                     "msg": true_part["msg"] + " if " + cond["msg"] + " else " + else_part["msg"] }
@@ -460,8 +460,8 @@ class AST():
         return {"type":"UNARY", "prefix":prefix["val"],
                 "obj":obj_val, "suffix":suffix["val"], "msg": prefix["msg"] + obj_val["msg"] + suffix["msg"]}
 
-    def ast_prefix_op(self, stm):
-        is_valid = lambda tkn: tkn.tp == "OP" and tkn.val in Unary
+    def ast_prefix_op(self, stm, def_tp = "OP"):
+        is_valid = lambda tkn: tkn.tp == def_tp and tkn.val in Unary
         tps = self.ast_same_type_seq(stm, is_valid)
         return {"type":"PREFIXOP", "val":tps, "msg": "".join(tps)}
 
@@ -482,17 +482,41 @@ class AST():
         var = self.ast_a_var(stm)
         return {"type":"DOT", "attribute": var["name"], "msg":"."}
 
-    def try_elevator(self, stm):
+    def ast_try_elevator_op(self, stm):
         if stm.hasnext():
             ch = stm.next()
             if ch.tp == "ELEVATOR":
-                return {"type": ch.tp, "mode": ch.val, "msg":"~"}
+                return {"type": ch.tp, "val": ch.val, "msg": {"COMB":"@", "MAP":"~ "}[ch.val]}
             else:
                 stm.back()
 
+    def ast_elevator_bin_expr(self, stm):
+        vals , ops = [], []
+        vals.append(self.ast_binary_expr(stm))
+        while not stm.eof():
+            op = self.ast_try_elevator_op(stm)
+            if op is None: break
+            if op["val"] in ["MAP" ]:
+                Error("Unexpected OP map '~' Error")
+            ops.append(op)
+            vals.append(self.ast_binary_expr(stm))
+        if len(ops) == 0:
+            expr = vals[0]
+        else:
+            nodemsg = " ".join([ x["msg"] + " " + y["msg"] for x, y in zip(vals, ops) ]) + " " + vals[-1]["msg"]
+            expr = {"type":"BIELEVATOR", "val":vals, "op":ops, "msg": nodemsg}
+
+        return expr
+
+    def ast_elevator_unary_expr(self, stm):
+        prefix = self.ast_prefix_op(stm, "ELEVATOR")
+        obj_val = self.ast_elevator_bin_expr(stm)
+        if len(prefix["val"]) == 0: return obj_val
+        return {"type":"ELEVATOR_UNARY", "prefix":prefix["val"],
+                "obj":obj_val, "msg": prefix["msg"] + obj_val["msg"]}
+
     def ast_binary_expr(self, stm):
         vals , ops = [], []
-        evt = self.try_elevator(stm)
         vals.append(self.ast_unary(stm))
         while not stm.eof():
             op = self.ast_try_op(stm)
@@ -505,8 +529,7 @@ class AST():
             nodemsg = " ".join([ x["msg"] + " " + y["msg"] for x, y in zip(vals, ops) ]) + " " + vals[-1]["msg"]
             expr = {"type":"BIEXPR", "val":vals, "op":ops, "msg": nodemsg}
 
-        if evt: return {"type": "ELEVATOR", "mode": evt["mode"], "expr": expr, "msg": "~ " + expr["msg"] }
-        else:   return expr
+        return expr
 
     def ast_try_op(self, stm):
         tkn = stm.peek()

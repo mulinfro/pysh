@@ -11,6 +11,7 @@ def parse_and_eval_with_env(raw_script, env, not_print=False):
     tokens = token_list(script).tokens
     #print("tokens", tokens)
     ast_tree = AST(stream(tokens))
+    #print("AST_TREE", ast_tree.ast)
     for node in ast_tree.ast:
         ans = parse(node)(env)
         if not_print or ans is None or node["type"] == "ASSIGN": continue
