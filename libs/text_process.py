@@ -61,22 +61,24 @@ def shuf(iterable):
     return iterable
 
 
-def grep(pat, line):
+def grep(pat, lines):
     """_grep(pat, line)\npat in line?  """
-    if pat in line:
-        return line
+    for line in lines:
+        if pat in line:
+            yield line
 
 def toUtf8(s, encoding="gbk"):
     """_toUtf8(s, encoding="gbk"): s to utf8"""
     return s.decode(encoding).encode("utf-8")
 
-def egrep(pat, line, p="i"):
+def egrep(pat, lines, p="i"):
     """_egrep(pat, line, p="i")"""
-    if "i" in p: pattern = re.compile(pat, re.I)
-    else:        pattern = re.compile(pat)
-    match = pattern.search(line)
-    if match:
-        return line
+    for line in lines:
+        if "i" in p: pattern = re.compile(pat, re.I)
+        else:        pattern = re.compile(pat)
+        match = pattern.search(line)
+        if match:
+            yield line
 
 def readPair(iterable, beg_tkn, end_tkn):
     t_iter = iter(iterable)

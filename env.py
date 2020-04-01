@@ -15,12 +15,13 @@ class Env(dict):
 def get_builtin_env(builtins):
     paras = dir(builtins)
     args  = [builtins.__dict__.get(a) for a in paras]
-    from libs import os_cmd, text_process, function_tools
+    from libs import os_cmd, text_process, function_tools, csv
     import config
     register(os_cmd, paras, args)
     register(text_process, paras, args)
     register(function_tools, paras, args)
     register(config, paras, args)
+    register(csv, paras, args)
     return Env(parms = paras, args = args)
 
 def register(module, paras, args):
