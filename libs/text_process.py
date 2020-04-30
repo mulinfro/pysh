@@ -193,7 +193,7 @@ def replace(pat, repl, line, cnt=-1, p=""):
         if cnt < 0: cnt = 0
         return re.sub(pat, repl, line, cnt)
 
-def cat(iterable, p="utf-8"):
+def cat(iterable, p="utf-8", errors='ignore'):
     """ shell: cat
         input: a single path or a list of pathes
     """
@@ -202,7 +202,7 @@ def cat(iterable, p="utf-8"):
         pathes = replace_if_star_dir(path)
         for file_name in pathes:
             if isDir(file_name): continue
-            f = open(file_name, "r", encoding=p)
+            f = open(file_name, "r", encoding=p, errors=errors)
             for line in f:
                 yield line.rstrip("\n\r")
             f.close()
