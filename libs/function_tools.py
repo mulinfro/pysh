@@ -12,6 +12,15 @@ __all__ = [ 'pbar', 'groupBy', 'mapValues', 'groupMap', 'unzip', 'sliding', 'for
             'slf', '_if', "seqDo","sequence", "swapListEle", "fany", "fall", "diff", "comm"] + _pipe_func
 
 def diff(a, b):
+    """
+      diff(a:iterable, b: iterable)
+          a - b; elements in a but not in b
+      
+      args:
+          a: iterable, b: iterable => eg: [1,2,3], [1]
+      return:
+          a list of (a - b)        => eg: [2,3]
+    """
     ans = []
     sb = set(b)
     for e in a:
@@ -21,6 +30,15 @@ def diff(a, b):
     return ans
 
 def comm(a, b):
+    """
+      comm(a: iterable, b: iterable)
+          a ∩ b; elements in a and in b
+
+      args:
+          a: iterable, b: iterable => eg: [1,2,3], [1]
+      return:
+          a list of (a ∩ b)        => eg: [1]
+    """
     ans = []
     sb = set(b)
     for e in a:
@@ -29,20 +47,67 @@ def comm(a, b):
     return ans
 
 def matrix(m,n, init=0):
+    """
+      matrix(m: int, n: int, init = 0)
+          new a matrix with size m * n;
+
+      args:
+          m: int, n: int => eg: 3, 3
+      kwargs:
+          init (default 0): Initial value
+      return:
+          a list of list => eg: [[0,0,0], [0,0,0], [0,0,0]]
+    """
     return [[init for j in range(m)] for i in range(n)]
 
 def tail(lst):
+    """
+      tail(lst: list)
+          1 to len of a list 
+
+      args:
+          a list => eg: [1,2,3]
+      return:
+          a list => [2,3]
+    """
     return lst[1:]
 
 def tailN(n, lst):
+    """
+      tailN(n: int, lst: list)
+          last n elements of a list; if n <= 0 or n > len return all elements 
+
+      args:
+          n: int; lst: list => eg: 2; [1,2,3,4,5]
+      return:
+          a list => [4,5]
+    """
     if n <= 0 or n>len(lst): n=0
     else: n = -n
     return list(lst)[n:]
 
 def head(lst):
+    """
+      head(lst: list)
+          first element of a list
+
+      args:
+          lst: list => eg: [1,2,3,4,5]
+      return:
+          element   => eg: 1
+    """
     return lst[0]
 
 def mean(iterable):
+    """
+      mean(iter: iterable)
+          mean of a list with numbers
+
+      args:
+          iterable: list => eg: 0, [1,2,3,4,5]
+      return:
+          number   => eg: 3
+    """
     ss, i = 0, 0
     for e in iterable:
         i += 1
@@ -50,30 +115,66 @@ def mean(iterable):
     return ss / i
 
 def fany(func, iterable):
-    """fany(func, iterable)"""
+    """
+       fany(func: function, iter: iterable)
+            return true if any element x make func(x) == True
+
+       args:
+            func = x > 0,  iter = [-1,0,1]
+       return:
+            True
+    """
     for x in iterable:
         if func(x): return True
     return False
 
 def fall(func, iterable):
-    """fall(func, iterable)"""
+    """
+       fall(func: function, iter: iterable)
+            return true if all element x make func(x) == True
+
+       args:
+            func = x > 0,  iter = [-1,0,1]
+       return:
+            False
+    """
     for x in iterable:
         if not func(x): return False
     return True
 
 def slf(x):
-    """ slf: return self"""
+    """
+       slf(x)
+       slf = lambda x: x
+    """
     return x
 
 def count(iterable):
-    """count(iterable)"""
+    """
+       count(iter: iterable)
+       element numbers
+
+       args:
+            iter = [0,1,1,2]
+       return:
+            {0:1, 1:2, 2:1}
+    """
     ans = {}
     for x in iterable:
         ans[x] = ans.get(x, 0) + 1
     return ans
 
 def countBy(key, iterable):
-    """countBy(key, iterable)"""
+    """
+       countBy(key: function, iter: iterable)
+           count element numbers of transformed by key()
+
+       args:
+            key = lambda x: x>0, iter = [0,1,1,2]
+       return:
+            {False:1, True:3}
+            
+    """
     ans = {}
     for x in iterable:
         kx = key(x)
@@ -81,39 +182,107 @@ def countBy(key, iterable):
     return ans
 
 def items(dct):
-    """ return items list of a dict """
+    """
+       items(dct: dict)
+           return items of a dict
+
+       args:
+            dct = {1:2, "1":"2"}
+       return:
+            [(1,2), ("1", "2")]
+    """
     return list(dct.items())
 
 def swapListEle(list_obj, i=0, j=1):
-    """ swapListEle(list_obj, i=0, j=1) """
+    """
+        swapListEle(lst: list, i=0, j=1)
+            swap two elements of lst with i,j position
+
+        args:
+            lst = [1,2,3], i=0, j=1
+        return:
+            [2,1,3]
+    """
     list_obj = list(list_obj)
     tmp = list_obj[i]
     list_obj[i] = list_obj[j]
     list_obj[j] = tmp
 
 def sequence(funcs, ele):
-    """ sequence(funcs, ele)"""
+    """ 
+       sequence(funcs: list[function], ele:any)
+            [func(ele) for func in funcs] 
+       
+       args:
+           funcs = [L x: x+1, L x: x+2];  ele = 1
+       return:
+           [2,3]
+
+    """
     return [ func(ele) for func in funcs ] 
 
 def seqDo(funcs, ele):
-    """ seqDo(funcs, ele)"""
+    """ 
+       seqDo(funcs: list[function], ele:any)
+            for func in funcs:
+                ele = func(ele)
+       
+       args:
+           funcs = [L x: x+1, L x: x+2];  ele = 1
+       return:
+           ((1 + 1) + 2) = > 4
+    """
+
     ele = None
     for func in funcs:
         ele = func(ele)
     return ele
 
 def foreach(func, iterable):
-    """foreach(func, iterable)"""
+    """
+       foreach(func: function, iter:iterable)
+            foreach x in iterable apply func(x)
+            return None
+
+       args:
+           func = L x: print(x);  ele = [0,1,2]
+       return:
+           None
+            
+    """
     for x in iterable:
         func(x)
 
 def _while(cond, func):
-    """_while(cond, func)"""
+    """
+        _while(cond: function, func: function)
+
+        implement:
+            while cond:
+                func()
+
+    """
     while cond:
         func()
 
 def pbar(n=5000, callback=None):
-    """ each N step: display progress in pipe and call callback func """
+    """
+        pbar(n=5000, callback=None)
+            each N step: display progress in pipe and call callback func
+            
+        example:
+            [1:100] | pbar(30, L :print("SS")) | list
+
+        console output:
+            Done: 30 items
+            SS
+            Done: 60 items
+            SS
+            Done: 90 items
+            SS
+            Done All: 99 items
+            SS
+    """
     def _pbar(iterable):
         i = 0
         for x in iterable:
@@ -127,14 +296,27 @@ def pbar(n=5000, callback=None):
     return _pbar
    
 def _if(cond, true_v, false_v):
-    """_if(cond, true_v, false_v)"""
+    """
+        _if(cond, true_v, false_v)
+            return true_v if cond else false_v
+    """
     if cond:
         return true_v
     else:
         return false_v
 
 def splitList(cond, lst):
-    """splitList(cond, lst)"""
+    """
+        splitList(cond: function, iter: iterable)
+            split list with pred function
+
+        args:
+             cond = L x: x%3=0;  iter = [1,2,3,4,5,6,7]
+
+        return: Lazyed!! value type is generator
+            [1,2]..[4,5], [7]
+
+    """
     ans = []
     for x in lst:
         if cond(x):
@@ -146,19 +328,44 @@ def splitList(cond, lst):
         yield ans
 
 def repeat(func, n):
+    """
+        repeat(func: function, n:int)
+            repeat apply no-parameters func n times
+            return each step result
+
+        args:
+            func = L:"REP", n = 3 
+        return: Lazyed!! value type is generator
+            REP.. REP.. REP
+    """
     i = 0
     while n < 0 or i < n:
         yield func()
         i += 1
 
 def wrapList(item):
+    """
+        wrapList(item: any)
+
+        implement:
+            if type(item) != list:
+                return [item]
+            return item
+    """
     if type(item) != list:
         return [item]
     return item
 
 def chunks(n, iterable):
-    """Lazyed: chunks(n, iterable)
-    Yield successive n-sized chunks from l."""
+    """
+       chunks(n:int, iter:iterable)
+           yield every successive n-sized chunks from l.
+
+       args:
+           n = 3, iter = [1,2,3,4,5,6,7]
+       return: Lazyed!! return type is generator
+           [1,2,3].. [4,5,6] .. [7]
+    """
     if not isinstance(iterable, GeneratorType):
         for i in range(0, len(iterable), n):
             yield iterable[i:i + n]
@@ -175,26 +382,58 @@ def chunks(n, iterable):
 
 
 def zip2(l1, l2):
-    """ Lazyed: zip two iterables, python zip return zip object, while zip2 return a generator """
+    """
+        zip4(l1: iterable, l2: iterable)
+           zip 2 iterable objs
+
+        args:
+            l1 = [1,2], l2 = [2,3]
+        return: Lazyed!! return type is generator
+            (1,2).. (2,3)
+
+    """
     for x in zip(l1, l2):
         yield x
 
 def zip3(l1, l2, l3):
-    """zip3(l1, l2, l3)\nLazyed: zip three iterables, python zip return zip object, while zip3 return a generator """
+    """
+        zip3(l1: iterable, l2: iterable, l3: iterable)
+           zip 3 iterable objs
+
+        args:
+            [1,2], [2,3], [3,4,5]
+        return: Lazyed!! return type is generator
+            (1,2,3).. (2,3,4)
+
+    """
     for x in zip(l1, l2, l3):
         yield x
 
 def zipWithIndex(iterable, start=0):
-    """ zipWithIndex(iterable, start=0)
-    Lazyed: zip iterable with indexes: "abc" => [(0, "a"), (1, "b"), (2, "c")] """
+    """ 
+        zipWithIndex(iter:iterable, start=0)
+            zip iterable with indexes
+       
+        args:
+            iter = "abc"
+        return: Lazyed!! return type is generator
+            [(0, "a"), (1, "b"), (2, "c")]
+    """
     i = start
     for x in iterable:
         yield (x, i)
         i = i + 1
 
-
 def sliding(sz, iterable):
-    """sliding iterable to list of fixed size tuple """
+    """
+        sliding(n: int, iter: iterable)
+        yield every successive n-sized chunks from l.
+
+        args:
+           n = 3, iter = [1,2,3,4,5,6,7]
+        return: Lazyed!! return type is generator
+           [1,2,3].. [4,5,6] .. [7]
+    """
     if sz <= 0: sz = 1
     ans = []
     i = 0
@@ -210,12 +449,25 @@ def sliding(sz, iterable):
 
 
 def unzip(iterable):
-    """unzip(iterable) """
+    """
+        unzip(iter: iterable)
+
+        example:
+            unzip([ [1,2], ["a","b"]])
+        return:
+            [(1, 'a'), (2, 'b')]
+    """
     return list(zip(*iterable))
 
 def groupBy(key, iterable):
-    """ iterable groupBy key function
-        key: a function; for each element generate group identity
+    """
+        groupBy(key: function, iter: iterable)
+            iterable elements grouped by key function
+
+        args:
+            key = L x: x%2,   iter = [1,2,3]
+        return:
+            {0:[2], 1:[1,3]}
     """
     res = {}
     for x in iterable:
@@ -225,9 +477,14 @@ def groupBy(key, iterable):
     return res
 
 def groupMap(key_func, value_func, iterable):
-    """groupMap(key_func, value_func, iterable):
-    iterable groupBy key function
-    key_func: a function; for each element generate group identity
+    """
+        groupMap(key_func: function, value_func: function, iter: iterable)
+            group elements with key_func, transform values with value_func
+
+        args:
+            key_func = L x: x%2,  value_func = L x: -x,  iter = [1,2,3]
+        return:
+            {0:[-2], 1:[-1,-3]}
     """
     res = {}
     for x in iterable:
@@ -237,8 +494,15 @@ def groupMap(key_func, value_func, iterable):
     return res
 
 def take(n, iterable):
-    """take(n, iterable)
-    lazyed: iterable take first n elements """
+    """
+        take(n:int, iter: iterable)
+            take first n elements of iterable obj
+
+        args:
+            n = 5; iter = [1,2,3,4,5,6]
+        return: Lazyed!! return type is generator
+            1.. 2.. 3.. 4.. 5
+    """
     i = 0
     for x in iterable:
         if i >= n: break
@@ -246,22 +510,45 @@ def take(n, iterable):
         yield x
 
 def takeWhile(key, iterable):
-    """takeWhile(key, iterable)
-       Lazyed: iterable take while condition is statisfied """
+    """
+        takeWhile(key: function, iter: iterable)
+            Lazyed: iterable take while condition is statisfied 
+
+        args:
+            key = L x: x<0, iter = [-2, -1, 0, -1, -2]
+        return: Lazyed!! return type is generator
+            -2.. -1
+    """
     for x in iterable:
         if not key(x): break
         yield x
 
 def drop(n, iterable):
-    """drop(n, iterable)
-    iterable drop first n elements """
+    """
+        drop(n:int, iter: iterable)
+            drop first n elements of iterable obj
+
+        args:
+            n = 3; iter = [1,2,3,4,5,6]
+        return: Lazyed!! return type is generator
+            4.. 5.. 6
+    """
     i = 0
     for x in iterable:
         if i >= n: yield x
         i+=1
 
 def dropWhile(key, iterable):
-    """dropWhile(key, iterable)"""
+    """
+        dropWhile(key: function, iter: iterable)
+            Lazyed: drop while condition is statisfied 
+
+        args:
+            key = L x: x<0, iter = [-2, -1, 0, -1, -2]
+        return: Lazyed!! return type is generator
+            0.. -2.. -1
+    """
+
     need_drop = True
     for x in iterable:
         if need_drop and key(x): continue
@@ -269,23 +556,59 @@ def dropWhile(key, iterable):
         yield x
 
 def map(func, iterable):
-    """Lazyed: map"""
+    """
+        map(func: function, iter: iterable)
+            foreach element of iterable apply func
+
+        args:
+            func = L x: x+1;  iter = [1,2,3]
+        return: Lazyed!!
+            2.. 3.. 4
+    """
     for ele in iterable:
         yield func(ele)
 
 def mmap(func, iterable):
-    """Lazyed: map with map"""
+    """
+        mmap(func: function, iterable: iterable of iterable)
+
+        args:
+            func = L x: x+1;  iter = [[1,2], [2,3]]
+        return:Lazyed!! return type is generator
+            [2,3].. [3,4]
+    """
     for ele in iterable:
         yield [func(e) for e in ele]
 
 def dmap(func1, func2, iterable):
-    """dmap(func1, func2, iterable)
-    Lazyed: """
+    """
+        dmap(func1: function, func2: function, iter:iterable)
+            apply two map functions in iterable
+
+        args:
+            func1 = L x: x+1; func2 = L x: -x; iter = [[1,2], [2,3]]
+        return:Lazyed!! return type is generator
+            [(2, -1), (3, -2)].. [(3, -2), (4, -3)]
+    """
     for ele in iterable:
         yield (func1(ele), func2(ele))
 
 def colMap(k, func, iterable):
-    """Lazyed: colMap(cols, func, iterable)"""
+    """
+        colMap(cols: int of list[int], func: function, iter:iterable)
+           apply map function in iterable with selected cols
+
+        args:
+            k = 1, func = L x: x*2; iter = [[1,2], [2,3]]
+        return:Lazyed!! return type is generator
+            [(1,4)].. [(2, 6)]
+
+        args:
+            k = [1,2], func = L x: x*2; iter = [[1,2,1], [2,3,2]]
+        return:Lazyed!! return type is generator
+            [(1, 4, 2)].. [(2, 6, 4)]
+
+    """
     for ele in iterable:
         ele = list(ele)
         if type(k) in [list, tuple]:
@@ -295,30 +618,54 @@ def colMap(k, func, iterable):
         yield ele
 
 def filter(func, iterable):
-    """filter(func, iterable)"""
+    """
+        filter(func: function, iter:iterable)
+            filter "iter" with predicate function "func"
+
+        args:
+            func = L x: x>0; iter = [1,-1,0,2,-2]
+        return:Lazyed!! return type is generator
+            1.. 2
+    """
     for ele in iterable:
         if func(ele):
             yield ele
 
 def filterNot(func, iterable):
-    """filter(func, iterable)"""
+    """
+        filterNot(func: function, iter:iterable)
+            filter "iter" with inverted predicate function "func"
+
+        args:
+            func = L x: x>0; iter = [1,-1,0,2,-2]
+        return:Lazyed!! return type is generator
+            -1.. 0.. -2
+    """
     for ele in iterable:
         if not func(ele):
             yield ele
 
 
 def foldl(func, iterable, init=None):
-    """ foldl(func, iterable, init=None)
-    fold left: python reduce """
+    """
+        foldl(func: function, iter: iterable, init=None)
+        fold left with init, same with python reduce
+    """
     if init is None:
         return reduce(func, iterable)
     else:
         return reduce(func, iterable, init)
 
 def MF(mfunc, ffunc, iterable):
-    """MF(mfunc, ffunc, iterable)
-    MF = map | filter
-         paras: 1.iterable,  2. map_key_func,  3.filter_key_func
+    """
+        MF(mfunc: function, ffunc: function, iter: iterable)
+            MF = map | filter
+            first apply map, then apply filter
+
+        args:
+            mfunc = L x: x + 2; ffunc = L x: x >= 2;  iter = [-1, 0, 1]
+        return:Lazyed!! return type is generator
+            2.. 3
     """
     for ele in iterable:
         v = mfunc(ele)
@@ -327,9 +674,15 @@ def MF(mfunc, ffunc, iterable):
 
 
 def FM(mfunc, ffunc, iterable):
-    """FM(mfunc, ffunc, iterable)
-    FM = filter | map
-     paras: 1.iterable,  2. map_key_func,  3.filter_key_func
+    """
+        FM(mfunc: function, ffunc: function, iter: iterable)
+            MF = filter | map
+            first apply filter, then apply map
+
+        args:
+            mfunc = L x: x + 2; ffunc = L x: x >= 2;  iter = [-1, 0, 1]
+        return:Lazyed!! return type is generator
+            empty
     """
     for ele in iterable:
         if ffunc(ele):
@@ -337,14 +690,31 @@ def FM(mfunc, ffunc, iterable):
 
 
 def mapValues(key, dict_obj):
-    """mapValues(key, dict_obj)"""
+    """
+        mapValues(func: function, obj: dict)
+            transformed dict values with "func"
+
+        args:
+            func = L x: -x; obj = {"a":0, "b":1}
+        retun:
+            transformed dict
+            {"a": 0, "b": -1}
+    """
     for k,v in dict_obj.items():
         dict_obj[k] = key(v)
     return dict_obj
 
 
 def flatOnlyList(listOfLists):
-    """flatOnlyList(listOfLists)"""
+    """
+        flatOnlyList(lst)
+            only flatten the List type element of iterable
+
+        args:
+            lst = [[1,2], 0, [2,3], "abc", (1, 2)]
+        return:Lazyed!! return type is generator
+            1.. 2.. 0.. 2.. 3.. "abc", (1, 2)
+    """
     for lst in listOfLists:
         if isinstance(lst, list):
             for x in lst:
@@ -353,7 +723,15 @@ def flatOnlyList(listOfLists):
             yield lst
 
 def flat(listOfLists):
-    """flat(iterableOfiterable)"""
+    """
+        flat(iterOfiter: iterable of iterable)
+            flatten a iterable of iterable to iterable
+
+        args:
+            iterOfiter = [[1,2], [2,3]]
+        return:Lazyed!! return type is generator
+            1.. 2.. 2.. 3
+    """
     for lst in listOfLists:
         if isinstance(lst,Iterable):
             for x in lst:
@@ -361,18 +739,31 @@ def flat(listOfLists):
         else:
             yield lst
 
-
 def flatMap(func, listOfLists):
-    """ flatMap(func, listOfLists)"""
+    """
+        flatMap(func: function,  iterOfiter: iterable of iterable)
+            flatten a iterable of iterable to iterable then apply "func"
+
+        args:
+            func = L x: x + 1;  iterOfiter = [[1,2], [2,3]]
+        return:Lazyed!! return type is generator
+            2.. 3.. 3.. 4
+    """
     for lst in listOfLists:
         for x in lst:
             yield func(x)
 
 def join(key_func, lst1, lst2):
-    """join(key_func, iter1, iter2)
-      return a dict with {key_func(ele): (ele1, ele2)}
-      None if one key is not in a lst
-       """
+    """
+      join(key_func: function, iter1: iterable, iter2: iterable)
+          jion two iterable, return a dict
+
+      args:
+          key_func = L x: -x;  iter1 = [1,2,3];  iter2 = [2,3,4]
+      return a dict with {key_func(ele): (ele, ele)}
+          不存在的用None代替
+          {-1: (1, None), -2: (2, 2), -3: (3, 3), -4: (None, 4)}
+    """
     ans = {}
     for ele in lst1:
         key = key_func(ele)
@@ -389,19 +780,34 @@ def join(key_func, lst1, lst2):
 
 
 def joinDict(dict1, dict2):
+    """
+      joinDict(dict1: dict, dict2: dict)
+          jion two dict, return a new dict
+
+      args:
+          dict1 = {1:1, 2:2};  dict2 = {2:2, 3:3}
+      return a dict 不存在的用None代替
+          {1: (1, None), 2: (2, 2), 3: (None, 3)}
+    """
     ans = {}
     for k,v in dict1.items():
         ans[k] = (v, None)
     for k,v in dict2.items():
-        l1v = ans[key][0] if key in ans else None
+        l1v = ans[k][0] if k in ans else None
         ans[k] = (l1v, v)
     return ans
 
 def joinMap(key_func, value_func, lst1, lst2):
-    """join(key_func, value_func, iter1, iter2)
-      return a dict with {key_func(ele): (value_func(ele1), value_func(ele2))}
-      None if one key is not in a lst
-       """
+    """
+      joinMap(key_func: function, value_func: function, iter1: iterable, iter2: iterable)
+          return a dict with {key_func(ele): (value_func(ele), value_func(ele))}
+                  None if one key is not in a lst
+
+      args:
+          joinMap(L x: -x, L x: x*2, [1,2,3], [2,3,4])
+      returns:
+          {-1: (2, None), -2: (4, 4), -3: (6, 6), -4: (None, 8)}
+    """
     ans = {}
     for ele in lst1:
         key = key_func(ele)
@@ -414,10 +820,16 @@ def joinMap(key_func, value_func, lst1, lst2):
     return ans
 
 def join3Map(key_func, value_func, lst1, lst2, lst3):
-    """join(key_func, value_func, iter1, iter2)
-      return a dict with {key_func(ele): (value_func(ele1), value_func(ele2))}
-      None if one key is not in a lst
-       """
+    """
+      join3Map(key_func: function, value_func: function, iter1: iterable, iter2: iterable, iter3: iterable)
+          return a dict with {key_func(ele): (value_func(ele), value_func(ele), value_func(ele))}
+                  None if one key is not in a lst
+
+      args:
+          join3Map(L x: -x, L x: x*2, [1,2,3], [2,3,4], [3,4,5])
+      returns:
+          {-1: (2, None, None), -2: (4, 4, None), -3: (6, 6, 6), -4: (None, 8, 8), -5: (None, None, 10)}
+    """
     ans = {}
     for ele in lst1:
         key = key_func(ele)
