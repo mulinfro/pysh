@@ -8,18 +8,35 @@ _pipe_func = ['grep', 'egrep', 'colSel', 'colRm', 'listFormat', 'format',
             'extract', 'replace', 'tojson', 'dumps', 'strip', 
             'split', 'rSel', "uniqBy","uniqKvBy", "toUtf8", "jStr" ]
 _other_func = ['sample', 'shuf', 'gen', 'wc', 'cat', 'more', 'readPair', 'readStringPair',
-            'findall', 'search', 'uniq', 'ksort', 'sort', 'json_equal', 'replaceWithList']
+            'findall', 'search', 'uniq', 'ksort', 'sort', 'jsonEqual', 'replaceWithList']
 
 __all__ = _pipe_func + _other_func
 
 def jStr(m):
+    """
+        jStr(json_obj: object)
+            dumps a object to string
+        
+        args:
+            json_obj = "{1:2}"
+        return json string:
+    """
     return json.dumps(m, ensure_ascii =False, indent=2)
 
-def json_equal(ja, jb):
+def jsonEqual(ja, jb):
+    """
+       jsonEqual(obj1, obj2) -> Boolean
+            determine two object(can be dumped by json) whether is equal
+
+       args:
+           obj1 = {1:1, {2:2, "a":"a"}};  obj2 = {1:1, {2:2, "a":"a"}}
+       return: Boolean
+           True
+    """
     return json.dumps(ja, sort_keys=True) == json.dumps(jb, sort_keys=True)
 
 def replaceWithList(pats, iterable, cnt=-1):
-    ans = [ pats.get(i, i) for i in iterable ]
+    ans = [pats.get(i, i) for i in iterable]
     return "".join(ans)
 
 def pipe_gen_itertool(func, N=0):
@@ -48,31 +65,68 @@ def pipe_text_itertool(func):
                 if ans is not None: yield ans
     return wrapper
 
-
 def sample(sample_rate, iterable):
-    """Lazyed: sample(sample_rate, iterable)"""
+    """
+        sample(sample_rate, iterable)
+            get samples from iterable with "sample_rate" percent 
+
+        args:
+            sample_rate = 0.1; iterable = [1,2,3,4,5,6,7,8,9,0]
+        return: Lazyed!! return type is generator
+            samples
+    """
     for x in iterable:
         if random.uniform(0,1) < sample_rate:
             yield x
 
 def shuf(iterable):
-    """shuf(iterable)\ninplace shuf, return self """
+    """
+        shuf(iter: List)
+            shuf List, return self
+
+        args:
+           iter = [1,2,3]
+        return: 
+           may be: [2,3,1]
+    """
     random.shuffle(iterable)
     return iterable
 
-
 def grep(pat, lines):
-    """_grep(pat, line)\npat in line?  """
+    """
+        grep(pat: string, lines: iterable[string])
+            determine if pat in each line
+
+        args:
+            pat = "hello";  lines = ["hello world", "haha", "QQ hello"]
+        return: Lazyed!! return type is generator
+            "hello world"..  "QQ hello"
+
+    """
     for line in lines:
         if pat in line:
             yield line
 
 def toUtf8(s, encoding="gbk"):
-    """_toUtf8(s, encoding="gbk"): s to utf8"""
+    """
+        toUtf8(s: string, encoding="gbk")
+            s to utf8 encoding
+    """
     return s.decode(encoding).encode("utf-8")
 
 def egrep(pat, lines, p="i"):
-    """_egrep(pat, line, p="i")"""
+    """
+        egrep(pat: string, lines: iterable[string], p="i")
+            determine if regular patttern match each line
+
+            pat is python regular expression
+            p = "i" ignore case
+
+        args:
+            pat = "^hello";  lines = ["hello world", "haha", "QQ hello"]
+        return: Lazyed!! return type is generator
+            "hello world"
+    """
     for line in lines:
         if "i" in p: pattern = re.compile(pat, re.I)
         else:        pattern = re.compile(pat)
@@ -121,12 +175,25 @@ def readStringPair(str_input, beg_tkn, end_tkn):
     return ans
 
 def gen(iterable):
-    """ for e in iterable: yield e """
+    """ 
+        gen(iter: iterable)
+        accept a iterable object; return a generator
+
+        implement:
+            for e in iterable: yield e
+    """
     for e in iterable:
         yield e
 
 def colSel(idxes, iterable):
-    """_colSel(idxes, iterable)"""
+    """
+        colSel(idxes, iter: iterable)
+
+        example: 
+            idxes = 1;     iter = [1,2,3] => 2
+            idxes = [1,2]; iter = [1,2,3] => [2, 3]
+            idxes = ("b", "a"); iter = {"a":"a", "b":"b"} => ["b", "a"]
+    """
     if type(idxes) not in (list, tuple):
         return iterable[idxes]
     return [iterable[idx] for idx in idxes]
@@ -137,24 +204,37 @@ def colRm(idxes, iterable):
     return [ iterable[i] for i in range(len(iterable)) if i not in idxes]
 
 def listFormat(iterable, pat="{0}", sep="\t"):
-    """_listFormat(iterable, pat, sep=" ")"""
+    """
+        listFormat(iter: iterable, pat="{0}", sep="\t")
+            format a list to string
+            pat format each list element
+            sep join the elements
+
+        args:
+            iter = [[1,2], [2,3], [3,4]], pat="{0[1]}"; sep = ";"
+        return:
+            "2;3;4"
+    """
     return sep.join( [pat.format(ele) for ele in iterable] )
 
-"""
-if isinstance(x, Iterable):
-    return pat.format(*x)
-else:
-    return pat.format(x)
-"""
-
 def format(pat, x):
-    """_format(pat, x): 
-   Iterable: pat.format(*x) else pat.format(x)
+    """
+        format(pat, x)
+           pat.format(x)
     """
     return pat.format(x)
 
 def wc(iterable):
-    """ wc(iterable)\niterable count """
+    """
+        wc(iter: iterable)
+            return size of "iter"
+
+        args:
+            iter = [[1,2], [2,3], [3,4]]   iter = {}
+        return:
+            3                              0
+
+    """
     i = 0
     for x in iterable:
         i += 1
@@ -237,7 +317,9 @@ def more(file_name):
 
 
 def strip(string, p=" \t\n\r"):
-    """_strip(string, p=" \t\n\r")"""
+    """
+        strip(string, p=" \t\n\r")
+    """
     return string.strip(p)
 
 def split(sep, string, cnt=-1, p=""):
@@ -251,35 +333,55 @@ def split(sep, string, cnt=-1, p=""):
         return string.split(sep, cnt)
 
 def ksort(k, lst, key=lambda x:x, p=""):
-    """ksort(k, lst, key, p="")
-    key(ele[k]): kth element as key
-    p="r" -> reversed
+    """
+        ksort(k, lst, key, p="")
+        key(ele[k]): kth element as key
+        p="r" -> reversed
     """
     rev_flag = True if "r" in p else False
     lst.sort(key=lambda x:key(x[k]), reverse = rev_flag)
     return lst
 
 def sort(lst, key=lambda x:x, p=""):
-    """sort(lst, key, p="")
-    key(ele): element as key
-    p="r" -> reversed
+    """
+        sort(lst, key, p="")
+        key(ele): key function
+        p="r" -> reversed
     """
     rev_flag = True if "r" in p else False
     lst.sort(key=key, reverse = rev_flag)
     return lst
 
 def uniq(iterable):
-    """uniq(iterable) = list(set(iterable))"""
+    """
+        uniq(iter: iterable)
+            return list of all elements with no duplication
+            list(set(iter))
+
+        args:
+            iter = "abbcdd"
+        return:
+            ["a", "c", "b", "d"]
+    """
     return list(set(iterable))
 
 def uniqBy(iterable, key=lambda x:x):
-    """uniqBy(iterable, key=func)"""
+    """
+        uniqBy(iter: iterable, key=func)
+            inplaced; won't change relative position
+            key function to identity 
+            
+        args:
+            iter = "abbcdd"; key = L x: {{"b":"c"}.get(x, x)}
+        return: 
+            ['a', 'b', 'd']
+    """
     dic = collections.OrderedDict()
     for x in iterable:
         key_v = key(x)
-        if key_v not in ans:
+        if key_v not in dic:
             dic[key_v] = x
-    return dic.values()
+    return list(dic.values())
 
 def uniqKvBy(iterable, key=lambda x:x):
     return list(uniqBy(iterable, key))
