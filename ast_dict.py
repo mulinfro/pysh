@@ -197,11 +197,15 @@ class AST():
 
     def ast_help(self, stm):
         tkn = stm.next()
-        valid = not line_eof(stm) and stm.peek().tp == "VAR"
+        valid = not line_eof(stm) and stm.peek().tp in ["VAR", "STRING"]
         syntax_cond_assert(valid, "Usage: help {function name}")
+        vtp = stm.peek().tp
         funcname = stm.next().val
         check_expr_end(stm)
-        return {"type": tkn.tp, "name": funcname , "msg": tkn.val + " " + funcname}
+        if vtp == "VAR":
+            return {"type": tkn.tp, "name": funcname , "msg": tkn.val + " " + funcname}
+        else:
+            return {"type": tkn.tp, "match": funcname , "msg": tkn.val + ' "%s"'%funcname}
 
     def ast_sh_or_cd(self, stm):
         tkn = stm.next()

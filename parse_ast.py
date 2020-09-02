@@ -115,12 +115,20 @@ def parse_expr_or_command(node):
     return val
 
 def parse_help(node):
-    tp, obj = parse_var(node)
-    if tp == "VAL":
-        return lambda env: obj(env).__doc__
+    if "name" in node:
+        tp, obj = parse_var(node)
+        if tp == "VAL":
+            return lambda env: obj(env).__doc__
+        else:
+            Error(node["msg"])
     else:
-        Error(node["msg"])
+        tomatch = node["match"].lower()
+        def _search(env):
+            all_funcs = env["__all_lib_func_names__"]
+            res = [func for func in all_funcs if tomatch in func.lower()][0:10]
+            return res
 
+        return _search
 
 def parse_pipe_or_expr(node):
     if node["type"] == "PIPE":
