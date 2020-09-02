@@ -3,18 +3,26 @@ import shutil
 import os
 from libs.utils import normal_leven
 import subprocess
-#import ..config
 
 __all__ =  ['pwd', 'isFile', 'isDir', 'ls', 'll', 'read',
             'mkdir', 'rm', 'cp', 'mv', 'find', 'doc', 'osCall', 'dirMap', 'dirsMap', 'CDHIST']
 
 def pwd():
-    """Current work directory"""
+    """
+        pwd()
+        Current work directory
+    """
     return os.getcwd()
 
 def read(files, p="rb"):
-    """ read file p = read mode
-        input: a single path or a list of pathes
+    """ 
+        read(files: string| List[string], p="rb")
+        files: file name or list of files;   p: read mode
+
+        return: Lazyed!! lines
+        example:
+            read("file1.txt", "r")
+            read(["file1.txt", "file2.txt", "file3.txt"], "r")
     """
     if type(files) == str: files = [files]
     for path in files:
@@ -26,7 +34,9 @@ def read(files, p="rb"):
             f.close()
     
 def doc(obj):
-    """return python object's __doc__"""
+    """
+        return python object's __doc__
+    """
     print(obj.__doc__)
 
 def path_expand(path):
@@ -36,9 +46,17 @@ def path_expand(path):
     return path
 
 def isFile(filename):
+    """
+        isFile(filename: string)
+        determine whether a path is a file
+    """
     return os.path.isfile(filename)
 
 def isDir(path):
+    """
+        isDir(filename: string)
+        determine whether a path is a directory
+    """
     return os.path.isdir(path)
 
 def replace_if_star_dir(path):
@@ -56,7 +74,13 @@ HOME_DIR = os.path.expanduser("~")
 CDHIST = [("~", os.getcwd() )]
 
 def cd(path = ".."):
-    """cd: int -> hitory cd path in cdh; string -> cd to this path""" 
+    """
+        cd(path = ".." : int | string)
+        cd: change working directory
+        two mode:
+            int -> hitory cd path in cdh;
+            string -> cd to this path
+    """ 
 
     def _cd_helper():
         #config.cdh.clear()
@@ -85,7 +109,9 @@ def cd(path = ".."):
 
 
 def ls(path=".", p=""):
-    """shell: ls 
+    """
+       ls(path=".", p="")
+           list all files or directories in "path"
        p = [r,d,f]
        r: recursive ls sub dir
        f: return only files
@@ -109,10 +135,18 @@ def ls(path=".", p=""):
     return ans
 
 def dirMap(func, dir_path, p="f"):
-    """dirMap( func, dir_path, p="f" )
-    ans = func(f) => eg: func(ls(dirs_path[0])[0])
-    given a dir_path, apply func to all files in this dir 
-    p is same flag para in ls function"""
+    """
+        dirMap(func: function, dirpath: string, p="f" )
+            apply "func" in all files or directories
+
+           p = [r,d,f]
+           r: recursive ls sub dir
+           f: return only files
+           d: return only directories
+
+       return:
+           [func(f1), func(f2), ..]
+    """
     ans = []
     for f in ls(dir_path, p):
         val = func(f)
@@ -121,10 +155,17 @@ def dirMap(func, dir_path, p="f"):
     return ans
 
 def dirsMap(func, dirs_path, p="f"):
-    """dirsMap( func, dirs_path, p="f" )
-    ans = func(dir_path, f) => eg: func(dirs_path[0], ls(dirs_path[0])[0])
-    given dirs_path, apply func to all files in all dirs
-    p is same flag para in ls function"""
+    """
+        dirsMap(func: function, dirspath: iterable[string], p="f" )
+          given list of dirpath, apply func to all files in all dirs
+          for dir in dirspath:
+              dirMap(func, dir, p)
+
+           p = [r,d,f]
+           r: recursive ls sub dir
+           f: return only files
+           d: return only directories
+    """
     ans = []
     for dir_path in dirs_path:
         for f in ls(dir_path, p):
@@ -145,14 +186,22 @@ class os_return_obj:
             return "shell error code %d\n"%self.returncode
 
 def osCall(sh):
+    """
+        osCall(sh: string)
+        run a bash command
+    """
     out_bytes = subprocess.run(sh, shell=True, stderr=subprocess.STDOUT)
     return os_return_obj(out_bytes.stdout, out_bytes.returncode)
 
 def ll(path):
+    """
+        same: linux ls -al
+    """
     osCall("ls -al %s"%path)
 
 def mkdir(path, mode=0o777, p=""):
-    """shell: mkdir
+    """
+       mkdir(path, mode=0o777, p="")
        mode:  permission default 0777
        p = [r]  r recursive mkdir
     """
@@ -163,9 +212,11 @@ def mkdir(path, mode=0o777, p=""):
         os.mkdir(path, mode)
 
 def rm(fpath, p=""):
-    """shell: rm
-       p = [r]  
-       r recursive remove
+    """
+       remove(fpath: string, dst: string, p="")
+       remove a file or directory
+
+       p = [r]  remove directory
     """
     fpath = path_expand(fpath) 
     if len(fpath) < 2: return
@@ -184,9 +235,11 @@ def cptree(src, dst, symlinks=False, ignore=None):
             shutil.copy2(s, d)
 
 def cp(src, dst, p=""):
-    """shell: cp
+    """
+       cp(src: string, dst: string, p="")
+       copy a file or directory to target path
        p = [r]  
-       r recursive cp
+       r recursively copy
     """
     if "r" in p and isDir(src):
         cptree(src, dst)
@@ -210,7 +263,9 @@ def mv_directory(src, dst):
             shutil.move(src_file, dst_dir)
 
 def mv(src, dst, p=""):
-    """shell: mv
+    """
+       mv(src: string, dst: string, p="")
+       move a file or directory to target path
        p = [r]
        r: move directory recursively
     """
@@ -220,10 +275,11 @@ def mv(src, dst, p=""):
         mv_directory(src, dst)
 
 def find(name, dir_path="." , p="r"):
-    """shell: find
-       name: to find name
-       dir_path: find in this directory
-       p = [r]  recursive find sub dirs
+    """
+        find(name: string, dirpath="." , p="r")
+        name: the name to find 
+        dirpath: find in this directory
+        p = r    recursive find sub dirs
     """
     files = ls(dir_path, p)
     ans = []

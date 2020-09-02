@@ -29,6 +29,7 @@ keywords = {
     "assert" :  "ASSERT",
     "del" :  "DEL",
     "sh" :  "SH",
+    "help": "HELP",
     "cd" :  "CD",
     "catch": "CATCH",
     "catched": "CATCHED",

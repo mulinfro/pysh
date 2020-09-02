@@ -195,6 +195,14 @@ class AST():
         check_expr_end(stm)
         return {"type": "DEL", "vars": var_list["names"], "msg":"del " + var_list["msg"] }
 
+    def ast_help(self, stm):
+        tkn = stm.next()
+        valid = not line_eof(stm) and stm.peek().tp == "VAR"
+        syntax_cond_assert(valid, "Usage: help {function name}")
+        funcname = stm.next().val
+        check_expr_end(stm)
+        return {"type": tkn.tp, "name": funcname , "msg": tkn.val + " " + funcname}
+
     def ast_sh_or_cd(self, stm):
         tkn = stm.next()
         expr = self.ast_try_pipe(stm)
@@ -273,6 +281,8 @@ class AST():
             return self.ast_return_raise(stm)
         elif stm.peek().tp in [ "SH", 'CD']:
             return self.ast_sh_or_cd(stm)
+        elif stm.peek().tp == "HELP":
+            return self.ast_help(stm)
         else:
             return self.ast_try_assign(stm)
 

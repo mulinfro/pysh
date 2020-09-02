@@ -106,11 +106,21 @@ def parse_expr_or_command(node):
         val = parse_sh(node)
     elif node["type"] == "CD":
         val = parse_cd(node)
+    elif node["type"] == "HELP":
+        val = parse_help(node)
     elif node["type"] == "RAISE":
         val = parse_raise(node)
     else:
         val = parse_pipe_or_expr(node)
     return val
+
+def parse_help(node):
+    tp, obj = parse_var(node)
+    if tp == "VAL":
+        return lambda env: obj(env).__doc__
+    else:
+        Error(node["msg"])
+
 
 def parse_pipe_or_expr(node):
     if node["type"] == "PIPE":

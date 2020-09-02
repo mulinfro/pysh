@@ -274,8 +274,15 @@ def replace(pat, repl, line, cnt=-1, p=""):
         return re.sub(pat, repl, line, cnt)
 
 def cat(iterable, p="utf-8", errors='ignore'):
-    """ shell: cat
-        input: a single path or a list of pathes
+    """ 
+       cat(iter: string | List[string], p="utf-8", errors='ignore')
+       input: a single path or a list of pathes
+
+       return: Lazyed!! lines
+       example:
+           cat("file1.txt")
+           cat(["file1.txt", "file2.txt", "file3.txt"], "gbk")
+
     """
     if type(iterable) == str: iterable = [iterable]
     for path in iterable:
@@ -384,4 +391,21 @@ def uniqBy(iterable, key=lambda x:x):
     return list(dic.values())
 
 def uniqKvBy(iterable, key=lambda x:x):
-    return list(uniqBy(iterable, key))
+    """
+        uniqKvBy(iter: iterable, key=func)
+            inplaced; won't change relative position
+            key function to identity 
+            return [ (key(ele), ele )]
+            
+        args:
+            iter = "abbcdd"; key = L x: {{"b":"c"}.get(x, x)}
+        return: 
+            [('a', 'a'), ('c', 'b'), ('d', 'd')]
+    """
+    dic = collections.OrderedDict()
+    for x in iterable:
+        key_v = key(x)
+        if key_v not in dic:
+            dic[key_v] = x
+    return list(dic.items())
+    
