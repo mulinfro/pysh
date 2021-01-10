@@ -1,7 +1,7 @@
 
 # pysh
 
-pysh是兼具`shell`, `python`和函数式编程特点的解释器。
+pysh是兼具`shell`, `python`和函数式编程特点的脚本语言。
 - `shell`的特点方便在交互模式下写命令, 方便与操作系统交互，比如cd, IO, vim等；
 - python有丰富的第三方库，同时语法灵活，是使用最多的脚本语言之一;
 - 函数式编程的特性，能够更加高效的组织代码，使pysh表达能力更强，能写出比python简短多的代码。
@@ -12,7 +12,12 @@ pysh是兼具`shell`, `python`和函数式编程特点的解释器。
 
 ## 主要特性
 
-pysh语法和数据结构整体继承自python， 下面是一些新增的主要特性
+1. 交互式语言
+2. pysh语法和数据结构整体继承自python， 下面是一些新增的主要特性
+3. 在脚本中可以直接调用shell命令
+4. 引入函数式编程的特性，提高代码灵活性
+6. 管道和IO重定向，方便灵活
+7. 大量实用的内置函数，用户交互更简单 
 
 #### 调用shell命令
 "$"后面直接接bash命令; `sh`关键字调用命令; 
@@ -214,72 +219,76 @@ import "/home/user/ll/cmds.psh"     # 用法cmds.xxx
 import "/home/user/ll/emath.py" as mh   # 用法mh.xxx  
 ```
 
-## Examples
 
-```python
-    lst = [1,2,8,1:5, 10:1:-2]
-    def qsort(lst)
-         if (len(lst) <= 1)
-             return lst
-         end
 
-         leftpart = (filter@ ( _ < lst[0])) (lst) | list
-         rightpart = filter(_ > lst[0], lst) | list
-         eqpart = filter(L(x): x == lst[0], lst) | list
-         return  qsort(leftpart) + eqpart + qsort(rightpart)
-    end
-    file = "test.txt"
-	# 把test文件去除空行，然后每50行保存到不同的文件下
-    line_chunks = cat(file) | filter(L(x): len(x.strip()) >0, _ ) | chunks(50, _)
-    for(ck in zipWithIndex(line_chunks))
-        ck[0] &> "%d.txt"%ck[1]
-    end
+## Usage
+```sh
+python3 repl.py                  # open a interactive console
+python3 repl.py test.psh params  # run a psh file, main function is entry point
+
+可以配置alias别名, 使用起来跟python一样
+alias pysh = 'python3 ${path}/repl.py'
+pysh                             # open a interactive console
+pysh test.psh params             # run a psh file
 ```
 
 ## Requirements
+
 - python 3.5+
 - readline[optional]
 
-## Usage
+> 命令行模式下， readline模块可以支持Vi编辑命令, 支持Tab自动补全等功能
 
-```sh
-python3 repl.py      # open a interactive console
-python3 repl.py test.psh params  # run a psh file, main function is entry point
+## 数据结构和语法
+
+- pysh是一个解释器，会把新的语言脚本转换成python代码执行，所以数据结构与python基本一致
+- 语法上整体差别比较大，表达式层面与python语法差不多，额外增加函数式语言和管道的特性， 取消了缩进等； 具体见`SYNTAX.md`文件
+
+
+## Examples
+
+例子1， 代替shell
+```python
+
+
 ```
-命令行模式下支持Vi mode
 
-支持Tab自动补全
+例子2， 函数式语言特性
+```python
+    def qsort(lst)
+        if len(lst) <= 1
+            return lst
+        end
 
-## 函数介绍
-
-|id| functions | describe |
-|---| :------------: |:---------------:|
-|1| take, takeWhile, drop, dropWhile |  describe |
-|2| map,_map, filter, FM, MF, mmap, dmap, colMap | _map:非lazed, FM = filter&map, MF与FM相反, mmap = map&map, dmap = (map1, map2) , colMap= map selected cols element  | 
-|3| groupBy, countBy, groupMap, mapValues, flat, flatMap, foldl  |  foldl=reduce, flat= [[..],[..]..] -> [...]; flatMap=flat&map, mapValues对dict value的map，会修改原dict |
-|4| zip2, zip3, zipWithIndex, unzip, chunks, _splitList | zip functions |
-|5| gen, slf, repeat, _if, foreach, _while, _rSel, _colSel | slf返回自身, _colSel = L(x)：x[...]  |
-|6 | pbar, sample, shuf , doc, wrapList   | pbar每N个对象display下,用于监控处理进度, doc可以查看每个函数的定义 |
-
-|id| functions | describe |
-|---| :------------: |:---------------:|
-|1 | _format, _list_format, _tojson, _dumps |  字符串格式化; 建议直接将python对象dump成可解析的json格式  |
-|2 | _grep, _egrep , _extract, _replace, _strip, _split  |  文本处理函数，p参数中带"v"则使用正则匹配 |
-|3 | wc, cat, more, head, uniq, uniqBy, ksort  |  功能和对应的shell命令相似|
-|4 | pwd, is_file, is_dir, ls, mkdir, rm, cp, mv, find | 功能和对应的shell命令相似, 参数p="r"代表递归子目录；建议可以使用$或sh直接调用shell命令 |
-
-"_"开头的函数(除了`_if`, `_map`与map不是对应)都有一个对应的不带下划线的函数，方便批量处理，
-func会遍历一个可迭代对象，并调用_func, `func = map@ _func(...)`; 
-`grep, egrep, colSel, list_format, format, extract, replace, tojson, dumps, strip, split, rSel`
+        # @可以构造偏函数， func2 = func@a = func(a, ..)
+        # _ 表示匿名函数中参数, _ < 1 == lambda x: x < 1
+        left  = lst | filter@ _ < lst[0] | list
+        right = lst | filter@ _ > lst[0] | list
+        eqs   = filter(_ == lst[0], lst) | list
+        return  qsort(left) + eqs + qsort(right)
+    end
 
 
-` wrapList, take, takeWhile, drop, dropWhile, map, filter, filter_not, flat, flatMap, chunks, zip2,zip3, zipWithIndex, FM, MF, mmap, dmap, colMap`
-这些函数是惰性求值的(lazyed)， 返回结果是一个生成器对象，有的时候希望立刻得到所有值，有两种方式，一种是 `map(..) | list`, 另一种方式是用带前缀下划线”_“的版本,如 `_map(..)`;  
+    # 1:5 == range(1, 5)
+    lst = [1,2,8, 1:5, 10:1:-2]
+    qsort(lst) 
+    输出： [1, 1, 2, 2, 2, 3, 4, 4, 6, 8, 8, 10]
+```
 
-`_wrapList, _take, _takeWhile, _drop, _dropWhile, _map, _filter, filter_not, _flat, _flatMap, _chunks, _zip2, _zip3, _zipWithIndex, _FM, _MF, _mmap, _dmap, _colMap`
-            
-值得注意， 上面和下面的带下划线的函数与其对应不带下划线的函数间的关系是有差异的
-			
-## TODO
-1. 补充文档注释
-2. 命令行模式下，可多行编辑
+例子3, 管道, IO重定向和内置函数
+```python
+    # word count
+    file = "test.txt"
+    # 逐行读入文件, 按tab分割, flatten, 转成小写字母, 计数, 过滤空字符串 
+    # 最后返回 the:111,  good:10, ...； 需要注意有些函数如filter是惰性的， 通过list强制完成所有计算
+    # ~ 符号会提升一个函数， ~func 效果等价于 map@func
+    words = cat(file) | ~split@"\t" | flat | map@_.lower() | count | items | filter@L x: len(x.strip()) >0 | list
+    # 按照数量逆序排序
+    words_sorted = words | sort(_, key=L x: -x[1])
+
+	# 把test文件去除空行，然后每50行保存到不同的文件下
+    line_chunks = cat(file) | filter@L x: len(x.strip()) >0 | chunks@50
+    for ck in zipWithIndex(line_chunks)
+        ck[0] &> "%d.txt"%ck[1]
+    end
+```
