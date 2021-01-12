@@ -1,225 +1,24 @@
 
 # pysh
 
-pysh是兼具`shell`, `python`和函数式编程特点的脚本语言。
-- `shell`的特点方便在交互模式下写命令, 方便与操作系统交互，比如cd, IO, vim等；
-- python有丰富的第三方库，同时语法灵活，是使用最多的脚本语言之一;
-- 函数式编程的特性，能够更加高效的组织代码，使pysh表达能力更强，能写出比python简短多的代码。
-依本人的实践经验，10到20行的python文本处理脚本，pysh常常只需要几行pipeline就能解决
+`pysh`是融合了`shell`, `python`和`函数式编程`特点的脚本语言。
+- `shell`是一种命令语言，可以方便地与操作系统交互；但语言本身比较"弱", 且语法比较"另类"， 难处理复杂需求
+- `python`有灵活的数据结构，有丰富的第三方库，是使用最多的脚本语言之一;  但在命令行模式下不太方便
+- `函数式编程的特性`，能够更加高效的组织代码， 写出简短的表达能力更强的代码
 
- **如果你在开发过程中有大量的数据处理需求，花半小时了解下，你会发现pysh是一把利器！**
+`pysh`融合了其各自的优点， 是一种在命令行模式下可以便捷地处理数据， 操作文件等。
+依本人的实践经验，10到20行的python文本处理脚本，pysh常常只需要几行pipeline就能解决。
+如果你对shell命令及参数不熟悉， 或在开发过程中有大量的数据处理需求，花半小时了解下， 可能会对你有用。
 
 
 ## 主要特性
 
-1. 交互式语言
-2. pysh语法和数据结构整体继承自python， 下面是一些新增的主要特性
-3. 在脚本中可以直接调用shell命令
-4. 引入函数式编程的特性，提高代码灵活性
-6. 管道和IO重定向，方便灵活
-7. 大量实用的内置函数，用户交互更简单 
-
-#### 调用shell命令
-"$"后面直接接bash命令; `sh`关键字调用命令; 
-```python
-$ cd /user/xxx/work | ls | grep py
-$ vim "test.psh"
-cmd = " rm %s"
-files = ls(".", 'rf') | grep@".tmp"
-# sh 关键字
-for( f in files)
-    sh cmd % f   # 删除目录,子目录下所有tmp文件
-end
-# cd 关键字
-cd "/home/user/" + "docs"
-CDHIST   # 全局变量，记录最近访问的目录列表
-cd 1  # cd 1 == cd CDHIST[1][1]
-``` 
-
-`os_call`调用shell命令的函数，有返回值
-```python
-  r = os_call("python3 run.py")
-  if(r.returncode != 0)
-      print("Error in: run.py")
-  end
-```
-
-#### shell命令python函数化
-为了简化原始shell命令的参数记忆，重写的命令只实现了原shell命令的主要功能，再搭配上少量的常用可选参数; 尽量将用法简单化
-```python
-grep("world", "hello world")
-cat("/home/user/doc/*")  # lazy values 
-ls("/home/user/", "f")   # "f" is flag, will return only files
-```
-
-#### 惰性求值
-惰性求值主要是性能上的考虑，利用的是python的generator机制, 基本上文本处理相关的shell命令，如`cat, grep, replace, extract, more`等，都应用了惰性求值的特性，这样在处理大文件时，pipeline操作不容易遇到瓶颈；
-
-
-有两个辅助函数：
-- `gen` 输入一个可迭代对象返回一个生成器
-- `repeat` 输入一个函数，返回一个执行N次的生成器，N==-1则为无限次
-
-> 需要注意的是这些函数返回值必须先取出来才能使用, 比如`"  abc " | strip | next`
-
-
-#### FP
-匿名函数，偏函数, 函数组合, 高阶函数的使用，能写出高效简洁的代码, 常用高阶函数如 `map, mmap, filter, flat, flatMap, fold` 等 
-```python
-a = L(x, y): x + y  # 匿名函数 L == lambda
-L(x, y, z): {t = x*2, t > y and t < z}   # block expr, last expr value as output
-_ > 2 ** 3  # L(x): x>2**3
-len(_) > 2  # L(x): len(x) > 2
-foo(x,_)    # L(y): foo(x, y)
-b = a@1     # 函数组合, L(1, y): 1 + y;  b(2) == 3
-map@ len # 给定list求每个元素的长度
-cat("nnn.txt") | map( _.split(), _) | flatMap@ _.strip(',.!"')  | uniq  # list of string 的词汇表
-```
-
-#### Pipe & IO
-- IO重定向到文件：`&>, &>>`
-- 对数据的格式化输入输出，常用函数：`format, list_format, tojson, dumps`等
-- 通过管道把不同函数组合起来
-```python
- # 从每行都是一个json字符串的文件中解析出json data，并选择["color","size"]两个字段，重新写入新的文件
-cat("josn.log") | tojson |  colSel(["color","size"], _) | dumps &> "new_json.log"
- # 统计目录下所有py源文件中的函数定义的数量
-cat("source/*") | egrep("^def\s", _) | wc 
- # 输出目录下所有py源文件中的函数名称
-cat("source/*") | egrep("^def\s", _) | extract( "def\((\w+)\)", _) | format("{0}", _ ) | list
- 
- 
- # NLP中的一个常见任务，把分词文件映射成one-hot形式
- # 输入文件格式，空格分开的句子 "knowledge is power"  =>  输出是"100 2 3"这种格式
- # 并且要统计词频，只取top 10000的高频词，不在高频词中的当作UNK，映射到2
- word_count = cat("input.txt") | split@" " | flatMap @ slf | mapValues@ len | list 
- sorted(word_count, key=L(x):x[1], reverse = True)
- word_count | colSel@0 | zipWithIndex(_, 10) | format@ "{0}\t{1}" &> "words"      # word: index file;  maping start from 10
- word_idx_dict = cat("words") | take@10000 | split@"\t" | dict      # 只使用top10000高频词
- cat("input.txt") | split@" " | mmap@int | mmap@ word_idx_dict.get(_, 2)  | list_format@"{0}"  &>  "output.txt"    #  不在10000个词中的词用2代替，
-  
-```
- 
-#### 模式匹配
-```python
-case data_match(x,y)
-    "hello", True => ”matched values" # 值匹配, 匹配Num, String, Bool, None等
-    99, _ => "a == 99, y == anything"   #  
-    [ax,bx,[]], (ay,by)  => {"len(x) == 2, len(y) == 2", (ax+ay, bx + by) } #  {} block expr, 最后一个表达式的值作为整个表达式的值
-    [1,[2,3],xs],("food", ("music", c)) => "x==[1,[2,3],...], y==("food", ("music", anything))"     #   xs = x[2:], c=y[1][1]
-    if x+y>100 => {"conditional statement match", x+y }
-    otherwise => {print("not matched"), None}     # 万能匹配
-end
-
-```
-
-## 数据结构
-
-#### 与python基本一致
-
-```python
-"String" 
-"hello world!" 
-'joes\'s apple' 
-""" multiline "line" ... line """
-
-"Tuple"   
-(1,2,3) 
-(1+2, len("scala"))
-
-"List"    
-[1, lambda(x): x+1, [2,3,4]] 
-[0, 2:100:2, 100] == [0] + list(range(0, 100, 2)) + [100] 
-
-"Dict"
-{1:'a', 'c':3}
-
-"Expression"
-fl = L(x,y,z): x+y    # L == lambda
-fl2 = lambda (x,y): x * y  # 匿名函数
-add_one = fl(_, 1)  # 偏函数
-2/2 + 2/3.0 -(5.2 + 2 * add_one(2) + fl2(2, -+-3))  # -15.5333333
-```
-
-#### 不同之处
-
-- tuple语法上不支持 `(1,)` 这种长度为1的tuple，想用可以用`tuple([1])`替代
-- list支持 start:stop:[, step] => range(start, stop, step)
-- 支持一次取多值， 比如：
-```python
-lst = [0:100]          # [1,2,3,..,99]
-lst[1,3,5] == [1,3,5]  #True
-dict([(1,'a'),(3,'c')]) [1,3] == ['a', 'c']   # True
-```
-
-
-## 关键词和内置函数
-
-1.  `#`:表示缩进
-2.  支持python的所有内置函数
-3.  关键词列表：def, is, in, if, else, elif, for, while, break, continue, return, lambda, L, True, False, None, _ , assert, del, sh
-4.  操作符列表：and, or, not, +, -, *, **, /, //, %, =, :=, $, |, . , &>, &>>, >, >=, <, <=, !=, ==, @
-
-#### 除了python的关键词与操作符外， 额外增加了一些操作符
-
-- `$`: 代表执行原生的shell命令；比如 `$ls; $cat file | grep xxx`  注意**$** 会fork一个新的子进程运行命令; 所以像$cd这样的命令在当前进程不会生效
-- `sh` 关键字实际效果跟`$`一样， 区别是`sh`后面是表达式（返回结果是string即可）， `$`后面直到行尾的都是shell命令的一部分，类似于宏
-- `:=`: 代表赋值给全局变量; 功能上替换了python的global关键字
-- `&`, `&>>`:  IO重定向，功能上与shell的 ">, >>" 一样， 方便快速输出到文件
-- `|`: pipe功能,前面的值当作后面函数的输入， `a | b | c | d = d(c(b(a)))`
-- `L`: 等价于lambda关键字，主要为了少打点字， 注： 与python不同的是lambda后面的参数必须用小括号包起来
-- `_`: 参数占位符，方便定义偏函数， 这个特性结合PIPE非常方便, 
-- `@`: 吸收一个参数返回函数，`f@m == f(m)(..)`
-
-
-## 异常机制
-`catched`
-
-#### 没有支持的python关键词
-
-- try, except, finally, with, pass, yield, class
-- exec用 **$** 代替; global赋值用 **:=** 代替, 还是避免全局变量与本地变量名称一致
-
-
-## Shell & FP
-
-新增函数主要来自于：
-- 1.shell命令的python函数形式；
-- 2.Functional Programing的一些函数
-- 3.其他一些实用函数
-
-具体列表可以看下面 **函数介绍** 的章节
-
-想了解每个函数的用法，可以使用doc函数，比如: `doc(ls)`, 会给出每个函数的定义
-
-
-## 与python不一样的地方
-
-#### 取消了python的缩进，这样在命令行模式下更加灵活
-
-- 不需要缩进, 每个block用end结束
-- lambda, L 的参数必须用小括号包起来
-- if, for, while, def后面的冒号去掉;  eg. if(a > b) pass end;  经常忘打冒号，干脆去掉 
-- 支持`for( x,y in [(1,2),(3,4),(5,6)])`; 但不支持 `x,y = 1,2`
-- 不支持lst[0:]; 可以用lst[0:len(lst)] 替代;  
-
-> 后面两个python语法不支持，主要是实现上相对麻烦
-
-## import机制
-
-1.  支持python的package管理机制，用法跟python的import用法一样
-2.  python源文件，必须是.py格式
-3.  pysh源文件， 必须是.psh格式
-
-```python
-import sys, math
-from os import path
-import "/home/user/ll/emath.py"     # 用法emath.xxx 
-import "/home/user/ll/cmds.psh"     # 用法cmds.xxx  
-import "/home/user/ll/emath.py" as mh   # 用法mh.xxx  
-```
-
-
+1. 可以和shell一样，在控制台交互式运行
+2. 在脚本中可以直接调用shell命令
+3. pysh语法和数据结构整体继承自python， 大家熟悉
+4. 引入函数式编程的特性， 提高代码灵活性
+6. 管道和IO重定向
+7. 有大量实用的内置函数，交互更简单 
 
 ## Usage
 ```sh
@@ -242,26 +41,47 @@ pysh test.psh params             # run a psh file
 ## 数据结构和语法
 
 - pysh是一个解释器，会把新的语言脚本转换成python代码执行，所以数据结构与python基本一致
-- 语法上整体差别比较大，表达式层面与python语法差不多，额外增加函数式语言和管道的特性， 取消了缩进等； 具体见`SYNTAX.md`文件
+- 语法上整体差别比较大，表达式层面与python语法差不多，但额外增加函数式语言和管道的特性， 取消了缩进等； 具体见`SYNTAX.md`文件
 
+## 内置函数
+想了解内置函数的用法，可以使用doc函数，比如: `doc(ls)`, 会给出对应函数的定义和用法
 
 ## Examples
 
-例子1， 代替shell
+##### 例子1: 执行shell命令
 ```python
+    # 两种方式: 1. "$"后面直接接bash命令 
+    # 打开vim, 编辑文件
+    $ vim test.py
+    # 2.`sh`关键字调用命令
+    # 运行test.psh文件
+    cmd = "python3 test.py"
+    sh cmd
 
-
+    # 递归地将所有文件名中的大写字母改为小写字母
+    base_dir = "/home/user/mulinfor"
+    cd base_dir + "/docs"
+    # ls命令， r是递归， f表示只选取文件，不输出目录
+    files = ls(".", "rf")
+    # 导入python的库
+    import os.path as path
+    cmd = "mv %s %s"
+    for f in files
+        dname = path.dirname(f)
+        fname = path.basename(f).lower()
+        sh cmd % (f, path.join(dname + fname))
+    end
 ```
 
-例子2， 函数式语言特性
+##### 例子2: 函数式语言特性
 ```python
     def qsort(lst)
         if len(lst) <= 1
             return lst
         end
 
-        # @可以构造偏函数， func2 = func@a = func(a, ..)
-        # _ 表示匿名函数中参数, _ < 1 == lambda x: x < 1
+        # @ 可以构造偏函数， func2 = func@a = func(a, ..)
+        # _ 表示匿名函数中参数, _ < 1 等价于 lambda x: x < 1
         left  = lst | filter@ _ < lst[0] | list
         right = lst | filter@ _ > lst[0] | list
         eqs   = filter(_ == lst[0], lst) | list
@@ -275,16 +95,18 @@ pysh test.psh params             # run a psh file
     输出： [1, 1, 2, 2, 2, 3, 4, 4, 6, 8, 8, 10]
 ```
 
-例子3, 管道, IO重定向和内置函数
+##### 例子3: 管道, IO重定向和内置函数
 ```python
     # word count
     file = "test.txt"
-    # 逐行读入文件, 按tab分割, flatten, 转成小写字母, 计数, 过滤空字符串 
     # 最后返回 the:111,  good:10, ...； 需要注意有些函数如filter是惰性的， 通过list强制完成所有计算
     # ~ 符号会提升一个函数， ~func 效果等价于 map@func
+    #  逐行读入文件| 按tab分割   | flatten | 转成小写字母| 计数 |过滤空字符串 
     words = cat(file) | ~split@"\t" | flat | map@_.lower() | count | items | filter@L x: len(x.strip()) >0 | list
-    # 按照数量逆序排序
+    # 按照数量逆序排序, L是lambda的简写
     words_sorted = words | sort(_, key=L x: -x[1])
+    # 按照 word \t cnt的格式， 输出到out.txt 文件
+    words_sorted | listFormat &> "out.txt"
 
 	# 把test文件去除空行，然后每50行保存到不同的文件下
     line_chunks = cat(file) | filter@L x: len(x.strip()) >0 | chunks@50
